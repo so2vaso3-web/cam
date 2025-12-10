@@ -284,38 +284,6 @@ if (document.readyState === 'loading') {
 }
 
 
-// Login
-async function login() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-    const errorDiv = document.getElementById('login-error');
-
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            localStorage.setItem('token', data.token);
-            currentToken = data.token;
-            currentUser = data.user;
-            errorDiv.textContent = '';
-            errorDiv.style.display = 'none';
-            showMainContent();
-        } else {
-            errorDiv.textContent = data.error || 'Đăng nhập thất bại';
-            errorDiv.style.display = 'block';
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
-        errorDiv.style.display = 'block';
-    }
-}
 
 // Fetch user info
 async function fetchUserInfo() {
