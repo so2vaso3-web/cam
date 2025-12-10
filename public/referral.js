@@ -223,15 +223,23 @@ window.copyReferralLink = function() {
     }
 };
 
-// Simple notification function if not exists
+// Simple notification function - always works
 function showSimpleNotification(message, isError) {
-    // Try to use existing showNotification
+    // Try to use existing showNotification first (wait a bit for DOM to be ready)
     if (typeof showNotification === 'function') {
-        showNotification(message, isError);
-        return;
+        // Check if notification element exists
+        const notificationEl = document.getElementById('notification');
+        if (notificationEl) {
+            try {
+                showNotification(message, isError);
+                return;
+            } catch (e) {
+                console.error('showNotification error:', e);
+            }
+        }
     }
     
-    // Create simple toast notification
+    // Create simple toast notification as fallback
     const notification = document.createElement('div');
     notification.textContent = message;
     notification.style.cssText = `
@@ -242,38 +250,26 @@ function showSimpleNotification(message, isError) {
         color: white;
         padding: 15px 20px;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         z-index: 10000;
         font-size: 14px;
         font-weight: 500;
-        animation: slideIn 0.3s ease-out;
         max-width: 300px;
+        word-wrap: break-word;
+        transform: translateX(0);
+        opacity: 1;
+        transition: all 0.3s ease-out;
     `;
-    
-    // Add animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-    if (!document.getElementById('notification-style')) {
-        style.id = 'notification-style';
-        document.head.appendChild(style);
-    }
     
     document.body.appendChild(notification);
     
+    // Force reflow
+    notification.offsetHeight;
+    
     // Auto remove after 3 seconds
     setTimeout(() => {
-        notification.style.animation = 'slideIn 0.3s ease-out reverse';
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
