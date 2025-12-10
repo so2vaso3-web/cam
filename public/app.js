@@ -764,9 +764,14 @@ async function loadProfile() {
     }
     
     // Always load referral info when profile is shown
-    if (typeof loadReferralInfo === 'function') {
-        loadReferralInfo();
-    }
+    setTimeout(() => {
+        if (typeof loadReferralInfo === 'function') {
+            console.log('Loading referral info...');
+            loadReferralInfo();
+        } else {
+            console.error('loadReferralInfo function not found!');
+        }
+    }, 300);
 }
 
 // Video recording variables

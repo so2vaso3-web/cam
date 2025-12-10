@@ -2,12 +2,29 @@
 let referralInfo = null;
 let referralChain = [];
 
+// Get current token
+function getCurrentToken() {
+    if (typeof currentToken !== 'undefined' && currentToken) {
+        return currentToken;
+    }
+    if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem('token');
+    }
+    return null;
+}
+
 // Load referral info
 async function loadReferralInfo() {
+    const token = getCurrentToken();
+    if (!token) {
+        console.log('No token found, skipping referral info load');
+        return;
+    }
+    
     try {
         const response = await fetch('/api/referral/info', {
             headers: {
-                'Authorization': `Bearer ${currentToken}`
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -142,10 +159,13 @@ function copyReferralLink() {
 
 // Load referral chain
 async function loadReferralChain() {
+    const token = getCurrentToken();
+    if (!token) return;
+    
     try {
         const response = await fetch('/api/referral/chain', {
             headers: {
-                'Authorization': `Bearer ${currentToken}`
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -191,10 +211,13 @@ function displayReferralChain() {
 
 // Load referral earnings
 async function loadReferralEarnings() {
+    const token = getCurrentToken();
+    if (!token) return;
+    
     try {
         const response = await fetch('/api/referral/earnings', {
             headers: {
-                'Authorization': `Bearer ${currentToken}`
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -236,10 +259,13 @@ function displayReferralEarnings(earnings) {
 
 // Check withdrawal unlock and show popup if locked
 async function checkWithdrawalUnlock() {
+    const token = getCurrentToken();
+    if (!token) return;
+    
     try {
         const response = await fetch('/api/referral/withdrawal-unlock', {
             headers: {
-                'Authorization': `Bearer ${currentToken}`
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -357,16 +383,6 @@ function formatCurrency(amount) {
     }).format(amount);
 }
 
-// Initialize on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (currentToken) {
-            loadReferralInfo();
-        }
-    });
-} else {
-    if (currentToken) {
-        loadReferralInfo();
-    }
-}
+// Initialize on page load - will be called from app.js when profile is shown
+// Don't auto-load here, wait for explicit call
 

@@ -5,11 +5,29 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-const dbPath = path.join(__dirname, 'database.db');
-const db = new sqlite3.Database(dbPath);
+// Allow passing db instance or path
+let db;
+let shouldClose = false;
+
+if (process.argv[2] === '--use-existing-db') {
+  // Use existing db instance passed from server.js
+  const dbModule = require('./server');
+  db = dbModule.getDatabase();
+  if (!db) {
+    // Fallback to creating new connection
+    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
+    db = new sqlite3.Database(dbPath);
+    shouldClose = true;
+  }
+} else {
+  const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
+  db = new sqlite3.Database(dbPath);
+  shouldClose = true;
+}
 
 console.log('🚀 Initializing Referral System Database...\n');
 
+function runInit() {
 // Add referral columns to users table (without UNIQUE constraint first)
 const alterUsersQueries = [
   `ALTER TABLE users ADD COLUMN referral_code TEXT`,
@@ -262,5 +280,19 @@ function finish() {
   console.log('  2. Test referral registration');
   console.log('  3. Check admin panel for referral tree');
   console.log('\n');
-  db.close();
+  if (shouldClose) {
+    db.close();
+  }
 }
+
+// Export for use in server.js
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { initReferralDB: function(dbInstance) {
+    db = dbInstance;
+    shouldClose = false;
+    // Run initialization
+    runInit();
+  }};
+}
+
+function runInit() {
