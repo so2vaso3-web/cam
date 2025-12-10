@@ -1815,6 +1815,9 @@ select option {
     z-index: 10001;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .btn-capture:hover {

@@ -1233,24 +1233,38 @@ async function openCameraCapture(type) {
                 }
                 captureButton.parentNode.replaceChild(newButton, captureButton);
                 
-                // Add event listener (both onclick and addEventListener will work)
-                newButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('=== BUTTON CLICKED (event listener) ===');
-                    console.log('Type:', type);
-                    console.log('Event:', e);
-                    capturePhotoFromCamera(type, e);
-                }, { once: false, passive: false });
+                // Handle capture with both click and touch
+                let isCapturing = false;
                 
-                // Also add touch event for mobile
-                newButton.addEventListener('touchend', (e) => {
+                const handleCapture = (e) => {
+                    if (isCapturing) {
+                        console.log('Already capturing, ignoring...');
+                        return;
+                    }
+                    
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('=== BUTTON TOUCHED (touch event) ===');
+                    isCapturing = true;
+                    
+                    console.log('=== BUTTON PRESSED ===');
                     console.log('Type:', type);
+                    console.log('Event type:', e.type);
+                    console.log('Event:', e);
+                    
+                    // Visual feedback
+                    newButton.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        newButton.style.transform = '';
+                        isCapturing = false;
+                    }, 300);
+                    
                     capturePhotoFromCamera(type, e);
-                }, { once: false, passive: false });
+                };
+                
+                // Add multiple event types for maximum compatibility
+                newButton.addEventListener('click', handleCapture, { passive: false });
+                newButton.addEventListener('touchend', handleCapture, { passive: false });
+                newButton.addEventListener('pointerup', handleCapture, { passive: false });
                 
                 console.log('Capture button event listeners added for type:', type);
                 console.log('Button element:', newButton);
