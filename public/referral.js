@@ -175,8 +175,12 @@ window.copyReferralCode = function() {
     
     const code = codeInput.value;
     
-    // Use modern Clipboard API
-    if (navigator.clipboard && navigator.clipboard.writeText) {
+    // Check if we're on localhost or non-HTTPS - use fallback immediately
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHTTPS = window.location.protocol === 'https:';
+    
+    // Use modern Clipboard API only on HTTPS (not localhost)
+    if (!isLocalhost && isHTTPS && navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code).then(() => {
             if (typeof showNotification === 'function') {
                 showNotification('Đã sao chép mã giới thiệu!', false);
@@ -189,7 +193,7 @@ window.copyReferralCode = function() {
             fallbackCopy(code);
         });
     } else {
-        // Fallback for older browsers
+        // Always use fallback on localhost or non-HTTPS
         fallbackCopy(code);
     }
 };
@@ -204,8 +208,12 @@ window.copyReferralLink = function() {
     
     const link = linkInput.value;
     
-    // Use modern Clipboard API
-    if (navigator.clipboard && navigator.clipboard.writeText) {
+    // Check if we're on localhost or non-HTTPS - use fallback immediately
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHTTPS = window.location.protocol === 'https:';
+    
+    // Use modern Clipboard API only on HTTPS (not localhost)
+    if (!isLocalhost && isHTTPS && navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(link).then(() => {
             if (typeof showNotification === 'function') {
                 showNotification('Đã sao chép link giới thiệu!', false);
@@ -218,7 +226,7 @@ window.copyReferralLink = function() {
             fallbackCopy(link);
         });
     } else {
-        // Fallback for older browsers
+        // Always use fallback on localhost or non-HTTPS
         fallbackCopy(link);
     }
 };

@@ -2188,6 +2188,7 @@ async function submitVerification() {
     
     const errorDiv = document.getElementById('verification-error');
     const successDiv = document.getElementById('verification-success');
+    const submitBtn = document.getElementById('submit-verification-btn') || document.querySelector('#submit-section button');
     
     errorDiv.textContent = '';
     successDiv.style.display = 'none';
@@ -2197,34 +2198,84 @@ async function submitVerification() {
         return;
     }
     
-    try {
-        const formData = new FormData();
-        if (cccdFront) formData.append('cccd_front', cccdFront);
-        if (cccdBack) formData.append('cccd_back', cccdBack);
-        if (faceVideo) formData.append('face_video', faceVideo);
-        if (facePhoto) formData.append('face_photo', facePhoto); // Include face photo
-        
-        const response = await fetch('/api/verification/upload', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${currentToken}`
-            },
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            successDiv.textContent = data.message || 'Gửi xác minh thành công!';
-            successDiv.style.display = 'block';
-            errorDiv.textContent = '';
-            loadVerificationStatus();
-        } else {
-            errorDiv.textContent = data.error || 'Gửi xác minh thất bại';
+    // Disable submit button to prevent double submission
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang gửi...';
+    }
+    
+    // Retry logic with timeout
+    const maxRetries = 3;
+    let retryCount = 0;
+    const timeout = 60000; // 60 seconds timeout
+    
+    while (retryCount < maxRetries) {
+        try {
+            const formData = new FormData();
+            if (cccdFront) formData.append('cccd_front', cccdFront);
+            if (cccdBack) formData.append('cccd_back', cccdBack);
+            if (faceVideo) formData.append('face_video', faceVideo);
+            if (facePhoto) formData.append('face_photo', facePhoto); // Include face photo
+            
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            const response = await fetch('/api/verification/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: formData,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                successDiv.textContent = data.message || 'Gửi xác minh thành công!';
+                successDiv.style.display = 'block';
+                errorDiv.textContent = '';
+                loadVerificationStatus();
+                
+                // Re-enable button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Gửi Xác Minh';
+                }
+                return; // Success, exit retry loop
+            } else {
+                // Server error - don't retry
+                errorDiv.textContent = data.error || 'Gửi xác minh thất bại';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Gửi Xác Minh';
+                }
+                return;
+            }
+        } catch (error) {
+            retryCount++;
+            console.error(`Error submitting verification (attempt ${retryCount}/${maxRetries}):`, error);
+            
+            if (error.name === 'AbortError') {
+                errorDiv.textContent = `Lỗi: Quá thời gian chờ (${timeout/1000}s). ${retryCount < maxRetries ? 'Đang thử lại...' : ''}`;
+            } else {
+                errorDiv.textContent = `Lỗi kết nối. ${retryCount < maxRetries ? 'Đang thử lại...' : 'Vui lòng thử lại sau.'}`;
+            }
+            
+            if (retryCount < maxRetries) {
+                // Wait before retry (exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+            } else {
+                // All retries failed
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Gửi Xác Minh';
+                }
+            }
         }
-    } catch (error) {
-        console.error('Error submitting verification:', error);
-        errorDiv.textContent = 'Lỗi kết nối';
     }
 }
 
