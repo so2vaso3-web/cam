@@ -1686,21 +1686,24 @@ window.capturePhotoFromCamera = function(type, event) {
                         }
                         // Use data URL for preview (faster)
                         const imageUrl = dataUrl || URL.createObjectURL(file);
-                        preview.innerHTML = `
+                        
+                        // Create preview HTML
+                        const previewHTML = `
                             <div style="text-align: center; padding: 1.5rem; background: #1a1a1a; border-radius: 12px; margin-top: 1rem; border: 2px solid #667eea;">
                                 <p style="color: #e0e0e0; margin-bottom: 1rem; font-weight: 600; font-size: 1.1rem;">Xem trước ảnh đã chụp:</p>
                                 <img src="${imageUrl}" alt="Ảnh đã chụp" style="max-width: 100%; max-height: 400px; border-radius: 8px; object-fit: contain; border: 2px solid #404040; background: #0a0a0a; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                                 <p style="color: #999; margin-top: 1rem; font-size: 0.85rem;">Kiểm tra: Ảnh có rõ nét? Có đầy đủ 4 góc CCCD không?</p>
                                 <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
-                                    <button onclick="retakePhoto('${type}')" style="padding: 0.75rem 2rem; background: #ff4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
-                                        🔄 Chụp Lại
+                                    <button id="retake-btn-${type}" style="padding: 0.75rem 2rem; background: #ff4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                                        Chụp Lại
                                     </button>
-                                    <button onclick="confirmPhoto('${type}')" style="padding: 0.75rem 2rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
-                                        ✓ Xác Nhận
+                                    <button id="confirm-btn-${type}" style="padding: 0.75rem 2rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                                        Xác Nhận
                                     </button>
                                 </div>
                             </div>
                         `;
+                        preview.innerHTML = previewHTML;
                         console.log('✓ Preview displayed with confirm/retake buttons');
                         
                         // Store data globally for retake/confirm functions
@@ -1708,6 +1711,32 @@ window.capturePhotoFromCamera = function(type, event) {
                             window.capturedPhotos = {};
                         }
                         window.capturedPhotos[type] = { dataUrl, file, imageUrl };
+                        
+                        // Attach event listeners to buttons (AFTER innerHTML is set)
+                        setTimeout(() => {
+                            const retakeBtn = document.getElementById(`retake-btn-${type}`);
+                            const confirmBtn = document.getElementById(`confirm-btn-${type}`);
+                            
+                            if (retakeBtn) {
+                                retakeBtn.addEventListener('click', () => {
+                                    console.log('Retake button clicked for:', type);
+                                    retakePhoto(type);
+                                });
+                                console.log('✓ Retake button listener attached');
+                            } else {
+                                console.error('Retake button not found:', `retake-btn-${type}`);
+                            }
+                            
+                            if (confirmBtn) {
+                                confirmBtn.addEventListener('click', () => {
+                                    console.log('Confirm button clicked for:', type);
+                                    confirmPhoto(type);
+                                });
+                                console.log('✓ Confirm button listener attached');
+                            } else {
+                                console.error('Confirm button not found:', `confirm-btn-${type}`);
+                            }
+                        }, 100);
                     } else {
                         console.error('❌ Preview element not found:', previewId);
                         alert('Lỗi: Không tìm thấy preview element');
@@ -1925,6 +1954,68 @@ async function submitVerification() {
         errorDiv.textContent = 'Lỗi kết nối';
     }
 }
+
+// Retake photo function - GLOBAL
+window.retakePhoto = function(type) {
+    console.log('=== RETAKE PHOTO ===', type);
+    const previewId = `cccd-${type}-preview`;
+    const preview = document.getElementById(previewId);
+    if (preview) {
+        preview.innerHTML = '';
+    }
+    // Clear stored photo
+    if (window.capturedPhotos) {
+        delete window.capturedPhotos[type];
+    }
+    // Clear input
+    const input = document.getElementById(type);
+    if (input) {
+        input.value = '';
+    }
+    // Reopen camera
+    openCameraCapture(type);
+};
+
+// Confirm photo and go to next step - GLOBAL
+window.confirmPhoto = function(type) {
+    console.log('=== CONFIRM PHOTO ===', type);
+    const photoData = window.capturedPhotos?.[type];
+    if (!photoData || !photoData.file) {
+        alert('Không tìm thấy ảnh đã chụp. Vui lòng chụp lại.');
+        return;
+    }
+    
+    // Set file to input (if not already set)
+    const input = document.getElementById(type);
+    if (input && photoData.file) {
+        try {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(photoData.file);
+            input.files = dataTransfer.files;
+            console.log('✓ File confirmed in input');
+        } catch (e) {
+            console.error('Error setting file:', e);
+        }
+    }
+    
+    // Show success message
+    const previewId = `cccd-${type}-preview`;
+    const preview = document.getElementById(previewId);
+    if (preview) {
+        preview.innerHTML = `
+            <div style="text-align: center; padding: 1rem; background: #1a1a1a; border-radius: 8px; margin-top: 1rem; border: 2px solid #2ed573;">
+                <p style="color: #2ed573; font-weight: 600;">✓ Ảnh đã được xác nhận!</p>
+            </div>
+        `;
+    }
+    
+    // Go to next step
+    setTimeout(() => {
+        if (type === 'cccd-front' || type === 'cccd-back') {
+            goToNextStep();
+        }
+    }, 500);
+};
 
 // Logout
 function logout() {
