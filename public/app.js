@@ -1479,7 +1479,12 @@ async function openCameraCapture(type) {
         
         // Show modal FIRST before setting video source (important for mobile)
         modal.style.display = 'flex';
-        modal.style.zIndex = '10000'; // Ensure modal is on top
+        modal.style.zIndex = '99999'; // Ensure modal is on top
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
         
         // Ensure video attributes for mobile
         video.setAttribute('playsinline', '');
@@ -1627,14 +1632,29 @@ function closeCameraCapture(type) {
     const modal = document.getElementById(`camera-modal-${modalId}`);
     if (modal) {
         modal.style.display = 'none';
+        // Also hide via class if exists
+        modal.classList.remove('active');
     }
     
+    // Stop camera stream
     if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream.getTracks().forEach(track => {
+            track.stop();
+            console.log('Camera track stopped');
+        });
         cameraStream = null;
     }
     
+    // Clear video source
+    const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
+    const video = document.getElementById(`camera-preview-${videoId}`);
+    if (video) {
+        video.srcObject = null;
+        video.pause();
+    }
+    
     currentCameraType = null;
+    console.log('Camera closed and cleaned up');
 }
 
 // Current verification step
