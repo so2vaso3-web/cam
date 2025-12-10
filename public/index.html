@@ -9,8 +9,65 @@
     <link rel="stylesheet" href="bottom-nav.css">
     <link rel="stylesheet" href="icons.css">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <style>
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ed573;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+        .notification.show {
+            display: flex;
+        }
+        .notification.error {
+            background: #ff4444;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .notification-content {
+            flex: 1;
+        }
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
+    <!-- Notification Toast -->
+    <div id="notification" class="notification">
+        <div class="notification-content">
+            <div id="notification-message"></div>
+        </div>
+        <button class="notification-close" onclick="hideNotification()">&times;</button>
+    </div>
     <!-- Top Header -->
     <header class="top-header">
         <div class="container">

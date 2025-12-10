@@ -91,12 +91,13 @@ function getReferralInfoAPI(db, req, res) {
       // Check if referral_code exists, if not generate one
       if (!user.referral_code) {
         const referralSystem = require('./referral-system');
-        const crypto = require('crypto');
-        const newCode = crypto.createHash('md5').update(`${userId}-${Date.now()}`).digest('hex').substring(0, 8).toUpperCase();
+        const newCode = referralSystem.generateReferralCode(userId);
         
         db.run('UPDATE users SET referral_code = ? WHERE id = ?', [newCode, userId], (updateErr) => {
           if (updateErr) {
             console.error('Error generating referral code:', updateErr);
+            // Still continue even if update fails
+            user.referral_code = newCode;
           } else {
             user.referral_code = newCode;
           }

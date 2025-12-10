@@ -181,6 +181,26 @@ db.serialize(() => {
     }
   });
 
+  // Add referral columns if they don't exist
+  const referralColumns = [
+    { name: 'referral_code', type: 'TEXT' },
+    { name: 'referred_by', type: 'INTEGER' },
+    { name: 'referral_level', type: 'INTEGER DEFAULT 0' },
+    { name: 'total_referrals', type: 'INTEGER DEFAULT 0' },
+    { name: 'active_referrals', type: 'INTEGER DEFAULT 0' },
+    { name: 'referral_earnings', type: 'REAL DEFAULT 0' },
+    { name: 'withdrawal_unlocked', type: 'INTEGER DEFAULT 0' },
+    { name: 'vip_status', type: 'INTEGER DEFAULT 0' }
+  ];
+
+  referralColumns.forEach(col => {
+    db.run(`ALTER TABLE users ADD COLUMN ${col.name} ${col.type}`, (err) => {
+      if (err && !err.message.includes('duplicate column')) {
+        console.error(`Error adding ${col.name} column:`, err);
+      }
+    });
+  });
+
   // Tasks table
   db.run(`CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

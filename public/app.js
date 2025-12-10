@@ -121,8 +121,10 @@ async function register() {
                 const newUrl = window.location.pathname;
                 window.history.replaceState({}, '', newUrl);
             }
-            // Show success message with bonus info (silent - no alert)
-            // Bonus info will be shown in balance update
+            // Show success notification with bonus info
+            const bonusAmount = data.signup_bonus || 0;
+            showNotification(`Đăng ký thành công! Bạn đã nhận ${bonusAmount.toLocaleString('vi-VN')} ₫ tiền thưởng đăng ký!`);
+            
             showMainContent();
             errorDiv.textContent = '';
         } else {
