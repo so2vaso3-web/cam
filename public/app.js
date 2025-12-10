@@ -1367,8 +1367,7 @@ window.capturePhotoFromCamera = function(type, event) {
     console.log('Type:', type);
     console.log('Event:', event);
     
-    // ALERT to confirm function is called (remove after testing)
-    alert('Function được gọi! Đang chụp ảnh...');
+    // REMOVED ALERT - function is confirmed working
     
     // Prevent default if event exists
     if (event) {
@@ -1483,19 +1482,29 @@ window.capturePhotoFromCamera = function(type, event) {
         // Wait longer for UI to hide completely on mobile (300ms instead of 150ms)
         setTimeout(() => {
             try {
-                // Set canvas dimensions to match video
+                console.log('=== STARTING CAPTURE PROCESS ===');
+                console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+                
+                // Set canvas dimensions EXACTLY to video dimensions
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
+                console.log('Canvas set to:', canvas.width, 'x', canvas.height);
                 
                 // Get 2D context
                 const ctx = canvas.getContext('2d');
                 
-                // Draw current video frame to canvas
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                console.log('Frame drawn to canvas');
+                // Clear canvas first
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Verify canvas has content (check data URL first)
+                // Draw current video frame to canvas
+                console.log('Drawing video to canvas...');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                console.log('✓ Frame drawn to canvas');
+                
+                // Verify canvas has content IMMEDIATELY
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                console.log('Data URL length:', dataUrl.length);
+                
                 if (dataUrl.length < 100) {
                     console.error('Canvas data URL too short, image might be empty');
                     alert('Ảnh chụp không hợp lệ. Vui lòng thử lại.');
@@ -1506,10 +1515,12 @@ window.capturePhotoFromCamera = function(type, event) {
                     }
                     return;
                 }
-                console.log('Canvas data URL length:', dataUrl.length);
+                
+                console.log('✓ Canvas has valid content, creating blob...');
                 
                 // Convert canvas to blob (JPEG, quality 0.9) - STANDARD METHOD
                 canvas.toBlob((blob) => {
+                    console.log('=== toBlob CALLBACK FIRED ===');
                     if (!blob || blob.size === 0) {
                         console.error('Blob is empty or null');
                         alert('Không thể tạo ảnh. Vui lòng thử lại.');
@@ -1603,24 +1614,26 @@ window.capturePhotoFromCamera = function(type, event) {
                     }, 100);
                     
                     // Validate image
+                    console.log('Checking for validateCCCDImage function...');
                     if (typeof validateCCCDImage === 'function') {
-                        console.log('Validating image...');
+                        console.log('✓ validateCCCDImage found, validating...');
                         validateCCCDImage(file, previewId, `cccd-${type}-error`, (isValid) => {
                             console.log('Validation result:', isValid);
                             if (isValid) {
                                 // Success - close camera and go to next step
-                                console.log('Image valid, closing camera...');
+                                console.log('✓✓✓ Image valid! Closing camera and going to next step...');
                                 closeCameraCapture(type);
                                 
                                 // Go to next step after a short delay
                                 setTimeout(() => {
                                     if (type === 'cccd-front' || type === 'cccd-back') {
+                                        console.log('Going to next step...');
                                         goToNextStep();
                                     }
                                 }, 500);
                             } else {
                                 // Validation failed
-                                console.log('Image validation failed');
+                                console.error('❌ Image validation failed');
                                 if (button) {
                                     button.disabled = false;
                                     button.style.opacity = '1';
@@ -1629,14 +1642,17 @@ window.capturePhotoFromCamera = function(type, event) {
                         });
                     } else {
                         // No validation function - just proceed
-                        console.log('No validation, proceeding...');
+                        console.log('⚠ No validation function, proceeding directly...');
                         closeCameraCapture(type);
                         setTimeout(() => {
                             if (type === 'cccd-front' || type === 'cccd-back') {
+                                console.log('Going to next step (no validation)...');
                                 goToNextStep();
                             }
                         }, 500);
                     }
+                    
+                    console.log('=== CAPTURE PROCESS COMPLETE ===');
                     
                 }, 'image/jpeg', 0.9); // JPEG quality 0.9
                 
