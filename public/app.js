@@ -1994,18 +1994,20 @@ function toggleVerificationForm(event) {
         event.stopPropagation();
     }
     const container = document.getElementById('verification-form-container');
-    const arrow = document.getElementById('verification-arrow');
+    const card = document.getElementById('verification-card');
     
-    if (container.style.display === 'none' || !container.style.display) {
-        container.style.display = 'block';
-        arrow.style.transform = 'rotate(180deg)';
-        // Scroll to form
-        setTimeout(() => {
-            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-    } else {
-        container.style.display = 'none';
-        arrow.style.transform = 'rotate(0deg)';
+    if (container && card) {
+        if (container.style.display === 'none' || !container.style.display) {
+            container.style.display = 'block';
+            card.classList.add('expanded');
+            // Scroll to form
+            setTimeout(() => {
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        } else {
+            container.style.display = 'none';
+            card.classList.remove('expanded');
+        }
     }
 }
 

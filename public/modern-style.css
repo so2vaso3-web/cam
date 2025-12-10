@@ -812,12 +812,12 @@ textarea::placeholder {
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
-/* Verification Section - Modern */
+/* Verification Section - Modern & Compact */
 .verification-card {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
     margin-top: 1rem;
     border: 1px solid var(--border-color);
     cursor: pointer;
@@ -825,17 +825,32 @@ textarea::placeholder {
     user-select: none;
     box-shadow: var(--shadow-sm);
     max-width: 100%;
+    width: 100%;
 }
 
 .verification-card:hover {
-    border-color: rgba(102, 126, 234, 0.5);
-    transform: translateY(-4px);
+    border-color: rgba(102, 126, 234, 0.4);
     box-shadow: var(--shadow-md);
 }
 
+.verification-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.verification-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
 .verification-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     background: var(--primary-gradient);
     border-radius: 8px;
     display: flex;
@@ -846,22 +861,52 @@ textarea::placeholder {
 }
 
 .verification-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     color: white;
+}
+
+.verification-header-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .verification-header-info h3 {
     color: var(--text-primary);
-    font-size: 0.95rem;
-    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.2;
+}
+
+.verification-status {
+    margin: 0;
 }
 
 .verification-header-info .status-badge {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.7rem;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    display: inline-block;
+}
+
+.verification-arrow {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.verification-arrow svg {
+    width: 14px;
+    height: 14px;
+}
+
+.verification-card.expanded .verification-arrow {
+    transform: rotate(180deg);
 }
 
 .status-badge {
