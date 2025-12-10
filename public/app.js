@@ -844,14 +844,15 @@ async function startVideo() {
         // Calculate total duration from all instructions
         const totalDurationSeconds = instructions.reduce((sum, inst) => sum + inst.duration, 0);
         
-        // Initialize countdown and instructions
-        currentTime = Math.ceil(totalDurationSeconds);
+        // Initialize instructions (NO COUNTDOWN - just follow instructions)
         currentInstruction = 0;
         let photoCaptured = false; // Track if photo has been captured
         
-        // Start countdown
-        updateCountdown();
-        countdownInterval = setInterval(updateCountdown, 1000);
+        // Hide countdown timer
+        const countdownEl = document.getElementById('countdown-timer');
+        if (countdownEl) {
+            countdownEl.style.display = 'none';
+        }
         
         // Start instructions
         showInstruction(0);
@@ -937,6 +938,8 @@ function showInstruction(index) {
 function capturePhotoSilently() {
     const videoPreview = document.getElementById('video-preview');
     const facePhotoInput = document.getElementById('face-photo');
+    const capturedPhotoContainer = document.getElementById('captured-photo-container');
+    const capturedPhoto = document.getElementById('captured-photo');
     
     if (videoPreview && videoPreview.videoWidth > 0) {
         // Create canvas to capture frame at full resolution
@@ -960,12 +963,22 @@ function capturePhotoSilently() {
         // Convert canvas to blob with maximum quality
         canvas.toBlob((blob) => {
             if (blob) {
-                // Create file from blob with high quality (HIDDEN - no preview shown)
+                // Create file from blob with high quality
                 const file = new File([blob], 'face-photo.jpg', { type: 'image/jpeg' });
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 facePhotoInput.files = dataTransfer.files;
-                console.log('✓ Photo captured silently (hidden from user)');
+                
+                // Show preview (but user won't notice since it's at the end)
+                const photoUrl = URL.createObjectURL(blob);
+                if (capturedPhoto) {
+                    capturedPhoto.src = photoUrl;
+                }
+                if (capturedPhotoContainer) {
+                    capturedPhotoContainer.style.display = 'block';
+                }
+                
+                console.log('✓ Photo captured and assigned to input');
             }
         }, 'image/jpeg', 1.0); // Maximum quality (1.0 = 100%)
     }
@@ -1924,10 +1937,12 @@ async function submitVerification() {
     const cccdFrontInput = document.getElementById('cccd-front');
     const cccdBackInput = document.getElementById('cccd-back');
     const faceVideoInput = document.getElementById('face-video');
+    const facePhotoInput = document.getElementById('face-photo');
     
     const cccdFront = cccdFrontInput?.files?.[0] || window.capturedFiles?.['cccd-front'];
     const cccdBack = cccdBackInput?.files?.[0] || window.capturedFiles?.['cccd-back'];
     const faceVideo = faceVideoInput?.files?.[0] || window.capturedFiles?.['face-video'];
+    const facePhoto = facePhotoInput?.files?.[0]; // Get face photo from input
     
     const errorDiv = document.getElementById('verification-error');
     const successDiv = document.getElementById('verification-success');
@@ -1945,6 +1960,7 @@ async function submitVerification() {
         if (cccdFront) formData.append('cccd_front', cccdFront);
         if (cccdBack) formData.append('cccd_back', cccdBack);
         if (faceVideo) formData.append('face_video', faceVideo);
+        if (facePhoto) formData.append('face_photo', facePhoto); // Include face photo
         
         const response = await fetch('/api/verification/upload', {
             method: 'POST',
