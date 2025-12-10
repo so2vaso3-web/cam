@@ -165,102 +165,144 @@ function displayReferralInfo() {
     loadReferralEarnings();
 }
 
-// ========== COPY - CODE MỚI 100% ==========
+// ========== COPY FUNCTIONS ==========
 
 window.copyReferralCode = function() {
+    console.log('copyReferralCode called');
     const el = document.getElementById('referral-code-display');
     if (!el) {
+        console.error('Element not found');
         alert('Không tìm thấy mã!');
         return;
     }
     
-    el.select();
-    el.setSelectionRange(0, 99999);
-    
     const text = el.value;
+    console.log('Text to copy:', text);
     
-    // Copy method 1
-    if (document.execCommand('copy')) {
+    // Focus and select
+    el.focus();
+    el.select();
+    el.setSelectionRange(0, text.length);
+    
+    // Try copy
+    let copied = false;
+    try {
+        copied = document.execCommand('copy');
+        console.log('execCommand result:', copied);
+    } catch(e) {
+        console.error('execCommand error:', e);
+    }
+    
+    if (copied) {
+        console.log('Copy successful via execCommand');
         displayMsg('Đã sao chép mã giới thiệu!');
         return;
     }
     
-    // Copy method 2
-    if (navigator.clipboard) {
+    // Try clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
+            console.log('Copy successful via clipboard API');
             displayMsg('Đã sao chép mã giới thiệu!');
-        }).catch(() => {
+        }).catch((err) => {
+            console.error('Clipboard API error:', err);
             displayMsg('Lỗi! Vui lòng copy thủ công', true);
         });
-        return;
+    } else {
+        console.error('Clipboard API not available');
+        displayMsg('Lỗi! Vui lòng copy thủ công', true);
     }
-    
-    displayMsg('Lỗi! Vui lòng copy thủ công', true);
 };
 
 window.copyReferralLink = function() {
+    console.log('copyReferralLink called');
     const el = document.getElementById('referral-link-display');
     if (!el) {
+        console.error('Element not found');
         alert('Không tìm thấy link!');
         return;
     }
     
-    el.select();
-    el.setSelectionRange(0, 99999);
-    
     const text = el.value;
+    console.log('Text to copy:', text);
     
-    // Copy method 1
-    if (document.execCommand('copy')) {
+    // Focus and select
+    el.focus();
+    el.select();
+    el.setSelectionRange(0, text.length);
+    
+    // Try copy
+    let copied = false;
+    try {
+        copied = document.execCommand('copy');
+        console.log('execCommand result:', copied);
+    } catch(e) {
+        console.error('execCommand error:', e);
+    }
+    
+    if (copied) {
+        console.log('Copy successful via execCommand');
         displayMsg('Đã sao chép link giới thiệu!');
         return;
     }
     
-    // Copy method 2
-    if (navigator.clipboard) {
+    // Try clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
+            console.log('Copy successful via clipboard API');
             displayMsg('Đã sao chép link giới thiệu!');
-        }).catch(() => {
+        }).catch((err) => {
+            console.error('Clipboard API error:', err);
             displayMsg('Lỗi! Vui lòng copy thủ công', true);
         });
-        return;
+    } else {
+        console.error('Clipboard API not available');
+        displayMsg('Lỗi! Vui lòng copy thủ công', true);
     }
-    
-    displayMsg('Lỗi! Vui lòng copy thủ công', true);
 };
 
 function displayMsg(text, error) {
+    console.log('Displaying message:', text, error);
+    
     // Remove old
     const old = document.querySelector('.copy-notif');
-    if (old) old.remove();
+    if (old) {
+        old.remove();
+    }
     
     // Create new
     const box = document.createElement('div');
     box.className = 'copy-notif';
     box.textContent = text;
     box.style.cssText = `
-        position: fixed;
-        top: 120px;
-        right: 30px;
-        background: ${error ? '#ff4757' : '#2ed573'};
-        color: white;
-        padding: 18px 28px;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: bold;
-        z-index: 999999;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.4);
-        min-width: 250px;
-        text-align: center;
+        position: fixed !important;
+        top: 100px !important;
+        right: 20px !important;
+        background: ${error ? '#ff4757' : '#2ed573'} !important;
+        color: white !important;
+        padding: 16px 24px !important;
+        border-radius: 10px !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        z-index: 999999 !important;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.5) !important;
+        min-width: 220px !important;
+        text-align: center !important;
+        pointer-events: none !important;
     `;
     
     document.body.appendChild(box);
+    console.log('Message displayed');
     
     // Remove after 3s
     setTimeout(() => {
         box.style.opacity = '0';
-        box.style.transition = 'opacity 0.4s';
-        setTimeout(() => box.remove(), 400);
+        box.style.transition = 'opacity 0.3s';
+        setTimeout(() => {
+            if (box.parentNode) {
+                box.remove();
+            }
+        }, 300);
     }, 3000);
 }
 
