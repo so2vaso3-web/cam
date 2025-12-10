@@ -1634,37 +1634,43 @@ window.capturePhotoFromCamera = function(type, event) {
                         console.warn('⚠ File not in input, but stored in window.capturedFiles');
                     }
                     
-                    // Show preview immediately
+                    // Show preview with CONFIRM/RETAKE buttons (DON'T auto go to next step)
                     const previewId = `cccd-${type}-preview`;
                     const preview = document.getElementById(previewId);
+                    
                     if (preview) {
-                        const imageUrl = URL.createObjectURL(file);
+                        // Use data URL for preview (faster)
+                        const imageUrl = dataUrl || URL.createObjectURL(file);
                         preview.innerHTML = `
-                            <div style="text-align: center; padding: 1rem;">
-                                <img src="${imageUrl}" alt="Ảnh đã chụp" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain; border: 2px solid #667eea;">
-                                <p style="color: #2ed573; margin-top: 0.5rem; font-size: 0.9rem;">✓ Ảnh đã được chụp thành công</p>
+                            <div style="text-align: center; padding: 1.5rem; background: #1a1a1a; border-radius: 12px; margin-top: 1rem; border: 2px solid #667eea;">
+                                <p style="color: #e0e0e0; margin-bottom: 1rem; font-weight: 600; font-size: 1.1rem;">Xem trước ảnh đã chụp:</p>
+                                <img src="${imageUrl}" alt="Ảnh đã chụp" style="max-width: 100%; max-height: 400px; border-radius: 8px; object-fit: contain; border: 2px solid #404040; background: #0a0a0a; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                <p style="color: #999; margin-top: 1rem; font-size: 0.85rem;">Kiểm tra: Ảnh có rõ nét? Có đầy đủ 4 góc CCCD không?</p>
+                                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+                                    <button onclick="retakePhoto('${type}')" style="padding: 0.75rem 2rem; background: #ff4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                                        🔄 Chụp Lại
+                                    </button>
+                                    <button onclick="confirmPhoto('${type}')" style="padding: 0.75rem 2rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                                        ✓ Xác Nhận
+                                    </button>
+                                </div>
                             </div>
                         `;
-                        console.log('Preview displayed with success message');
+                        console.log('✓ Preview displayed with confirm/retake buttons');
+                        
+                        // Store data globally for retake/confirm functions
+                        if (!window.capturedPhotos) {
+                            window.capturedPhotos = {};
+                        }
+                        window.capturedPhotos[type] = { dataUrl, file, imageUrl };
                     } else {
-                        console.warn('Preview element not found:', previewId);
+                        console.error('❌ Preview element not found:', previewId);
+                        alert('Lỗi: Không tìm thấy preview element');
                     }
                     
-                    // Also show alert to confirm
-                    setTimeout(() => {
-                        console.log('✓ Ảnh đã được chụp và lưu thành công!');
-                    }, 100);
-                    
-                    // Close camera and go to next step
-                    console.log('Closing camera and going to next step...');
+                    // Close camera but DON'T go to next step - wait for user to confirm
+                    console.log('Closing camera, waiting for user confirmation...');
                     closeCameraCapture(type);
-                    
-                    // Go to next step after a short delay
-                    setTimeout(() => {
-                        if (type === 'cccd-front' || type === 'cccd-back') {
-                            goToNextStep();
-                        }
-                    }, 1000);
                     
                     console.log('=== CAPTURE PROCESS COMPLETE ===');
                     
