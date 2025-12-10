@@ -962,21 +962,94 @@ app.get('/api/admin/users/:id', authenticateToken, (req, res) => {
   });
 });
 
-// Admin: Get user details
-app.get('/api/admin/users/:id', authenticateToken, (req, res) => {
+// Admin: Get referral tree
+app.get('/api/admin/referral/tree/:userId', authenticateToken, (req, res) => {
+  referralAPI.getReferralTreeAPI(db, req, res);
+});
+
+// Admin: Get all KYC data
+app.get('/api/admin/kyc-data', authenticateToken, (req, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
-  
-  db.get('SELECT id, username, email, phone, balance, verification_status, created_at FROM users WHERE id = ?', [req.params.id], (err, user) => {
+
+  const { search, status } = req.query;
+  let query = `
+    SELECT k.*, u.username, u.email, u.phone, u.created_at as user_created_at
+    FROM kyc_data k
+    JOIN users u ON k.user_id = u.id
+    WHERE 1=1
+  `;
+  const params = [];
+
+  if (search) {
+    query += ` AND (k.cccd_number LIKE ? OR u.phone LIKE ? OR u.email LIKE ? OR k.full_name LIKE ?)`;
+    const searchTerm = `%${search}%`;
+    params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+  }
+
+  if (status) {
+    query += ` AND k.verification_status = ?`;
+    params.push(status);
+  }
+
+  query += ` ORDER BY k.created_at DESC LIMIT 1000`;
+
+  db.all(query, params, (err, kycData) => {
     if (err) {
       return res.status(500).json({ error: 'Database error' });
     }
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json({ user });
+    res.json({ kyc_data: kycData || [] });
   });
+});
+
+// Admin: Export KYC data to Excel
+app.get('/api/admin/kyc-data/export', authenticateToken, (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  const XLSX = require('xlsx');
+  
+  db.all(
+    `SELECT k.*, u.username, u.email, u.phone, u.balance, u.created_at as user_created_at
+     FROM kyc_data k
+     JOIN users u ON k.user_id = u.id
+     ORDER BY k.created_at DESC`,
+    [],
+    (err, kycData) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      // Convert to Excel format
+      const worksheet = XLSX.utils.json_to_sheet(kycData.map(item => ({
+        'User ID': item.user_id,
+        'Username': item.username,
+        'Email': item.email,
+        'Phone': item.phone,
+        'CCCD Number': item.cccd_number,
+        'Full Name': item.full_name,
+        'Date of Birth': item.date_of_birth,
+        'Address': item.address,
+        'Issue Date': item.issue_date,
+        'Issue Place': item.issue_place,
+        'Verification Status': item.verification_status,
+        'OCR Confidence': item.ocr_confidence,
+        'User Balance': item.balance,
+        'Created At': item.user_created_at
+      })));
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'KYC Data');
+      
+      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=kyc-data.xlsx');
+      res.send(excelBuffer);
+    }
+  );
 });
 
 // Admin: Get all verifications
