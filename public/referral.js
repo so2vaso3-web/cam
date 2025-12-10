@@ -165,23 +165,72 @@ function displayReferralInfo() {
     loadReferralEarnings();
 }
 
-// Copy referral code
+// Copy referral code - Use modern Clipboard API
 function copyReferralCode() {
     const codeInput = document.getElementById('referral-code-display');
-    if (codeInput) {
-        codeInput.select();
-        document.execCommand('copy');
-        showNotification('Đã sao chép mã giới thiệu!', false);
+    if (!codeInput) {
+        console.error('Referral code input not found');
+        return;
+    }
+    
+    const code = codeInput.value;
+    
+    // Use modern Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+            showNotification('Đã sao chép mã giới thiệu!', false);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            // Fallback to old method
+            fallbackCopy(code);
+        });
+    } else {
+        // Fallback for older browsers
+        fallbackCopy(code);
     }
 }
 
-// Copy referral link
+// Copy referral link - Use modern Clipboard API
 function copyReferralLink() {
     const linkInput = document.getElementById('referral-link-display');
-    if (linkInput) {
-        linkInput.select();
+    if (!linkInput) {
+        console.error('Referral link input not found');
+        return;
+    }
+    
+    const link = linkInput.value;
+    
+    // Use modern Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+            showNotification('Đã sao chép link giới thiệu!', false);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            // Fallback to old method
+            fallbackCopy(link);
+        });
+    } else {
+        // Fallback for older browsers
+        fallbackCopy(link);
+    }
+}
+
+// Fallback copy method for older browsers
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
         document.execCommand('copy');
-        showNotification('Đã sao chép link giới thiệu!', false);
+        showNotification('Đã sao chép!', false);
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showNotification('Không thể sao chép. Vui lòng sao chép thủ công.', true);
+    } finally {
+        document.body.removeChild(textarea);
     }
 }
 
