@@ -1272,14 +1272,6 @@ async function openCameraCapture(type) {
                 captureButton.addEventListener('pointerup', handleCapture, { passive: false });
                 
                 console.log('✓ Capture button event listeners attached for type:', type);
-                
-                // Add multiple event types for maximum compatibility
-                newButton.addEventListener('click', handleCapture, { passive: false });
-                newButton.addEventListener('touchend', handleCapture, { passive: false });
-                newButton.addEventListener('pointerup', handleCapture, { passive: false });
-                
-                console.log('Capture button event listeners added for type:', type);
-                console.log('Button element:', newButton);
             } else {
                 console.error('Capture button not found in modal');
             }
