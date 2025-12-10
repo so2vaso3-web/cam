@@ -77,29 +77,65 @@ function getReferralInfoAPI(db, req, res) {
     [userId],
     (err, user) => {
       if (err) {
-        return res.status(500).json({ error: 'Database error' });
+        console.error('Error fetching user referral info:', err);
+        return res.status(500).json({ error: 'Database error: ' + err.message });
       }
 
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      referralSystem.checkWithdrawalUnlock(db, userId)
-        .then(unlockInfo => {
-          res.json({
-            referral_code: user.referral_code,
-            active_referrals: user.active_referrals || 0,
-            total_referrals: user.total_referrals || 0,
-            referral_earnings: user.referral_earnings || 0,
-            withdrawal_unlock: unlockInfo,
-            vip_status: user.vip_status || 0,
-            referral_level: user.referral_level || 0
-          });
-        })
-        .catch(err => {
-          console.error('Error checking unlock:', err);
-          res.status(500).json({ error: 'Error checking unlock status' });
+      // Check if referral_code exists, if not generate one
+      if (!user.referral_code) {
+        const referralSystem = require('./referral-system');
+        const crypto = require('crypto');
+        const newCode = crypto.createHash('md5').update(`${userId}-${Date.now()}`).digest('hex').substring(0, 8).toUpperCase();
+        
+        db.run('UPDATE users SET referral_code = ? WHERE id = ?', [newCode, userId], (updateErr) => {
+          if (updateErr) {
+            console.error('Error generating referral code:', updateErr);
+          } else {
+            user.referral_code = newCode;
+          }
+          
+          // Continue with unlock check
+          checkUnlockAndRespond();
         });
+      } else {
+        checkUnlockAndRespond();
+      }
+      
+      function checkUnlockAndRespond() {
+        referralSystem.checkWithdrawalUnlock(db, userId)
+          .then(unlockInfo => {
+            res.json({
+              referral_code: user.referral_code || 'N/A',
+              active_referrals: user.active_referrals || 0,
+              total_referrals: user.total_referrals || 0,
+              referral_earnings: user.referral_earnings || 0,
+              withdrawal_unlock: unlockInfo,
+              vip_status: user.vip_status || 0,
+              referral_level: user.referral_level || 0
+            });
+          })
+          .catch(err => {
+            console.error('Error checking unlock:', err);
+            // Return basic info even if unlock check fails
+            res.json({
+              referral_code: user.referral_code || 'N/A',
+              active_referrals: user.active_referrals || 0,
+              total_referrals: user.total_referrals || 0,
+              referral_earnings: user.referral_earnings || 0,
+              withdrawal_unlock: {
+                unlocked: false,
+                referrals: user.active_referrals || 0,
+                message: 'Chưa mở khóa rút tiền'
+              },
+              vip_status: user.vip_status || 0,
+              referral_level: user.referral_level || 0
+            });
+          });
+      }
     }
   );
 }

@@ -726,9 +726,13 @@ async function loadProfile() {
             const user = userData.user;
             
             // Update profile info
-            document.getElementById('profile-username').textContent = user.username;
-            document.getElementById('profile-email').textContent = user.email;
-            document.getElementById('profile-balance').textContent = formatCurrency(user.balance);
+            const usernameEl = document.getElementById('profile-username');
+            const emailEl = document.getElementById('profile-email');
+            const balanceEl = document.getElementById('profile-balance');
+            
+            if (usernameEl) usernameEl.textContent = user.username;
+            if (emailEl) emailEl.textContent = user.email;
+            if (balanceEl) balanceEl.textContent = formatCurrency(user.balance);
             
             // Avatar initial
             const avatarText = document.getElementById('avatar-text');
