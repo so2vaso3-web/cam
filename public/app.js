@@ -2059,8 +2059,15 @@ function initFileHandlers() {
                         e.target.value = '';
                         return;
                     }
-                    // Don't auto go to next step - wait for user to click "Tiếp Tục"
-                    // User can click "Chụp Lại" if not satisfied
+                    // Auto go to next step after 1.5 seconds (user can still click "Chụp Lại" before that)
+                    setTimeout(() => {
+                        // Check if user hasn't clicked "Chụp Lại" (preview still exists)
+                        const preview = document.getElementById('cccd-back-preview');
+                        if (preview && preview.innerHTML.trim() !== '') {
+                            console.log('Auto moving to step 3 after photo validation');
+                            goToNextStep();
+                        }
+                    }, 1500);
                 });
             }
         });
