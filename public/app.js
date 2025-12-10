@@ -1330,30 +1330,32 @@ function validateCCCDImage(file, previewId, errorId, callback) {
         img.onload = () => {
             const errors = [];
             
-            // Check minimum resolution
-            const minWidth = 800;
-            const minHeight = 600;
+            // Check minimum resolution - nới lỏng cho mobile
+            const minWidth = 600;  // Giảm từ 800 xuống 600
+            const minHeight = 400; // Giảm từ 600 xuống 400
             
             if (img.width < minWidth || img.height < minHeight) {
                 errors.push(`Độ phân giải quá thấp (${img.width}x${img.height}px). Yêu cầu tối thiểu: ${minWidth}x${minHeight}px`);
             }
             
             // Check aspect ratio - CCCD should be roughly rectangular (not too square, not too wide)
-            // Typical CCCD aspect ratio is around 1.5:1 to 1.8:1
+            // Typical CCCD aspect ratio is around 1.5:1 to 1.8:1, but allow wider range for mobile photos
             const aspectRatio = img.width / img.height;
-            if (aspectRatio < 1.2 || aspectRatio > 2.5) {
+            // Nới lỏng validation: chỉ cảnh báo nếu quá vuông (< 1.0) hoặc quá dài (> 3.0)
+            // Vì trên mobile có thể chụp ở nhiều góc độ khác nhau
+            if (aspectRatio < 0.8 || aspectRatio > 3.5) {
                 errors.push('Tỷ lệ khung hình không đúng. Có thể ảnh bị cắt góc hoặc chụp không đầy đủ.');
             }
             
-            // Check file size (should be reasonable for quality)
-            if (file.size < 50 * 1024) {
+            // Check file size (should be reasonable for quality) - nới lỏng cho mobile
+            if (file.size < 30 * 1024) {  // Giảm từ 50KB xuống 30KB
                 errors.push('Ảnh có vẻ bị nén quá mức. Vui lòng chụp lại với chất lượng cao hơn.');
             }
             
-            // Check if image has reasonable dimensions (not too small)
+            // Check if image has reasonable dimensions (not too small) - nới lỏng
             const minArea = minWidth * minHeight;
             const imageArea = img.width * img.height;
-            if (imageArea < minArea * 0.8) {
+            if (imageArea < minArea * 0.6) {  // Giảm từ 0.8 xuống 0.6
                 errors.push('Ảnh quá nhỏ. Vui lòng chụp lại với khoảng cách gần hơn để đảm bảo đầy đủ thông tin.');
             }
             
