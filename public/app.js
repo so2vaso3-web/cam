@@ -1259,7 +1259,13 @@ async function openCameraCapture(type) {
                         return;
                     }
                     
-                        // Call capture function directly
+                    // Visual feedback
+                    captureButton.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        captureButton.style.transform = '';
+                    }, 200);
+                    
+                    // Call capture function directly
                     setTimeout(() => {
                         capturePhotoFromCamera(type, e);
                         isCapturing = false;
