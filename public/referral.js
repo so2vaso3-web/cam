@@ -165,74 +165,103 @@ function displayReferralInfo() {
     loadReferralEarnings();
 }
 
-// ========== COPY FUNCTIONS - MỚI HOÀN TOÀN ==========
+// ========== COPY - CODE MỚI 100% ==========
 
 window.copyReferralCode = function() {
-    const input = document.getElementById('referral-code-display');
-    if (!input) return;
-    
-    input.focus();
-    input.select();
-    
-    let copied = false;
-    try {
-        copied = document.execCommand('copy');
-    } catch(e) {}
-    
-    if (copied) {
-        showToast('✅ Đã sao chép mã!');
-    } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(input.value).then(() => {
-            showToast('✅ Đã sao chép mã!');
-        }).catch(() => {
-            showToast('❌ Vui lòng copy thủ công');
-        });
-    } else {
-        showToast('❌ Vui lòng copy thủ công');
+    const el = document.getElementById('referral-code-display');
+    if (!el) {
+        alert('Không tìm thấy mã!');
+        return;
     }
+    
+    el.select();
+    el.setSelectionRange(0, 99999);
+    
+    const text = el.value;
+    
+    // Copy method 1
+    if (document.execCommand('copy')) {
+        displayMsg('Đã sao chép mã giới thiệu!');
+        return;
+    }
+    
+    // Copy method 2
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            displayMsg('Đã sao chép mã giới thiệu!');
+        }).catch(() => {
+            displayMsg('Lỗi! Vui lòng copy thủ công', true);
+        });
+        return;
+    }
+    
+    displayMsg('Lỗi! Vui lòng copy thủ công', true);
 };
 
 window.copyReferralLink = function() {
-    const input = document.getElementById('referral-link-display');
-    if (!input) return;
-    
-    input.focus();
-    input.select();
-    
-    let copied = false;
-    try {
-        copied = document.execCommand('copy');
-    } catch(e) {}
-    
-    if (copied) {
-        showToast('✅ Đã sao chép link!');
-    } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(input.value).then(() => {
-            showToast('✅ Đã sao chép link!');
-        }).catch(() => {
-            showToast('❌ Vui lòng copy thủ công');
-        });
-    } else {
-        showToast('❌ Vui lòng copy thủ công');
+    const el = document.getElementById('referral-link-display');
+    if (!el) {
+        alert('Không tìm thấy link!');
+        return;
     }
+    
+    el.select();
+    el.setSelectionRange(0, 99999);
+    
+    const text = el.value;
+    
+    // Copy method 1
+    if (document.execCommand('copy')) {
+        displayMsg('Đã sao chép link giới thiệu!');
+        return;
+    }
+    
+    // Copy method 2
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            displayMsg('Đã sao chép link giới thiệu!');
+        }).catch(() => {
+            displayMsg('Lỗi! Vui lòng copy thủ công', true);
+        });
+        return;
+    }
+    
+    displayMsg('Lỗi! Vui lòng copy thủ công', true);
 };
 
-function showToast(msg) {
-    const old = document.getElementById('toast-msg');
+function displayMsg(text, error) {
+    // Remove old
+    const old = document.querySelector('.copy-notif');
     if (old) old.remove();
     
-    const div = document.createElement('div');
-    div.id = 'toast-msg';
-    div.textContent = msg;
-    div.style.cssText = 'position:fixed;top:100px;right:20px;background:#2ed573;color:#fff;padding:16px 24px;border-radius:10px;font-weight:600;z-index:999999;box-shadow:0 4px 20px rgba(0,0,0,0.3);font-size:15px;';
+    // Create new
+    const box = document.createElement('div');
+    box.className = 'copy-notif';
+    box.textContent = text;
+    box.style.cssText = `
+        position: fixed;
+        top: 120px;
+        right: 30px;
+        background: ${error ? '#ff4757' : '#2ed573'};
+        color: white;
+        padding: 18px 28px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        z-index: 999999;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+        min-width: 250px;
+        text-align: center;
+    `;
     
-    document.body.appendChild(div);
+    document.body.appendChild(box);
     
+    // Remove after 3s
     setTimeout(() => {
-        div.style.opacity = '0';
-        div.style.transition = 'opacity 0.3s';
-        setTimeout(() => div.remove(), 300);
-    }, 2500);
+        box.style.opacity = '0';
+        box.style.transition = 'opacity 0.4s';
+        setTimeout(() => box.remove(), 400);
+    }, 3000);
 }
 
 // Load referral chain
