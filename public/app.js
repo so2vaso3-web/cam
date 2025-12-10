@@ -1636,9 +1636,54 @@ window.capturePhotoFromCamera = function(type, event) {
                     
                     // Show preview with CONFIRM/RETAKE buttons (DON'T auto go to next step)
                     const previewId = `cccd-${type}-preview`;
-                    const preview = document.getElementById(previewId);
+                    let preview = document.getElementById(previewId);
+                    
+                    // If preview not found, try to find it in the active step
+                    if (!preview) {
+                        console.log('Preview not found by ID, searching in active step...');
+                        const stepId = type === 'cccd-front' ? 'step-1' : type === 'cccd-back' ? 'step-2' : null;
+                        if (stepId) {
+                            const step = document.getElementById(stepId);
+                            if (step) {
+                                preview = step.querySelector(`#${previewId}`);
+                                console.log('Found preview in step:', !!preview);
+                            }
+                        }
+                    }
+                    
+                    // If still not found, create it
+                    if (!preview) {
+                        console.log('Creating preview element...');
+                        const stepId = type === 'cccd-front' ? 'step-1' : type === 'cccd-back' ? 'step-2' : null;
+                        if (stepId) {
+                            const step = document.getElementById(stepId);
+                            if (step) {
+                                const stepContent = step.querySelector('.step-content');
+                                if (stepContent) {
+                                    preview = document.createElement('div');
+                                    preview.className = 'file-preview';
+                                    preview.id = previewId;
+                                    stepContent.appendChild(preview);
+                                    console.log('✓ Preview element created');
+                                }
+                            }
+                        }
+                    }
                     
                     if (preview) {
+                        // Ensure step is visible
+                        const stepId = type === 'cccd-front' ? 'step-1' : type === 'cccd-back' ? 'step-2' : null;
+                        if (stepId) {
+                            const step = document.getElementById(stepId);
+                            if (step) {
+                                step.style.display = 'block';
+                                step.classList.add('active');
+                                // Scroll preview into view
+                                setTimeout(() => {
+                                    preview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 100);
+                            }
+                        }
                         // Use data URL for preview (faster)
                         const imageUrl = dataUrl || URL.createObjectURL(file);
                         preview.innerHTML = `
