@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "add-tasks": "node add-tasks.js"
+    "add-tasks": "node add-tasks.js",
+    "backup-db": "node backup-db.js"
   },
   "engines": {
     "node": ">=18.0.0",
