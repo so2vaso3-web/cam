@@ -11,8 +11,8 @@ const multer = require('multer');
 const sampleTasks = require('./tasks-data');
 
 const app = express();
-const PORT = 3000;
-const JWT_SECRET = 'your-secret-key-change-in-production';
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Middleware
 app.use(cors());

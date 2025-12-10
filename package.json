@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "add-tasks": "node add-tasks.js",
-    "tunnel": "ngrok http 3000"
+    "add-tasks": "node add-tasks.js"
   },
   "engines": {
     "node": ">=18.0.0",
