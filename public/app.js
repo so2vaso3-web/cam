@@ -1428,6 +1428,20 @@ let currentCameraType = null;
 // Open camera capture modal
 async function openCameraCapture(type) {
     currentCameraType = type;
+    
+    // On mobile, use native file input with capture (simpler and more reliable)
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        // Use native file input on mobile - more reliable
+        const input = document.getElementById(type);
+        if (input) {
+            console.log('Mobile detected, using native file input');
+            input.click();
+            return;
+        }
+    }
+    
     // Map type to modal ID (cccd-front -> front, cccd-back -> back)
     const modalId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
     const modal = document.getElementById(`camera-modal-${modalId}`);
@@ -1436,12 +1450,24 @@ async function openCameraCapture(type) {
     
     // Check if getUserMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        // Fallback to file input if getUserMedia not supported
+        const input = document.getElementById(type);
+        if (input) {
+            input.click();
+            return;
+        }
         alert('Trình duyệt của bạn không hỗ trợ truy cập camera. Vui lòng sử dụng Chrome, Firefox, Safari hoặc Edge.');
         return;
     }
     
     // Check if we're on HTTPS or localhost
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        // Fallback to file input if not HTTPS
+        const input = document.getElementById(type);
+        if (input) {
+            input.click();
+            return;
+        }
         showNotification('Camera chỉ hoạt động trên HTTPS hoặc localhost. Vui lòng truy cập qua HTTPS.', true);
         return;
     }
@@ -2037,7 +2063,8 @@ function initFileHandlers() {
     
     if (cccdFront) {
         cccdFront.addEventListener('change', (e) => {
-            if (e.target.files[0]) {
+            if (e.target.files && e.target.files[0]) {
+                console.log('CCCD front file selected:', e.target.files[0].name);
                 validateCCCDImage(e.target.files[0], 'cccd-front-preview', 'cccd-front-error', (isValid, error) => {
                     if (!isValid) {
                         e.target.value = '';
@@ -2054,7 +2081,8 @@ function initFileHandlers() {
     
     if (cccdBack) {
         cccdBack.addEventListener('change', (e) => {
-            if (e.target.files[0]) {
+            if (e.target.files && e.target.files[0]) {
+                console.log('CCCD back file selected:', e.target.files[0].name);
                 validateCCCDImage(e.target.files[0], 'cccd-back-preview', 'cccd-back-error', (isValid, error) => {
                     if (!isValid) {
                         e.target.value = '';
