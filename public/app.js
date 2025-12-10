@@ -1485,21 +1485,72 @@ window.capturePhotoFromCamera = function(type, event) {
                     
                     console.log('File created:', file.name, file.size, 'bytes');
                     
-                    // Create DataTransfer and set file to input
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    input.files = dataTransfer.files;
+                    // Store file globally for later use
+                    if (!window.capturedFiles) {
+                        window.capturedFiles = {};
+                    }
+                    window.capturedFiles[type] = file;
+                    console.log('File stored globally:', type);
                     
-                    console.log('File assigned to input, file count:', input.files.length);
+                    // Create DataTransfer and set file to input (with fallback)
+                    try {
+                        if (typeof DataTransfer !== 'undefined') {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            input.files = dataTransfer.files;
+                            console.log('File assigned to input via DataTransfer, file count:', input.files.length);
+                        } else {
+                            // Fallback for older browsers
+                            console.log('DataTransfer not supported, using alternative method');
+                            // Create a new file input and replace
+                            const newInput = document.createElement('input');
+                            newInput.type = 'file';
+                            newInput.id = input.id;
+                            newInput.name = input.name;
+                            newInput.accept = input.accept;
+                            newInput.style.display = 'none';
+                            
+                            // Use FileList from DataTransfer if available, otherwise store in global
+                            const fileList = new DataTransfer();
+                            fileList.items.add(file);
+                            newInput.files = fileList.files;
+                            
+                            input.parentNode.replaceChild(newInput, input);
+                            console.log('Input replaced with new file');
+                        }
+                    } catch (e) {
+                        console.error('Error setting file to input:', e);
+                        // Even if input fails, we have the file in window.capturedFiles
+                        console.log('File saved to window.capturedFiles[' + type + ']');
+                    }
                     
-                    // Show preview
+                    // Verify file is in input
+                    if (input.files && input.files.length > 0) {
+                        console.log('✓ File successfully in input:', input.files[0].name, input.files[0].size, 'bytes');
+                    } else {
+                        console.warn('⚠ File not in input, but stored in window.capturedFiles');
+                    }
+                    
+                    // Show preview immediately
                     const previewId = `cccd-${type}-preview`;
                     const preview = document.getElementById(previewId);
                     if (preview) {
                         const imageUrl = URL.createObjectURL(file);
-                        preview.innerHTML = `<img src="${imageUrl}" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain;">`;
-                        console.log('Preview displayed');
+                        preview.innerHTML = `
+                            <div style="text-align: center; padding: 1rem;">
+                                <img src="${imageUrl}" alt="Ảnh đã chụp" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain; border: 2px solid #667eea;">
+                                <p style="color: #2ed573; margin-top: 0.5rem; font-size: 0.9rem;">✓ Ảnh đã được chụp thành công</p>
+                            </div>
+                        `;
+                        console.log('Preview displayed with success message');
+                    } else {
+                        console.warn('Preview element not found:', previewId);
                     }
+                    
+                    // Also show alert to confirm
+                    setTimeout(() => {
+                        console.log('✓ Ảnh đã được chụp và lưu thành công!');
+                    }, 100);
                     
                     // Validate image
                     if (typeof validateCCCDImage === 'function') {
@@ -1694,9 +1745,14 @@ function toggleVerificationForm(event) {
 
 // Submit verification
 async function submitVerification() {
-    const cccdFront = document.getElementById('cccd-front').files[0];
-    const cccdBack = document.getElementById('cccd-back').files[0];
-    const faceVideo = document.getElementById('face-video').files[0];
+    // Get files from input, with fallback to global storage
+    const cccdFrontInput = document.getElementById('cccd-front');
+    const cccdBackInput = document.getElementById('cccd-back');
+    const faceVideoInput = document.getElementById('face-video');
+    
+    const cccdFront = cccdFrontInput?.files?.[0] || window.capturedFiles?.['cccd-front'];
+    const cccdBack = cccdBackInput?.files?.[0] || window.capturedFiles?.['cccd-back'];
+    const faceVideo = faceVideoInput?.files?.[0] || window.capturedFiles?.['face-video'];
     
     const errorDiv = document.getElementById('verification-error');
     const successDiv = document.getElementById('verification-success');
