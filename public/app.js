@@ -235,7 +235,7 @@ function initAuthSystem() {
             if (tab) {
                 showAuthTab(tab);
             }
-        });
+        }, { once: false, passive: false });
     });
     
     // Login button
@@ -247,7 +247,16 @@ function initAuthSystem() {
             e.stopPropagation();
             console.log('Login button clicked');
             login();
-        });
+        }, { once: false, passive: false });
+        
+        // Also set onclick as backup
+        loginBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Login button onclick triggered');
+            login();
+            return false;
+        };
     } else {
         console.error('Login button not found!');
     }
@@ -261,7 +270,16 @@ function initAuthSystem() {
             e.stopPropagation();
             console.log('Register button clicked');
             register();
-        });
+        }, { once: false, passive: false });
+        
+        // Also set onclick as backup
+        registerBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Register button onclick triggered');
+            register();
+            return false;
+        };
     } else {
         console.error('Register button not found!');
     }
@@ -778,10 +796,6 @@ async function withdraw() {
                     setTimeout(() => {
                         showSection('profile');
                     }, 2000);
-                        referrals: data.current_referrals || 0,
-                        message: data.error || 'Bạn cần mời thêm người để mở khóa rút tiền',
-                        needed: data.needed || 0
-                    });
                     errorDiv.textContent = '';
                 } else {
                     errorDiv.textContent = (data && data.error) || 'Rút tiền thất bại';
@@ -1276,7 +1290,6 @@ async function loadVerificationStatus() {
             };
             
             const statusInfo = statusMap[data.verification_status] || statusMap['not_submitted'];
-            const statusBadge = document.getElementById('status-badge');
             if (statusBadge) {
                 statusBadge.textContent = statusInfo.text;
                 statusBadge.className = 'status-text ' + statusInfo.class;
@@ -2332,10 +2345,13 @@ function hideNotification() {
 // Initialize app when DOM is ready
 function initApp() {
     console.log('Initializing app...');
-    // Initialize auth system first
-    initAuthSystem();
-    // Then check auth status
-    checkAuth();
+    // Wait a bit to ensure DOM is fully ready
+    setTimeout(() => {
+        // Initialize auth system first
+        initAuthSystem();
+        // Then check auth status
+        checkAuth();
+    }, 100);
 }
 
 if (document.readyState === 'loading') {
