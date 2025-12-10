@@ -47,10 +47,17 @@ body {
         radial-gradient(at 100% 100%, rgba(245, 87, 108, 0.15) 0px, transparent 50%),
         radial-gradient(at 0% 100%, rgba(79, 172, 254, 0.15) 0px, transparent 50%);
     min-height: 100vh;
+    min-height: -webkit-fill-available; /* iOS Safari */
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    /* Mobile optimizations */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Top Header - Modern Glass Effect */
@@ -337,6 +344,12 @@ input[type="number"],
 input[type="tel"],
 textarea,
 select {
+    /* Mobile optimizations */
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
     background: rgba(26, 31, 58, 0.6);
     backdrop-filter: blur(10px);
     color: var(--text-primary);
@@ -1517,6 +1530,11 @@ textarea::placeholder {
     transition: all 0.3s;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     margin-bottom: 1.5rem;
+    /* Mobile optimizations */
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
 }
 
 .verify-btn-capture:hover {
@@ -1883,6 +1901,11 @@ textarea::placeholder {
     transition: all 0.3s;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     margin-top: 1.5rem;
+    /* Mobile optimizations */
+    min-height: 48px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
 }
 
 .auth-btn-primary:hover {

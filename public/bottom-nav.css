@@ -31,6 +31,11 @@
     border-radius: 12px;
     margin: 0 0.25rem;
     position: relative;
+    /* Mobile optimizations */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    min-width: 44px;
 }
 
 .bottom-nav .nav-item::before {
