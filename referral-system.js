@@ -82,6 +82,8 @@ function registerWithReferral(db, userData, referralCode = null) {
 function createUserWithReferral(db, userData, referredBy, referralLevel, resolve, reject) {
     const referralCode = generateReferralCode(Date.now());
     
+    // First, try to insert with all referral columns
+    // If that fails due to missing columns, fall back to basic insert
     db.run(
         `INSERT INTO users (username, email, password, phone, referral_code, referred_by, referral_level, balance)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -97,27 +99,83 @@ function createUserWithReferral(db, userData, referredBy, referralLevel, resolve
         ],
         function(err) {
             if (err) {
+                // If error is about missing columns, try basic insert first
+                if (err.message.includes('no such column') || err.message.includes('no such table')) {
+                    console.error('Database schema error:', err.message);
+                    console.error('Attempting to add missing columns...');
+                    
+                    // Try to add missing columns
+                    const alterQueries = [
+                        `ALTER TABLE users ADD COLUMN referral_code TEXT`,
+                        `ALTER TABLE users ADD COLUMN referred_by INTEGER`,
+                        `ALTER TABLE users ADD COLUMN referral_level INTEGER DEFAULT 0`,
+                        `ALTER TABLE users ADD COLUMN total_referrals INTEGER DEFAULT 0`,
+                        `ALTER TABLE users ADD COLUMN active_referrals INTEGER DEFAULT 0`,
+                        `ALTER TABLE users ADD COLUMN referral_earnings REAL DEFAULT 0`
+                    ];
+                    
+                    let alterIndex = 0;
+                    const runAlter = () => {
+                        if (alterIndex >= alterQueries.length) {
+                            // Retry insert after adding columns
+                            db.run(
+                                `INSERT INTO users (username, email, password, phone, referral_code, referred_by, referral_level, balance)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                                [
+                                    userData.username,
+                                    userData.email,
+                                    userData.password,
+                                    userData.phone,
+                                    referralCode,
+                                    referredBy,
+                                    referralLevel,
+                                    SIGNUP_BONUS_REFERRED
+                                ],
+                                function(retryErr) {
+                                    if (retryErr) {
+                                        return reject(retryErr);
+                                    }
+                                    handleUserCreated(db, this.lastID, referralCode, referredBy, resolve, reject);
+                                }
+                            );
+                            return;
+                        }
+                        
+                        db.run(alterQueries[alterIndex], (alterErr) => {
+                            if (alterErr && !alterErr.message.includes('duplicate column')) {
+                                console.error(`Error adding column ${alterIndex}:`, alterErr.message);
+                            }
+                            alterIndex++;
+                            runAlter();
+                        });
+                    };
+                    
+                    runAlter();
+                    return;
+                }
                 return reject(err);
             }
             
-            const userId = this.lastID;
-            
-            // If referred, create referral relationship and give bonuses
-            if (referredBy) {
-                createReferralRelationship(db, referredBy, userId, 1)
-                    .then(() => {
-                        // Give signup bonus to referrer
-                        giveSignupBonus(db, referredBy, userId);
-                        // Update referral counts
-                        updateReferralCounts(db, referredBy);
-                        resolve({ userId, referralCode, referredBy });
-                    })
-                    .catch(reject);
-            } else {
-                resolve({ userId, referralCode, referredBy: null });
-            }
+            handleUserCreated(db, this.lastID, referralCode, referredBy, resolve, reject);
         }
     );
+}
+
+function handleUserCreated(db, userId, referralCode, referredBy, resolve, reject) {
+    // If referred, create referral relationship and give bonuses
+    if (referredBy) {
+        createReferralRelationship(db, referredBy, userId, 1)
+            .then(() => {
+                // Give signup bonus to referrer
+                giveSignupBonus(db, referredBy, userId);
+                // Update referral counts
+                updateReferralCounts(db, referredBy);
+                resolve({ userId, referralCode, referredBy });
+            })
+            .catch(reject);
+    } else {
+        resolve({ userId, referralCode, referredBy: null });
+    }
 }
 
 // Create referral relationship

@@ -50,11 +50,19 @@ function registerWithReferralAPI(db, req, res) {
       });
     })
     .catch(err => {
-      if (err.message.includes('UNIQUE')) {
+      console.error('Registration error:', err);
+      console.error('Error stack:', err.stack);
+      
+      if (err.message && err.message.includes('UNIQUE')) {
         return res.status(400).json({ error: 'Username hoặc email đã tồn tại' });
       }
-      console.error('Registration error:', err);
-      res.status(500).json({ error: 'Lỗi đăng ký' });
+      
+      if (err.message && (err.message.includes('no such column') || err.message.includes('no such table'))) {
+        console.error('Database schema error detected. Please run: npm run init-db');
+        return res.status(500).json({ error: 'Lỗi cơ sở dữ liệu. Vui lòng liên hệ quản trị viên.' });
+      }
+      
+      res.status(500).json({ error: 'Lỗi đăng ký: ' + (err.message || 'Unknown error') });
     });
 }
 

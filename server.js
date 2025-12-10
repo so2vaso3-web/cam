@@ -216,6 +216,33 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
+  
+  // Auto-initialize referral system AFTER all base tables are created
+  db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='referrals'", (err, row) => {
+    if (err) {
+      console.error('Error checking referral tables:', err);
+    } else if (!row) {
+      console.log('⚠️  Referral tables not found. Running initialization...');
+      // Import and run init
+      const initReferralDB = require('./init-referral-db');
+      if (initReferralDB && initReferralDB.initReferralDB) {
+        initReferralDB.initReferralDB(db);
+      } else {
+        // Fallback: run as script
+        setTimeout(() => {
+          const { execSync } = require('child_process');
+          try {
+            execSync('node init-referral-db.js', { stdio: 'inherit', cwd: __dirname });
+            console.log('✅ Database initialized successfully');
+          } catch (error) {
+            console.error('❌ Auto-init failed. Please run: npm run init-db');
+          }
+        }, 1000);
+      }
+    } else {
+      console.log('✅ Referral system tables already exist');
+    }
+  });
 
   // Create default admin user and sample tasks
   const adminPassword = bcrypt.hashSync('admin123', 10);
