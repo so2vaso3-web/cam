@@ -178,7 +178,11 @@ window.copyReferralCode = function() {
     // Use modern Clipboard API
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code).then(() => {
-            showNotification('Đã sao chép mã giới thiệu!', false);
+            if (typeof showNotification === 'function') {
+                showNotification('Đã sao chép mã giới thiệu!', false);
+            } else {
+                alert('Đã sao chép mã giới thiệu!');
+            }
         }).catch(err => {
             console.error('Failed to copy:', err);
             // Fallback to old method
@@ -188,7 +192,7 @@ window.copyReferralCode = function() {
         // Fallback for older browsers
         fallbackCopy(code);
     }
-}
+};
 
 // Copy referral link - Use modern Clipboard API (GLOBAL)
 window.copyReferralLink = function() {
@@ -203,7 +207,11 @@ window.copyReferralLink = function() {
     // Use modern Clipboard API
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(link).then(() => {
-            showNotification('Đã sao chép link giới thiệu!', false);
+            if (typeof showNotification === 'function') {
+                showNotification('Đã sao chép link giới thiệu!', false);
+            } else {
+                alert('Đã sao chép link giới thiệu!');
+            }
         }).catch(err => {
             console.error('Failed to copy:', err);
             // Fallback to old method
@@ -213,7 +221,7 @@ window.copyReferralLink = function() {
         // Fallback for older browsers
         fallbackCopy(link);
     }
-}
+};
 
 // Fallback copy method for older browsers
 function fallbackCopy(text) {
@@ -225,10 +233,18 @@ function fallbackCopy(text) {
     textarea.select();
     try {
         document.execCommand('copy');
-        showNotification('Đã sao chép!', false);
+        if (typeof showNotification === 'function') {
+            showNotification('Đã sao chép!', false);
+        } else {
+            alert('Đã sao chép!');
+        }
     } catch (err) {
         console.error('Fallback copy failed:', err);
-        showNotification('Không thể sao chép. Vui lòng sao chép thủ công.', true);
+        if (typeof showNotification === 'function') {
+            showNotification('Không thể sao chép. Vui lòng sao chép thủ công.', true);
+        } else {
+            alert('Không thể sao chép. Vui lòng sao chép thủ công.');
+        }
     } finally {
         document.body.removeChild(textarea);
     }
