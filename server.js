@@ -358,10 +358,16 @@ app.post('/api/verification/upload', extractUserFromToken, authenticateToken, up
   values.push('pending');
   values.push(userId);
 
-  db.run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values, (err) => {
+  const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+  console.log('Verification upload query:', updateQuery);
+  console.log('Values:', values);
+
+  db.run(updateQuery, values, (err) => {
     if (err) {
-      return res.status(500).json({ error: 'Database error' });
+      console.error('Error updating verification:', err);
+      return res.status(500).json({ error: 'Database error: ' + err.message });
     }
+    console.log(`Verification files uploaded for user ${userId}`);
     res.json({ message: 'Upload thành công! Đang chờ duyệt.' });
   });
 });
@@ -800,27 +806,25 @@ app.get('/api/admin/verifications', authenticateToken, (req, res) => {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
-  // Get ALL users with verification files (simplified query - show ALL)
-  db.all(`SELECT id, username, email, cccd_front, cccd_back, face_video, face_photo, verification_status, verification_notes, created_at
+  // Get ALL users with verification files - SIMPLIFIED QUERY
+  const query = `SELECT id, username, email, cccd_front, cccd_back, face_video, face_photo, verification_status, verification_notes, created_at
     FROM users 
     WHERE (cccd_front IS NOT NULL AND cccd_front != '') 
        OR (cccd_back IS NOT NULL AND cccd_back != '') 
        OR (face_video IS NOT NULL AND face_video != '')
        OR (face_photo IS NOT NULL AND face_photo != '')
-    ORDER BY 
-      CASE verification_status 
-        WHEN 'pending' THEN 1
-        WHEN 'rejected' THEN 2
-        WHEN 'approved' THEN 3
-        ELSE 4
-      END,
-      created_at DESC`, (err, verifications) => {
+    ORDER BY created_at DESC`;
+  
+  console.log('Admin verifications query:', query);
+  
+  db.all(query, (err, verifications) => {
     if (err) {
       console.error('Error fetching verifications:', err);
-      return res.status(500).json({ error: 'Database error' });
+      return res.status(500).json({ error: 'Database error: ' + err.message });
     }
     console.log(`Found ${verifications.length} verifications`);
-    res.json({ verifications });
+    console.log('Sample verification:', verifications[0]);
+    res.json({ verifications: verifications || [] });
   });
 });
 

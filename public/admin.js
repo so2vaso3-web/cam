@@ -758,10 +758,14 @@ async function loadVerifications() {
 
 // Display verifications
 function displayVerifications(verifications) {
-    console.log('Displaying verifications:', verifications.length);
+    console.log('=== DISPLAY VERIFICATIONS ===');
+    console.log('Count:', verifications?.length || 0);
+    console.log('Data:', verifications);
+    
     const list = document.getElementById('verifications-list');
     if (!list) {
-        console.error('verifications-list element not found!');
+        console.error('❌ verifications-list element not found!');
+        alert('Lỗi: Không tìm thấy element verifications-list');
         return;
     }
     
@@ -769,13 +773,22 @@ function displayVerifications(verifications) {
     
     if (!verifications || verifications.length === 0) {
         list.innerHTML = '<p style="padding: 2rem; text-align: center; color: #999;">Chưa có yêu cầu xác minh nào.</p>';
+        console.log('No verifications to display');
         return;
     }
     
     console.log('Rendering', verifications.length, 'verification items');
     
     verifications.forEach((verification, index) => {
-        console.log(`Rendering verification ${index + 1}:`, verification.id, verification.username, verification.verification_status);
+        console.log(`Rendering verification ${index + 1}:`, {
+            id: verification.id,
+            username: verification.username,
+            email: verification.email,
+            status: verification.verification_status,
+            cccd_front: verification.cccd_front,
+            cccd_back: verification.cccd_back,
+            face_video: verification.face_video
+        });
         const item = document.createElement('div');
         item.className = `verification-item ${verification.verification_status || 'pending'}`;
         item.innerHTML = `
