@@ -9,21 +9,10 @@ const fs = require('fs');
 let db;
 let shouldClose = false;
 
-if (process.argv[2] === '--use-existing-db') {
-  // Use existing db instance passed from server.js
-  const dbModule = require('./server');
-  db = dbModule.getDatabase();
-  if (!db) {
-    // Fallback to creating new connection
-    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
-    db = new sqlite3.Database(dbPath);
-    shouldClose = true;
-  }
-} else {
-  const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
-  db = new sqlite3.Database(dbPath);
-  shouldClose = true;
-}
+// Initialize database connection
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
+db = new sqlite3.Database(dbPath);
+shouldClose = true;
 
 console.log('🚀 Initializing Referral System Database...\n');
 
@@ -272,6 +261,8 @@ setTimeout(() => {
     });
   });
 }, 2000);
+
+} // Close runInit() function
 
 function finish() {
   console.log('\n✅ Database initialization complete!');
