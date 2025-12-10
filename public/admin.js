@@ -793,77 +793,142 @@ function displayVerifications(verifications) {
         });
         const item = document.createElement('div');
         item.className = `verification-item ${verification.verification_status || 'pending'}`;
+        item.style.cssText = 'padding: 1.5rem; margin-bottom: 1.5rem; background: #1a1a1a; border-radius: 12px; border: 1px solid #333;';
+        
+        const statusText = verification.verification_status === 'pending' ? 'Đang chờ' : 
+                          verification.verification_status === 'approved' ? 'Đã duyệt' : 
+                          verification.verification_status === 'rejected' ? 'Đã từ chối' : 'Chưa xác định';
+        const statusColor = verification.verification_status === 'pending' ? '#ffaa00' : 
+                           verification.verification_status === 'approved' ? '#2ed573' : '#ff4444';
+        
+        const createdDate = verification.created_at ? new Date(verification.created_at).toLocaleString('vi-VN') : 'N/A';
+        
         item.innerHTML = `
-            <div class="verification-header">
-                <div>
-                    <h3>${verification.username} (${verification.email})</h3>
-                    <p style="color: #999; font-size: 0.9rem;">ID: ${verification.id} | Trạng thái: 
-                        <span class="status-badge status-${verification.verification_status}">
-                            ${verification.verification_status === 'pending' ? 'Đang chờ' : 
-                              verification.verification_status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
+            <div class="verification-header" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
+                <div style="flex: 1;">
+                    <h3 style="color: #e0e0e0; margin-bottom: 0.5rem; font-size: 1.2rem;">${verification.username || 'N/A'} (${verification.email || 'N/A'})</h3>
+                    <p style="color: #999; font-size: 0.85rem; margin-bottom: 0.25rem;">ID: ${verification.id} | Ngày tạo: ${createdDate}</p>
+                    <p style="color: #999; font-size: 0.85rem;">Trạng thái: 
+                        <span class="status-badge" style="padding: 0.25rem 0.75rem; border-radius: 4px; background: ${statusColor}; color: white; font-weight: 600; font-size: 0.85rem;">
+                            ${statusText}
                         </span>
                     </p>
                 </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="viewUserDetails(${verification.id})" style="padding: 0.5rem 1rem; background: #404040; color: #e0e0e0; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                        Chi tiết
+                    </button>
+                </div>
             </div>
             
-            <div class="verification-files">
-                <div class="verification-file-item">
-                    <label>CCCD Mặt Trước:</label>
+            <div class="verification-files" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="verification-file-item" style="background: #2d2d2d; padding: 1rem; border-radius: 8px; border: 1px solid #404040;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="color: #e0e0e0; font-weight: 600; font-size: 0.9rem;">CCCD Mặt Trước</label>
+                        ${verification.cccd_front ? 
+                            `<button onclick="downloadFile('/uploads/${verification.cccd_front}', 'cccd-front-${verification.id}')" style="padding: 0.25rem 0.5rem; background: #404040; color: #e0e0e0; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">Tải</button>` : ''}
+                    </div>
                     ${verification.cccd_front ? 
-                        `<img src="/uploads/${verification.cccd_front}" alt="CCCD Front" class="verification-image" onclick="openImageModal('/uploads/${verification.cccd_front}')">` : 
-                        '<span style="color: #999;">Chưa upload</span>'}
+                        `<div style="position: relative;">
+                            <img src="/uploads/${verification.cccd_front}" alt="CCCD Front" class="verification-image" onclick="openImageModal('/uploads/${verification.cccd_front}')" style="width: 100%; max-height: 200px; object-fit: contain; border-radius: 6px; cursor: pointer; border: 1px solid #404040;">
+                            <button onclick="openImageModal('/uploads/${verification.cccd_front}')" style="position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>` : 
+                        '<span style="color: #999; font-size: 0.85rem;">Chưa upload</span>'}
                 </div>
                 
-                <div class="verification-file-item">
-                    <label>CCCD Mặt Sau:</label>
+                <div class="verification-file-item" style="background: #2d2d2d; padding: 1rem; border-radius: 8px; border: 1px solid #404040;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="color: #e0e0e0; font-weight: 600; font-size: 0.9rem;">CCCD Mặt Sau</label>
+                        ${verification.cccd_back ? 
+                            `<button onclick="downloadFile('/uploads/${verification.cccd_back}', 'cccd-back-${verification.id}')" style="padding: 0.25rem 0.5rem; background: #404040; color: #e0e0e0; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">Tải</button>` : ''}
+                    </div>
                     ${verification.cccd_back ? 
-                        `<img src="/uploads/${verification.cccd_back}" alt="CCCD Back" class="verification-image" onclick="openImageModal('/uploads/${verification.cccd_back}')">` : 
-                        '<span style="color: #999;">Chưa upload</span>'}
+                        `<div style="position: relative;">
+                            <img src="/uploads/${verification.cccd_back}" alt="CCCD Back" class="verification-image" onclick="openImageModal('/uploads/${verification.cccd_back}')" style="width: 100%; max-height: 200px; object-fit: contain; border-radius: 6px; cursor: pointer; border: 1px solid #404040;">
+                            <button onclick="openImageModal('/uploads/${verification.cccd_back}')" style="position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>` : 
+                        '<span style="color: #999; font-size: 0.85rem;">Chưa upload</span>'}
                 </div>
                 
-                <div class="verification-file-item">
-                    <label>Video Quay Mặt:</label>
+                <div class="verification-file-item" style="background: #2d2d2d; padding: 1rem; border-radius: 8px; border: 1px solid #404040;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="color: #e0e0e0; font-weight: 600; font-size: 0.9rem;">Video Quay Mặt</label>
+                        ${verification.face_video ? 
+                            `<button onclick="downloadFile('/uploads/${verification.face_video}', 'face-video-${verification.id}')" style="padding: 0.25rem 0.5rem; background: #404040; color: #e0e0e0; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">Tải</button>` : ''}
+                    </div>
                     ${verification.face_video ? 
-                        `<video src="/uploads/${verification.face_video}" controls class="verification-video"></video>` : 
-                        '<span style="color: #999;">Chưa upload</span>'}
+                        `<div style="position: relative;">
+                            <video src="/uploads/${verification.face_video}" controls class="verification-video" style="width: 100%; max-height: 200px; border-radius: 6px; border: 1px solid #404040;"></video>
+                            <button onclick="openVideoModal('/uploads/${verification.face_video}')" style="position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                            </button>
+                        </div>` : 
+                        '<span style="color: #999; font-size: 0.85rem;">Chưa upload</span>'}
                 </div>
                 
-                <div class="verification-file-item">
-                    <label>Ảnh Đã Chụp:</label>
+                <div class="verification-file-item" style="background: #2d2d2d; padding: 1rem; border-radius: 8px; border: 1px solid #404040;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="color: #e0e0e0; font-weight: 600; font-size: 0.9rem;">Ảnh Đã Chụp</label>
+                        ${verification.face_photo ? 
+                            `<button onclick="downloadFile('/uploads/${verification.face_photo}', 'face-photo-${verification.id}')" style="padding: 0.25rem 0.5rem; background: #404040; color: #e0e0e0; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">Tải</button>` : ''}
+                    </div>
                     ${verification.face_photo ? 
-                        `<img src="/uploads/${verification.face_photo}" alt="Face Photo" class="verification-image" onclick="openImageModal('/uploads/${verification.face_photo}')">` : 
-                        '<span style="color: #999;">Chưa upload</span>'}
+                        `<div style="position: relative;">
+                            <img src="/uploads/${verification.face_photo}" alt="Face Photo" class="verification-image" onclick="openImageModal('/uploads/${verification.face_photo}')" style="width: 100%; max-height: 200px; object-fit: contain; border-radius: 6px; cursor: pointer; border: 1px solid #404040;">
+                            <button onclick="openImageModal('/uploads/${verification.face_photo}')" style="position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>` : 
+                        '<span style="color: #999; font-size: 0.85rem;">Chưa upload</span>'}
                 </div>
             </div>
             
             ${verification.verification_notes ? 
-                `<div class="verification-notes" style="margin-top: 1rem; padding: 0.75rem; background: #2d2d2d; border-radius: 8px;">
-                    <strong>Ghi chú:</strong> ${verification.verification_notes}
+                `<div class="verification-notes" style="margin-top: 1rem; padding: 1rem; background: #2d2d2d; border-radius: 8px; border-left: 3px solid #667eea;">
+                    <strong style="color: #e0e0e0;">Ghi chú:</strong> 
+                    <span style="color: #999; margin-left: 0.5rem;">${verification.verification_notes}</span>
                 </div>` : ''}
             
-            ${verification.verification_status === 'pending' ? `
-                <div class="verification-actions" style="margin-top: 1rem;">
-                    <button class="btn-approve" onclick="reviewVerification(${verification.id}, 'approved')">
-                        <span style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="verification-actions" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #333; display: flex; gap: 1rem; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 0.75rem;">
+                    ${verification.verification_status === 'pending' ? `
+                        <button class="btn-approve" onclick="reviewVerification(${verification.id}, 'approved')" style="padding: 0.75rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
                             </svg>
-                        </span>
-                        Duyệt
-                    </button>
-                    <button class="btn-reject" onclick="openRejectVerificationModal(${verification.id})">
-                        <span style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            Duyệt
+                        </button>
+                        <button class="btn-reject" onclick="openRejectVerificationModal(${verification.id})" style="padding: 0.75rem 1.5rem; background: #ff4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="15" y1="9" x2="9" y2="15"></line>
                                 <line x1="9" y1="9" x2="15" y2="15"></line>
                             </svg>
-                        </span>
-                        Từ Chối
+                            Từ Chối
+                        </button>
+                    ` : `
+                        <span style="color: #999; font-size: 0.9rem;">Đã ${verification.verification_status === 'approved' ? 'duyệt' : 'từ chối'} vào ${createdDate}</span>
+                    `}
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="exportVerificationData(${verification.id})" style="padding: 0.5rem 1rem; background: #404040; color: #e0e0e0; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                        Xuất dữ liệu
                     </button>
                 </div>
-            ` : ''}
+            </div>
         `;
         list.appendChild(item);
     });

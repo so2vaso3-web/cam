@@ -800,6 +800,23 @@ app.get('/api/admin/transactions', authenticateToken, (req, res) => {
   });
 });
 
+// Admin: Get user details
+app.get('/api/admin/users/:id', authenticateToken, (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  db.get('SELECT id, username, email, phone, balance, verification_status, created_at FROM users WHERE id = ?', [req.params.id], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ user });
+  });
+});
+
 // Admin: Get all verifications
 app.get('/api/admin/verifications', authenticateToken, (req, res) => {
   if (req.user.role !== 'admin') {
