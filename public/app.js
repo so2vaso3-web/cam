@@ -645,8 +645,11 @@ async function withdraw() {
             } else {
                 // Check if it's a referral lock error
                 if (data && data.requires_referrals) {
-                    showWithdrawalLockPopup({
-                        unlocked: false,
+                    // Show notification and redirect to profile
+                    showNotification(data.error || 'Bạn cần mời thêm người để rút tiền. Vui lòng xem phần giới thiệu trong hồ sơ.', true);
+                    setTimeout(() => {
+                        showSection('profile');
+                    }, 2000);
                         referrals: data.current_referrals || 0,
                         message: data.error || 'Bạn cần mời thêm người để mở khóa rút tiền',
                         needed: data.needed || 0
