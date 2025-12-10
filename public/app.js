@@ -1308,7 +1308,9 @@ function goToNextStep() {
 
 // Capture photo from camera
 function capturePhotoFromCamera(type, event) {
-    console.log('capturePhotoFromCamera called with type:', type);
+    console.log('=== CAPTURE PHOTO START ===');
+    console.log('Type:', type);
+    console.log('Event:', event);
     
     // Prevent default if event exists
     if (event) {
@@ -1316,147 +1318,155 @@ function capturePhotoFromCamera(type, event) {
         event.stopPropagation();
     }
     
-    // Disable button to prevent double-click
-    const button = event?.target?.closest('.btn-capture') || document.querySelector(`#camera-modal-${type === 'cccd-front' ? 'front' : 'back'} .btn-capture`);
-    if (button) {
-        button.style.opacity = '0.5';
-        button.style.pointerEvents = 'none';
-    }
-    
     // Map type to video/canvas ID (cccd-front -> front, cccd-back -> back)
     const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
+    const modalId = videoId;
+    
+    // Find elements
+    const modal = document.getElementById(`camera-modal-${modalId}`);
     const video = document.getElementById(`camera-preview-${videoId}`);
     const canvas = document.getElementById(`camera-canvas-${videoId}`);
-    // Input ID is already correct: cccd-front or cccd-back
     const input = document.getElementById(type);
+    const button = modal?.querySelector('.btn-capture') || document.querySelector(`#camera-modal-${modalId} .btn-capture`);
     
-    console.log('Elements found:', { 
-        video: !!video, 
-        canvas: !!canvas, 
+    console.log('Elements:', {
+        modal: !!modal,
+        video: !!video,
+        canvas: !!canvas,
         input: !!input,
+        button: !!button,
         videoWidth: video?.videoWidth,
-        videoHeight: video?.videoHeight
+        videoHeight: video?.videoHeight,
+        videoReadyState: video?.readyState
     });
     
+    // Show alert if elements not found
     if (!video) {
-        alert('Không tìm thấy video element');
-        if (button) {
-            button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-        }
+        alert('Lỗi: Không tìm thấy video element');
         return;
     }
     
     if (!canvas) {
-        alert('Không tìm thấy canvas element');
-        if (button) {
-            button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-        }
+        alert('Lỗi: Không tìm thấy canvas element');
         return;
     }
     
     if (!input) {
-        alert('Không tìm thấy input element');
-        if (button) {
-            button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-        }
+        alert('Lỗi: Không tìm thấy input element');
         return;
     }
     
-    // Check if video is ready
-    if (video.readyState < 2) {
-        alert('Camera đang tải. Vui lòng đợi một chút và thử lại.');
-        if (button) {
-            button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-        }
-        return;
+    // Disable button
+    if (button) {
+        button.style.opacity = '0.5';
+        button.style.pointerEvents = 'none';
+        button.style.cursor = 'not-allowed';
     }
     
-    if (video.videoWidth > 0 && video.videoHeight > 0) {
+    // Wait a bit for video to be ready if needed
+    const captureFrame = () => {
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            console.log('Video not ready, waiting...');
+            setTimeout(captureFrame, 100);
+            return;
+        }
+        
+        console.log('Video ready, capturing frame...');
+        console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+        
         try {
+            // Set canvas size
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
+            console.log('Canvas size set:', canvas.width, 'x', canvas.height);
             
+            // Draw video to canvas
             const ctx = canvas.getContext('2d');
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            console.log('Image drawn to canvas');
             
-            console.log('Image drawn to canvas, creating blob...');
-            
-            // Convert to blob with error handling
+            // Convert to blob
             canvas.toBlob((blob) => {
-                if (blob) {
-                    console.log('Blob created, size:', blob.size);
-                    const file = new File([blob], `cccd-${type}.jpg`, { type: 'image/jpeg' });
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    input.files = dataTransfer.files;
-                    
-                    console.log('File created, validating...');
-                    
-                    // Validate and show preview
-                    if (typeof validateCCCDImage === 'function') {
-                        validateCCCDImage(file, `cccd-${type}-preview`, `cccd-${type}-error`, (isValid) => {
-                            if (isValid) {
-                                console.log('Image validated, closing camera...');
-                                closeCameraCapture(type);
-                                // Auto go to next step after 1 second
-                                setTimeout(() => {
-                                    if (type === 'cccd-front') {
-                                        goToNextStep();
-                                    } else if (type === 'cccd-back') {
-                                        goToNextStep();
-                                    }
-                                }, 1000);
-                            } else {
-                                console.log('Image validation failed');
-                                if (button) {
-                                    button.style.opacity = '1';
-                                    button.style.pointerEvents = 'auto';
-                                }
-                            }
-                        });
-                    } else {
-                        // If validateCCCDImage doesn't exist, just close and proceed
-                        console.log('validateCCCDImage not found, proceeding without validation');
-                        closeCameraCapture(type);
-                        setTimeout(() => {
-                            if (type === 'cccd-front') {
-                                goToNextStep();
-                            } else if (type === 'cccd-back') {
-                                goToNextStep();
-                            }
-                        }, 1000);
-                    }
-                } else {
+                if (!blob) {
                     console.error('Failed to create blob');
                     alert('Không thể tạo file ảnh. Vui lòng thử lại.');
                     if (button) {
                         button.style.opacity = '1';
                         button.style.pointerEvents = 'auto';
+                        button.style.cursor = 'pointer';
                     }
+                    return;
                 }
-            }, 'image/jpeg', 1.0);
+                
+                console.log('Blob created, size:', blob.size, 'bytes');
+                
+                // Create file
+                const file = new File([blob], `cccd-${type}.jpg`, { type: 'image/jpeg' });
+                console.log('File created:', file.name, file.size, 'bytes');
+                
+                // Set to input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+                console.log('File set to input, files count:', input.files.length);
+                
+                // Show preview immediately
+                const preview = document.getElementById(`cccd-${type}-preview`);
+                if (preview) {
+                    const url = URL.createObjectURL(file);
+                    preview.innerHTML = `<img src="${url}" style="max-width: 100%; border-radius: 8px;">`;
+                    console.log('Preview shown');
+                }
+                
+                // Validate
+                if (typeof validateCCCDImage === 'function') {
+                    console.log('Validating image...');
+                    validateCCCDImage(file, `cccd-${type}-preview`, `cccd-${type}-error`, (isValid) => {
+                        console.log('Validation result:', isValid);
+                        if (isValid) {
+                            console.log('Image valid, closing camera...');
+                            closeCameraCapture(type);
+                            setTimeout(() => {
+                                if (type === 'cccd-front' || type === 'cccd-back') {
+                                    goToNextStep();
+                                }
+                            }, 500);
+                        } else {
+                            console.log('Image validation failed');
+                            if (button) {
+                                button.style.opacity = '1';
+                                button.style.pointerEvents = 'auto';
+                                button.style.cursor = 'pointer';
+                            }
+                        }
+                    });
+                } else {
+                    console.log('No validation function, proceeding...');
+                    closeCameraCapture(type);
+                    setTimeout(() => {
+                        if (type === 'cccd-front' || type === 'cccd-back') {
+                            goToNextStep();
+                        }
+                    }, 500);
+                }
+            }, 'image/jpeg', 0.95);
+            
         } catch (error) {
             console.error('Error capturing photo:', error);
             alert('Lỗi khi chụp ảnh: ' + error.message);
             if (button) {
                 button.style.opacity = '1';
                 button.style.pointerEvents = 'auto';
+                button.style.cursor = 'pointer';
             }
         }
-    } else {
-        console.error('Video not ready:', { videoWidth: video.videoWidth, videoHeight: video.videoHeight });
-        alert('Camera chưa sẵn sàng. Vui lòng đợi một chút và thử lại.');
-        if (button) {
-            button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-        }
-    }
+    };
+    
+    // Start capture
+    captureFrame();
+    console.log('=== CAPTURE PHOTO END ===');
 }
 
 function initFileHandlers() {
