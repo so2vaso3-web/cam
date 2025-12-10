@@ -716,13 +716,14 @@ let recordingTimer = null;
 let currentTime = 8;
 let currentInstruction = 0;
 
-// Instructions for face verification (like banks)
+// Instructions for face verification - MUST COMPLETE ALL STEPS
 const instructions = [
-    { text: 'Nhìn thẳng vào camera', duration: 2 },
-    { text: 'Xoay mặt sang trái', duration: 1.5 },
-    { text: 'Xoay mặt sang phải', duration: 1.5 },
-    { text: 'Ngước mặt lên', duration: 1.5 },
-    { text: 'Cúi mặt xuống', duration: 1.5 }
+    { text: 'Nhìn thẳng vào camera', duration: 1.5, capturePhoto: false },
+    { text: 'Xoay mặt sang trái', duration: 1.5, capturePhoto: false },
+    { text: 'Xoay mặt sang phải', duration: 1.5, capturePhoto: false },
+    { text: 'Ngước mặt lên', duration: 1.5, capturePhoto: false },
+    { text: 'Cúi mặt xuống', duration: 1.5, capturePhoto: false },
+    { text: 'Nhìn thẳng vào camera', duration: 1.0, capturePhoto: true } // Capture photo here (HIDDEN)
 ];
 
 // Start video recording
