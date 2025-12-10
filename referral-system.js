@@ -239,16 +239,16 @@ function calculateTaskCommission(db, userId, taskReward) {
                         if (!err) {
                             // Record earnings
                             db.run(
-                                `INSERT INTO referral_earnings (referrer_id, referred_id, level, amount, source, description)
-                                 VALUES (?, ?, ?, ?, ?, ?)`,
-                                [referrer.id, userId, level, commission, 'task', `Hoa hồng F${level} từ task`]
+                                `INSERT INTO referral_earnings (referrer_id, referred_id, source_type, source_id, amount, commission_percent, level)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                                [referrer.id, userId, 'task_completion', 0, commission, REFERRAL_COMMISSION_RATES[level] * 100, level]
                             );
                             
-                            // Record bonus transaction
+                            // Record transaction
                             db.run(
-                                `INSERT INTO referral_bonuses (user_id, referrer_id, bonus_type, amount, level, description)
-                                 VALUES (?, ?, ?, ?, ?, ?)`,
-                                [referrer.id, userId, 'task_commission', commission, level, `Hoa hồng F${level} từ task`]
+                                `INSERT INTO transactions (user_id, amount, type, description)
+                                 VALUES (?, ?, ?, ?)`,
+                                [referrer.id, commission, 'credit', `Hoa hồng F${level} từ task`]
                             );
                         }
                     }

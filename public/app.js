@@ -375,6 +375,10 @@ function showSection(section) {
         case 'profile':
             document.getElementById('profile-section').style.display = 'block';
             loadProfile();
+            // Always load referral info when profile is shown
+            if (typeof loadReferralInfo === 'function') {
+                setTimeout(() => loadReferralInfo(), 200);
+            }
             break;
     }
 }
