@@ -221,11 +221,17 @@ async function register() {
 
 // Initialize auth system - Simple and reliable
 function initAuthSystem() {
+    console.log('Initializing auth system...');
+    
     // Tab buttons
-    document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+    const tabButtons = document.querySelectorAll('.auth-tab-btn');
+    console.log('Found tab buttons:', tabButtons.length);
+    tabButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             const tab = this.dataset.tab;
+            console.log('Tab button clicked:', tab);
             if (tab) {
                 showAuthTab(tab);
             }
@@ -234,20 +240,30 @@ function initAuthSystem() {
     
     // Login button
     const loginBtn = document.getElementById('login-btn');
+    console.log('Login button found:', !!loginBtn);
     if (loginBtn) {
         loginBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
+            console.log('Login button clicked');
             login();
         });
+    } else {
+        console.error('Login button not found!');
     }
     
     // Register button
     const registerBtn = document.getElementById('register-btn');
+    console.log('Register button found:', !!registerBtn);
     if (registerBtn) {
         registerBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
+            console.log('Register button clicked');
             register();
         });
+    } else {
+        console.error('Register button not found!');
     }
     
     // Enter key support
@@ -275,15 +291,6 @@ function initAuthSystem() {
         }
     });
 }
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAuthSystem);
-} else {
-    initAuthSystem();
-}
-
-
 
 // Fetch user info
 async function fetchUserInfo() {
@@ -2324,9 +2331,11 @@ function hideNotification() {
 // Initialize everything
 // Initialize app when DOM is ready
 function initApp() {
+    console.log('Initializing app...');
+    // Initialize auth system first
+    initAuthSystem();
+    // Then check auth status
     checkAuth();
-    // Ensure auth system is initialized after DOM is ready
-    setTimeout(initAuthSystem, 100);
 }
 
 if (document.readyState === 'loading') {
@@ -2334,6 +2343,4 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
-// Ensure auth listeners are attached after checkAuth
-setTimeout(ensureAuthListeners, 100);
 
