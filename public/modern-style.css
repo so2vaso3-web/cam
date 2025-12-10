@@ -848,22 +848,12 @@ textarea::placeholder {
     min-width: 0;
 }
 
-.verification-icon {
-    width: 32px;
-    height: 32px;
-    background: var(--primary-gradient);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-}
-
-.verification-icon svg {
-    width: 16px;
-    height: 16px;
-    color: white;
+.verification-action-text {
+    color: #667eea;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    white-space: nowrap;
 }
 
 .verification-header-info {

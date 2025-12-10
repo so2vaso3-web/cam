@@ -47,10 +47,16 @@ async function loadReferralInfo() {
 
 // Display referral info
 function displayReferralInfo() {
-    if (!referralInfo) return;
+    if (!referralInfo || !referralInfo.referral_code) {
+        console.log('Referral info or code not available');
+        return;
+    }
 
     const referralSection = document.getElementById('referral-section');
-    if (!referralSection) return;
+    if (!referralSection) {
+        console.error('Referral section element not found!');
+        return;
+    }
 
     const unlockInfo = referralInfo.withdrawal_unlock || {};
     const needed = unlockInfo.referrals < 10 ? 10 - unlockInfo.referrals :
