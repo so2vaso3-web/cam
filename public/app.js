@@ -1479,11 +1479,25 @@ window.capturePhotoFromCamera = function(type, event) {
         if (overlay) overlay.style.display = 'none';
         if (controls) controls.style.display = 'none';
         
-        // Wait longer for UI to hide completely on mobile (300ms instead of 150ms)
+        // Wait longer for UI to hide completely on mobile (500ms to be safe)
         setTimeout(() => {
             try {
                 console.log('=== STARTING CAPTURE PROCESS ===');
                 console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+                console.log('Video readyState:', video.readyState);
+                console.log('Video currentTime:', video.currentTime);
+                
+                // Double check video is still playing
+                if (video.paused || video.ended) {
+                    console.error('Video is paused or ended!');
+                    alert('Video đã dừng. Vui lòng thử lại.');
+                    restoreUI();
+                    if (button) {
+                        button.disabled = false;
+                        button.style.opacity = '1';
+                    }
+                    return;
+                }
                 
                 // Set canvas dimensions EXACTLY to video dimensions
                 canvas.width = video.videoWidth;
@@ -1496,18 +1510,42 @@ window.capturePhotoFromCamera = function(type, event) {
                 // Clear canvas first
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Draw current video frame to canvas
+                // Draw current video frame to canvas - CRITICAL STEP
                 console.log('Drawing video to canvas...');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                console.log('✓ Frame drawn to canvas');
+                try {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    console.log('✓ Frame drawn to canvas');
+                } catch (drawError) {
+                    console.error('❌ ERROR drawing to canvas:', drawError);
+                    alert('Lỗi khi vẽ ảnh: ' + drawError.message);
+                    restoreUI();
+                    if (button) {
+                        button.disabled = false;
+                        button.style.opacity = '1';
+                    }
+                    return;
+                }
                 
                 // Verify canvas has content IMMEDIATELY
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-                console.log('Data URL length:', dataUrl.length);
+                let dataUrl;
+                try {
+                    dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    console.log('Data URL length:', dataUrl.length);
+                } catch (dataUrlError) {
+                    console.error('❌ ERROR creating data URL:', dataUrlError);
+                    alert('Lỗi khi tạo ảnh: ' + dataUrlError.message);
+                    restoreUI();
+                    if (button) {
+                        button.disabled = false;
+                        button.style.opacity = '1';
+                    }
+                    return;
+                }
                 
-                if (dataUrl.length < 100) {
-                    console.error('Canvas data URL too short, image might be empty');
-                    alert('Ảnh chụp không hợp lệ. Vui lòng thử lại.');
+                if (!dataUrl || dataUrl.length < 100) {
+                    console.error('❌ Canvas data URL too short or empty!');
+                    console.error('Data URL:', dataUrl ? dataUrl.substring(0, 50) + '...' : 'null');
+                    alert('Ảnh chụp không hợp lệ (rỗng). Vui lòng thử lại.');
                     restoreUI();
                     if (button) {
                         button.disabled = false;
