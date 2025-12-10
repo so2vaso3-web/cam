@@ -1192,3 +1192,74 @@ textarea::placeholder {
     }
 }
 
+/* Withdrawal Lock Card - In Profile */
+.withdrawal-lock-card {
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.15) 0%, rgba(255, 71, 87, 0.05) 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.lock-title {
+    color: #ff4757;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.lock-message {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.lock-progress {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.lock-progress-text {
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.lock-progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.lock-progress-fill {
+    background: linear-gradient(90deg, #2ed573, #667eea);
+    height: 100%;
+    transition: width 0.3s;
+}
+
+.lock-requirements {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(26, 31, 58, 0.4);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 71, 87, 0.2);
+}
+
+.lock-requirements-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.lock-requirements-list {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+.lock-requirements-list div {
+    margin-bottom: 0.25rem;
+}
+
