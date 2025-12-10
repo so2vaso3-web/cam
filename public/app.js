@@ -1457,7 +1457,7 @@ window.capturePhotoFromCamera = function(type, event) {
         if (overlay) overlay.style.display = 'none';
         if (controls) controls.style.display = 'none';
         
-        // Wait a bit for UI to hide completely (important for mobile browsers)
+        // Wait longer for UI to hide completely on mobile (300ms instead of 150ms)
         setTimeout(() => {
             try {
                 // Set canvas dimensions to match video
