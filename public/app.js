@@ -983,12 +983,12 @@ let currentInstruction = 0;
 
 // Instructions for face verification - MUST COMPLETE ALL STEPS
 const instructions = [
-    { text: 'Nhìn thẳng vào camera', duration: 1.5, capturePhoto: false },
-    { text: 'Xoay mặt sang trái', duration: 1.5, capturePhoto: false },
-    { text: 'Xoay mặt sang phải', duration: 1.5, capturePhoto: false },
-    { text: 'Ngước mặt lên', duration: 1.5, capturePhoto: false },
-    { text: 'Cúi mặt xuống', duration: 1.5, capturePhoto: false },
-    { text: 'Nhìn thẳng vào camera', duration: 1.0, capturePhoto: true } // Capture photo here (HIDDEN)
+    { text: 'Nhìn thẳng vào camera', duration: 2.0, capturePhoto: false },
+    { text: 'Xoay mặt sang trái', duration: 2.0, capturePhoto: false },
+    { text: 'Xoay mặt sang phải', duration: 2.0, capturePhoto: false },
+    { text: 'Ngước mặt lên trên', duration: 2.0, capturePhoto: false },
+    { text: 'Cúi mặt xuống dưới', duration: 2.0, capturePhoto: false },
+    { text: 'Nhìn thẳng vào camera', duration: 2.0, capturePhoto: true } // Capture photo here (HIDDEN - user won't see)
 ];
 
 // Start video recording
@@ -1044,6 +1044,11 @@ async function startVideo() {
         videoPreview.srcObject = stream;
         // Mirror video preview (flip horizontally) so it's not reversed
         videoPreview.style.transform = 'scaleX(-1)';
+        // Ensure camera is at the top
+        recordingContainer.style.display = 'flex';
+        recordingContainer.style.flexDirection = 'column';
+        recordingContainer.style.alignItems = 'center';
+        videoPreview.style.order = '1'; // Camera on top
         recordingContainer.style.display = 'block';
         startBtn.style.display = 'none';
         recordedVideo.style.display = 'none';
@@ -1093,16 +1098,17 @@ async function startVideo() {
             dataTransfer.items.add(file);
             document.getElementById('face-video').files = dataTransfer.files;
             
-            // Photo should already be captured during instructions, but ensure it's shown
+            // Photo should already be captured during instructions (HIDDEN from user)
             const capturedPhotoContainer = document.getElementById('captured-photo-container');
             const facePhotoInput = document.getElementById('face-photo');
             if (!facePhotoInput?.files?.[0] && capturedPhotoContainer) {
                 // If photo wasn't captured during instructions, capture it now
                 console.log('Photo not captured during instructions, capturing now...');
                 capturePhotoSilently();
-            } else if (capturedPhotoContainer) {
-                // Show the container if photo exists
-                capturedPhotoContainer.style.display = 'block';
+            }
+            // Always hide from user - only admin will see
+            if (capturedPhotoContainer) {
+                capturedPhotoContainer.style.display = 'none'; // Hidden from user
             }
             
             // Show submit button after video is completed
@@ -1243,16 +1249,17 @@ function capturePhotoSilently() {
                 dataTransfer.items.add(file);
                 facePhotoInput.files = dataTransfer.files;
                 
-                // Show preview (but user won't notice since it's at the end)
+                // Hide photo from user (admin will see it)
                 const photoUrl = URL.createObjectURL(blob);
                 if (capturedPhoto) {
                     capturedPhoto.src = photoUrl;
                 }
+                // ẨN với khách - chỉ admin mới thấy
                 if (capturedPhotoContainer) {
-                    capturedPhotoContainer.style.display = 'block';
+                    capturedPhotoContainer.style.display = 'none'; // Hidden from user
                 }
                 
-                console.log('✓ Photo captured and assigned to input');
+                console.log('✓ Photo captured silently (hidden from user)');
             }
         }, 'image/jpeg', 1.0); // Maximum quality (1.0 = 100%)
     }
