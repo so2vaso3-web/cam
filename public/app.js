@@ -851,6 +851,8 @@ async function startVideo() {
         // Start instructions
         showInstruction(0);
         let instructionTime = 0;
+        let photoCaptured = false; // Track if photo has been captured
+        
         instructionInterval = setInterval(() => {
             instructionTime += 0.1;
             let totalDuration = 0;
@@ -861,16 +863,26 @@ async function startVideo() {
                     if (i !== currentInstruction) {
                         currentInstruction = i;
                         showInstruction(i);
+                        
+                        // Auto capture photo when looking straight (HIDDEN - user won't see)
+                        if (instructions[i].capturePhoto && !photoCaptured) {
+                            photoCaptured = true;
+                            console.log('Auto capturing photo (hidden)...');
+                            capturePhotoSilently();
+                        }
                     }
                     break;
                 }
             }
         }, 100);
         
-        // Auto stop after 8 seconds
+        // Calculate total duration from all instructions
+        const totalDuration = instructions.reduce((sum, inst) => sum + inst.duration, 0) * 1000;
+        
+        // Auto stop after all instructions complete
         recordingTimer = setTimeout(() => {
             stopVideo();
-        }, 8000);
+        }, totalDuration);
         
     } catch (error) {
         console.error('Error accessing camera:', error);
@@ -920,11 +932,9 @@ function showInstruction(index) {
     }, 100);
 }
 
-// Capture photo from video stream
-function capturePhoto() {
+// Capture photo from video stream (HIDDEN - user won't see this)
+function capturePhotoSilently() {
     const videoPreview = document.getElementById('video-preview');
-    const capturedPhoto = document.getElementById('captured-photo');
-    const capturedPhotoContainer = document.getElementById('captured-photo-container');
     const facePhotoInput = document.getElementById('face-photo');
     
     if (videoPreview && videoPreview.videoWidth > 0) {
@@ -940,25 +950,29 @@ function capturePhoto() {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         
-        // Draw video frame to canvas
-        ctx.drawImage(videoPreview, 0, 0, canvas.width, canvas.height);
+        // Draw video frame to canvas (unmirror it since video is mirrored)
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(videoPreview, -canvas.width, 0, canvas.width, canvas.height);
+        ctx.restore();
         
         // Convert canvas to blob with maximum quality
         canvas.toBlob((blob) => {
             if (blob) {
-                // Create object URL for preview
-                const photoUrl = URL.createObjectURL(blob);
-                capturedPhoto.src = photoUrl;
-                capturedPhotoContainer.style.display = 'block';
-                
-                // Create file from blob with high quality
+                // Create file from blob with high quality (HIDDEN - no preview shown)
                 const file = new File([blob], 'face-photo.jpg', { type: 'image/jpeg' });
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 facePhotoInput.files = dataTransfer.files;
+                console.log('✓ Photo captured silently (hidden from user)');
             }
         }, 'image/jpeg', 1.0); // Maximum quality (1.0 = 100%)
     }
+}
+
+// Capture photo from video stream (OLD - kept for compatibility)
+function capturePhoto() {
+    capturePhotoSilently();
     
     // Stop stream after capturing photo
     setTimeout(() => {

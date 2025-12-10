@@ -806,6 +806,19 @@ if (document.readyState === 'loading') {
     }
 }
 
+// Download file function - GLOBAL
+window.downloadFile = function(url, filename) {
+    console.log('Downloading file:', url, filename);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || url.split('/').pop();
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    console.log('✓ Download initiated');
+};
+
 // Display verifications
 function displayVerifications(verifications) {
     console.log('=== DISPLAY VERIFICATIONS ===');
