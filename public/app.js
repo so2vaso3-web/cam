@@ -2345,12 +2345,18 @@ window.confirmPhoto = function(type) {
         `;
     }
     
-    // Go to next step
+    // Go to next step automatically
     setTimeout(() => {
-        if (type === 'cccd-front' || type === 'cccd-back') {
+        if (type === 'cccd-front') {
+            // Step 1 (mặt trước) → Step 2 (mặt sau)
+            console.log('Moving to step 2 (CCCD mặt sau)');
+            goToNextStep();
+        } else if (type === 'cccd-back') {
+            // Step 2 (mặt sau) → Step 3 (video mặt)
+            console.log('Moving to step 3 (Video mặt)');
             goToNextStep();
         }
-    }, 500);
+    }, 800); // Slightly longer delay to show confirmation
 };
 
 // Logout
