@@ -1509,23 +1509,26 @@ window.openCameraCapture = async function(type) {
         }
         
         // Show modal FIRST before setting video source (important for mobile)
+        console.log('Showing modal...');
         modal.style.display = 'flex';
-        modal.style.zIndex = '99999'; // Ensure modal is on top
+        modal.style.zIndex = '99999';
         modal.style.position = 'fixed';
         modal.style.top = '0';
         modal.style.left = '0';
         modal.style.width = '100vw';
         modal.style.height = '100vh';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        
+        // Force reflow to ensure modal is visible
+        modal.offsetHeight;
+        
+        console.log('Modal displayed, requesting camera...');
         
         // Ensure video is visible
         if (video) {
             video.style.display = 'block';
         }
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
         
         // Ensure video attributes for mobile
         video.setAttribute('playsinline', '');
