@@ -50,16 +50,12 @@ function showAdminTab(tab) {
     }
     
     // Load data when tab is shown
-    if (tab === 'verifications') {
-        console.log('Verifications tab clicked, loading data...');
-        loadVerifications();
-    }
-    
     if (tab === 'tasks') {
         loadTasks();
     } else if (tab === 'submissions') {
         loadSubmissions();
     } else if (tab === 'verifications') {
+        console.log('Verifications tab clicked, loading data...');
         loadVerifications();
     } else if (tab === 'users') {
         loadUsers();
