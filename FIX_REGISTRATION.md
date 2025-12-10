@@ -44,3 +44,4 @@ const phoneRegex = /^(0|\+84)[35789][0-9]{8}$/;
 - Regex mới sẽ chấp nhận số điện thoại bắt đầu bằng: 03, 05, 07, 08, 09
 - Format: `0[35789]xxxxxxxx` (10 số) hoặc `+84[35789]xxxxxxxx` (11 số với +84)
 
+

@@ -18,6 +18,10 @@ function checkAuth() {
     const token = localStorage.getItem('token');
     if (token) {
         currentToken = token;
+        // Also set on window for referral.js access
+        if (typeof window !== 'undefined') {
+            window.currentToken = token;
+        }
         fetchUserInfo();
     } else {
         showAuthSection();
@@ -131,6 +135,10 @@ async function login() {
         if (response.ok) {
             localStorage.setItem('token', data.token);
             currentToken = data.token;
+            // Also set on window for referral.js access
+            if (typeof window !== 'undefined') {
+                window.currentToken = data.token;
+            }
             currentUser = data.user;
             errorDiv.textContent = '';
             errorDiv.style.display = 'none';
@@ -196,6 +204,10 @@ async function register() {
         if (response.ok) {
             localStorage.setItem('token', data.token);
             currentToken = data.token;
+            // Also set on window for referral.js access
+            if (typeof window !== 'undefined') {
+                window.currentToken = data.token;
+            }
             currentUser = data.user;
             
             if (sessionStorage.getItem('referral_code')) {

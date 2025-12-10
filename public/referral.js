@@ -4,11 +4,32 @@ let referralChain = [];
 
 // Get current token
 function getCurrentToken() {
-    if (typeof currentToken !== 'undefined' && currentToken) {
-        return currentToken;
+    // Try to get from global variable first (from app.js)
+    if (typeof window !== 'undefined' && typeof window.currentToken !== 'undefined' && window.currentToken) {
+        return window.currentToken;
     }
+    // Try to get from app.js's currentToken if in same scope
+    try {
+        if (typeof currentToken !== 'undefined' && currentToken) {
+            return currentToken;
+        }
+    } catch(e) {
+        // currentToken not in scope, continue
+    }
+    // Fallback to localStorage
     if (typeof localStorage !== 'undefined') {
-        return localStorage.getItem('token');
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Also try to sync with global if possible
+            try {
+                if (typeof window !== 'undefined') {
+                    window.currentToken = token;
+                }
+            } catch(e) {
+                // Ignore
+            }
+            return token;
+        }
     }
     return null;
 }
@@ -16,17 +37,27 @@ function getCurrentToken() {
 // Load referral info
 async function loadReferralInfo() {
     const token = getCurrentToken();
+    console.log('Loading referral info, token exists:', !!token);
+    
     if (!token) {
-        console.log('No token found, skipping referral info load');
+        console.warn('No token found, skipping referral info load');
+        const referralSection = document.getElementById('referral-section');
+        if (referralSection) {
+            referralSection.innerHTML = '<div style="padding: 1rem; text-align: center; color: #ffa502;">Vui lòng đăng nhập để xem thông tin giới thiệu</div>';
+        }
         return;
     }
     
     try {
+        console.log('Fetching referral info with token:', token.substring(0, 20) + '...');
         const response = await fetch('/api/referral/info', {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
+
+        console.log('Referral info response status:', response.status);
 
         if (response.ok) {
             referralInfo = await response.json();
@@ -43,12 +74,30 @@ async function loadReferralInfo() {
                 }
             }
         } else {
-            const errorData = await response.json().catch(() => ({}));
+            const errorData = await response.json().catch(() => {
+                return { error: `HTTP ${response.status}: ${response.statusText}` };
+            });
             console.error('Error loading referral info:', response.status, errorData);
+            
+            // Handle specific errors
+            let errorMessage = errorData.error || 'Unknown error';
+            if (response.status === 401 || response.status === 403) {
+                errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+                // Clear invalid token
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.removeItem('token');
+                }
+                if (typeof window !== 'undefined' && window.currentToken) {
+                    window.currentToken = null;
+                }
+            } else if (response.status === 404 && errorData.error && errorData.error.toLowerCase().includes('user not found')) {
+                errorMessage = 'Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.';
+            }
+            
             // Show error message
             const referralSection = document.getElementById('referral-section');
             if (referralSection) {
-                referralSection.innerHTML = `<div style="padding: 1rem; text-align: center; color: #ff4757;">Lỗi tải thông tin giới thiệu: ${errorData.error || 'Unknown error'}</div>`;
+                referralSection.innerHTML = `<div style="padding: 1rem; text-align: center; color: #ff4757;">Lỗi tải thông tin giới thiệu: ${errorMessage}</div>`;
             }
         }
     } catch (error) {
@@ -98,7 +147,7 @@ function displayReferralInfo() {
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <input type="text" id="referral-link-display" value="${referralLink}" 
                            readonly style="flex: 1; padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; font-size: 0.9rem; word-break: break-all;">
-                    <button onclick="copyReferralLink()" style="padding: 0.75rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                    <button type="button" onclick="copyReferralLink()" style="padding: 0.75rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
                         Sao Chép Link
                     </button>
                 </div>
@@ -161,103 +210,127 @@ function displayReferralInfo() {
         </div>
     `;
 
+    // Attach event listeners as backup (in case inline onclick doesn't work)
+    setTimeout(() => {
+        const copyCodeBtn = referralSection.querySelector('button[onclick="copyReferralCode()"]');
+        const copyLinkBtn = referralSection.querySelector('button[onclick="copyReferralLink()"]');
+        
+        if (copyCodeBtn) {
+            copyCodeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                copyReferralCode();
+            });
+        }
+        
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                copyReferralLink();
+            });
+        }
+    }, 100);
+
     loadReferralChain();
     loadReferralEarnings();
 }
 
 // ========== COPY FUNCTIONS ==========
 
-window.copyReferralCode = function() {
+async function copyToClipboard(text) {
+    // Try modern Clipboard API first (works on HTTPS/localhost)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (err) {
+            console.warn('Clipboard API failed, trying fallback:', err);
+        }
+    }
+    
+    // Fallback: Use execCommand with temporary textarea
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-999999px';
+        textarea.style.top = '-999999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
+        return successful;
+    } catch (err) {
+        console.error('execCommand copy failed:', err);
+        return false;
+    }
+}
+
+window.copyReferralCode = async function() {
     console.log('copyReferralCode called');
     const el = document.getElementById('referral-code-display');
     if (!el) {
         console.error('Element not found');
-        alert('Không tìm thấy mã!');
+        displayMsg('Không tìm thấy mã!', true);
         return;
     }
     
-    const text = el.value;
+    const text = el.value || el.textContent || '';
+    if (!text || text.trim() === '') {
+        displayMsg('Mã giới thiệu trống!', true);
+        return;
+    }
+    
     console.log('Text to copy:', text);
     
-    // Focus and select
-    el.focus();
-    el.select();
-    el.setSelectionRange(0, text.length);
+    const success = await copyToClipboard(text);
     
-    // Try copy
-    let copied = false;
-    try {
-        copied = document.execCommand('copy');
-        console.log('execCommand result:', copied);
-    } catch(e) {
-        console.error('execCommand error:', e);
-    }
-    
-    if (copied) {
-        console.log('Copy successful via execCommand');
+    if (success) {
+        console.log('Copy successful');
         displayMsg('Đã sao chép mã giới thiệu!');
-        return;
-    }
-    
-    // Try clipboard API
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-            console.log('Copy successful via clipboard API');
-            displayMsg('Đã sao chép mã giới thiệu!');
-        }).catch((err) => {
-            console.error('Clipboard API error:', err);
-            displayMsg('Lỗi! Vui lòng copy thủ công', true);
-        });
     } else {
-        console.error('Clipboard API not available');
-        displayMsg('Lỗi! Vui lòng copy thủ công', true);
+        console.error('Copy failed');
+        // Fallback: Select text in input for manual copy
+        el.focus();
+        el.select();
+        el.setSelectionRange(0, text.length);
+        displayMsg('Vui lòng nhấn Ctrl+C để copy', true);
     }
 };
 
-window.copyReferralLink = function() {
+window.copyReferralLink = async function() {
     console.log('copyReferralLink called');
     const el = document.getElementById('referral-link-display');
     if (!el) {
         console.error('Element not found');
-        alert('Không tìm thấy link!');
+        displayMsg('Không tìm thấy link!', true);
         return;
     }
     
-    const text = el.value;
+    const text = el.value || el.textContent || '';
+    if (!text || text.trim() === '') {
+        displayMsg('Link giới thiệu trống!', true);
+        return;
+    }
+    
     console.log('Text to copy:', text);
     
-    // Focus and select
-    el.focus();
-    el.select();
-    el.setSelectionRange(0, text.length);
+    const success = await copyToClipboard(text);
     
-    // Try copy
-    let copied = false;
-    try {
-        copied = document.execCommand('copy');
-        console.log('execCommand result:', copied);
-    } catch(e) {
-        console.error('execCommand error:', e);
-    }
-    
-    if (copied) {
-        console.log('Copy successful via execCommand');
+    if (success) {
+        console.log('Copy successful');
         displayMsg('Đã sao chép link giới thiệu!');
-        return;
-    }
-    
-    // Try clipboard API
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-            console.log('Copy successful via clipboard API');
-            displayMsg('Đã sao chép link giới thiệu!');
-        }).catch((err) => {
-            console.error('Clipboard API error:', err);
-            displayMsg('Lỗi! Vui lòng copy thủ công', true);
-        });
     } else {
-        console.error('Clipboard API not available');
-        displayMsg('Lỗi! Vui lòng copy thủ công', true);
+        console.error('Copy failed');
+        // Fallback: Select text in input for manual copy
+        el.focus();
+        el.select();
+        el.setSelectionRange(0, text.length);
+        displayMsg('Vui lòng nhấn Ctrl+C để copy', true);
     }
 };
 

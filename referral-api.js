@@ -71,10 +71,17 @@ function registerWithReferralAPI(db, req, res) {
 
 // Get referral info
 function getReferralInfoAPI(db, req, res) {
-  const userId = req.user.id;
+  const userId = req.user ? req.user.id : null;
+
+  if (!userId) {
+    console.error('No user ID in request:', req.user);
+    return res.status(401).json({ error: 'Invalid authentication. Please login again.' });
+  }
+
+  console.log('Fetching referral info for user ID:', userId);
 
   db.get(
-    `SELECT referral_code, active_referrals, total_referrals, referral_earnings, 
+    `SELECT id, referral_code, active_referrals, total_referrals, referral_earnings, 
             withdrawal_unlocked, vip_status, referral_level
      FROM users WHERE id = ?`,
     [userId],
@@ -85,7 +92,8 @@ function getReferralInfoAPI(db, req, res) {
       }
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        console.error('User not found in database for ID:', userId);
+        return res.status(404).json({ error: 'User not found. Please register or login again.' });
       }
 
       // Check if referral_code exists, if not generate one
