@@ -1340,8 +1340,6 @@ function goToNextStep() {
 window.capturePhotoFromCamera = function(type, event) {
     console.log('=== CAPTURE PHOTO START ===');
     console.log('Type:', type);
-    console.log('Event:', event);
-    console.log('Function called from:', new Error().stack);
     
     // Prevent default if event exists
     if (event) {
@@ -1351,130 +1349,140 @@ window.capturePhotoFromCamera = function(type, event) {
     
     // Map type to video/canvas ID (cccd-front -> front, cccd-back -> back)
     const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
-    const modalId = videoId;
     
     // Find elements
-    const modal = document.getElementById(`camera-modal-${modalId}`);
     const video = document.getElementById(`camera-preview-${videoId}`);
     const canvas = document.getElementById(`camera-canvas-${videoId}`);
     const input = document.getElementById(type);
-    const button = modal?.querySelector('.btn-capture') || document.querySelector(`#camera-modal-${modalId} .btn-capture`);
+    const button = document.querySelector(`#camera-modal-${videoId} .btn-capture`);
     
-    console.log('Elements:', {
-        modal: !!modal,
+    console.log('Elements found:', {
         video: !!video,
         canvas: !!canvas,
         input: !!input,
-        button: !!button,
-        videoWidth: video?.videoWidth,
-        videoHeight: video?.videoHeight,
-        videoReadyState: video?.readyState
+        button: !!button
     });
     
-    // Show alert if elements not found
-    if (!video) {
-        alert('Lỗi: Không tìm thấy video element');
-        return;
-    }
-    
-    if (!canvas) {
-        alert('Lỗi: Không tìm thấy canvas element');
-        return;
-    }
-    
-    if (!input) {
-        alert('Lỗi: Không tìm thấy input element');
+    // Validate elements
+    if (!video || !canvas || !input) {
+        alert('Lỗi: Không tìm thấy các element cần thiết');
         return;
     }
     
     // Disable button
     if (button) {
+        button.disabled = true;
         button.style.opacity = '0.5';
-        button.style.pointerEvents = 'none';
-        button.style.cursor = 'not-allowed';
     }
     
-    // Wait a bit for video to be ready if needed
-    const captureFrame = () => {
-        if (video.videoWidth === 0 || video.videoHeight === 0) {
-            console.log('Video not ready, waiting...');
-            setTimeout(captureFrame, 100);
+    // Function to capture when video is ready
+    const doCapture = () => {
+        // Check if video has valid dimensions
+        if (!video.videoWidth || !video.videoHeight || video.videoWidth === 0 || video.videoHeight === 0) {
+            console.log('Video not ready, dimensions:', video.videoWidth, 'x', video.videoHeight);
+            // Wait a bit and try again
+            setTimeout(doCapture, 200);
             return;
         }
         
-        console.log('Video ready, capturing frame...');
-        console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+        // Check if video is playing
+        if (video.paused || video.ended) {
+            console.log('Video not playing, trying to play...');
+            video.play().then(() => {
+                setTimeout(doCapture, 300);
+            }).catch(err => {
+                console.error('Cannot play video:', err);
+                alert('Không thể phát video. Vui lòng thử lại.');
+                if (button) {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                }
+            });
+            return;
+        }
+        
+        console.log('Video ready, capturing...');
+        console.log('Video size:', video.videoWidth, 'x', video.videoHeight);
         
         try {
-            // Set canvas size
+            // Set canvas dimensions to match video
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            console.log('Canvas size set:', canvas.width, 'x', canvas.height);
             
-            // Draw video to canvas
+            // Get 2D context
             const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            console.log('Image drawn to canvas');
             
-            // Convert to blob
+            // Draw current video frame to canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            console.log('Frame drawn to canvas');
+            
+            // Convert canvas to blob (JPEG, quality 0.9)
             canvas.toBlob((blob) => {
                 if (!blob) {
-                    console.error('Failed to create blob');
-                    alert('Không thể tạo file ảnh. Vui lòng thử lại.');
+                    console.error('Failed to create blob from canvas');
+                    alert('Không thể tạo ảnh. Vui lòng thử lại.');
                     if (button) {
+                        button.disabled = false;
                         button.style.opacity = '1';
-                        button.style.pointerEvents = 'auto';
-                        button.style.cursor = 'pointer';
                     }
                     return;
                 }
                 
                 console.log('Blob created, size:', blob.size, 'bytes');
                 
-                // Create file
-                const file = new File([blob], `cccd-${type}.jpg`, { type: 'image/jpeg' });
+                // Create File object
+                const fileName = `cccd-${type}-${Date.now()}.jpg`;
+                const file = new File([blob], fileName, { 
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+                
                 console.log('File created:', file.name, file.size, 'bytes');
                 
-                // Set to input
+                // Create DataTransfer and set file to input
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 input.files = dataTransfer.files;
-                console.log('File set to input, files count:', input.files.length);
                 
-                // Show preview immediately
-                const preview = document.getElementById(`cccd-${type}-preview`);
+                console.log('File assigned to input, file count:', input.files.length);
+                
+                // Show preview
+                const previewId = `cccd-${type}-preview`;
+                const preview = document.getElementById(previewId);
                 if (preview) {
-                    const url = URL.createObjectURL(file);
-                    preview.innerHTML = `<img src="${url}" style="max-width: 100%; border-radius: 8px;">`;
-                    console.log('Preview shown');
+                    const imageUrl = URL.createObjectURL(file);
+                    preview.innerHTML = `<img src="${imageUrl}" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain;">`;
+                    console.log('Preview displayed');
                 }
                 
-                // Validate
+                // Validate image
                 if (typeof validateCCCDImage === 'function') {
                     console.log('Validating image...');
-                    validateCCCDImage(file, `cccd-${type}-preview`, `cccd-${type}-error`, (isValid) => {
+                    validateCCCDImage(file, previewId, `cccd-${type}-error`, (isValid) => {
                         console.log('Validation result:', isValid);
                         if (isValid) {
+                            // Success - close camera and go to next step
                             console.log('Image valid, closing camera...');
                             closeCameraCapture(type);
+                            
+                            // Go to next step after a short delay
                             setTimeout(() => {
                                 if (type === 'cccd-front' || type === 'cccd-back') {
                                     goToNextStep();
                                 }
                             }, 500);
                         } else {
+                            // Validation failed
                             console.log('Image validation failed');
                             if (button) {
+                                button.disabled = false;
                                 button.style.opacity = '1';
-                                button.style.pointerEvents = 'auto';
-                                button.style.cursor = 'pointer';
                             }
                         }
                     });
                 } else {
-                    console.log('No validation function, proceeding...');
+                    // No validation function - just proceed
+                    console.log('No validation, proceeding...');
                     closeCameraCapture(type);
                     setTimeout(() => {
                         if (type === 'cccd-front' || type === 'cccd-back') {
@@ -1482,21 +1490,21 @@ window.capturePhotoFromCamera = function(type, event) {
                         }
                     }, 500);
                 }
-            }, 'image/jpeg', 0.95);
+                
+            }, 'image/jpeg', 0.9); // JPEG quality 0.9
             
         } catch (error) {
-            console.error('Error capturing photo:', error);
+            console.error('Error during capture:', error);
             alert('Lỗi khi chụp ảnh: ' + error.message);
             if (button) {
+                button.disabled = false;
                 button.style.opacity = '1';
-                button.style.pointerEvents = 'auto';
-                button.style.cursor = 'pointer';
             }
         }
     };
     
-    // Start capture
-    captureFrame();
+    // Start capture process
+    doCapture();
     console.log('=== CAPTURE PHOTO END ===');
 };
 
