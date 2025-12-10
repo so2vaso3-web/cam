@@ -1613,44 +1613,16 @@ window.capturePhotoFromCamera = function(type, event) {
                         console.log('✓ Ảnh đã được chụp và lưu thành công!');
                     }, 100);
                     
-                    // Validate image
-                    console.log('Checking for validateCCCDImage function...');
-                    if (typeof validateCCCDImage === 'function') {
-                        console.log('✓ validateCCCDImage found, validating...');
-                        validateCCCDImage(file, previewId, `cccd-${type}-error`, (isValid) => {
-                            console.log('Validation result:', isValid);
-                            if (isValid) {
-                                // Success - close camera and go to next step
-                                console.log('✓✓✓ Image valid! Closing camera and going to next step...');
-                                closeCameraCapture(type);
-                                
-                                // Go to next step after a short delay
-                                setTimeout(() => {
-                                    if (type === 'cccd-front' || type === 'cccd-back') {
-                                        console.log('Going to next step...');
-                                        goToNextStep();
-                                    }
-                                }, 500);
-                            } else {
-                                // Validation failed
-                                console.error('❌ Image validation failed');
-                                if (button) {
-                                    button.disabled = false;
-                                    button.style.opacity = '1';
-                                }
-                            }
-                        });
-                    } else {
-                        // No validation function - just proceed
-                        console.log('⚠ No validation function, proceeding directly...');
-                        closeCameraCapture(type);
-                        setTimeout(() => {
-                            if (type === 'cccd-front' || type === 'cccd-back') {
-                                console.log('Going to next step (no validation)...');
-                                goToNextStep();
-                            }
-                        }, 500);
-                    }
+                    // Close camera and go to next step
+                    console.log('Closing camera and going to next step...');
+                    closeCameraCapture(type);
+                    
+                    // Go to next step after a short delay
+                    setTimeout(() => {
+                        if (type === 'cccd-front' || type === 'cccd-back') {
+                            goToNextStep();
+                        }
+                    }, 1000);
                     
                     console.log('=== CAPTURE PROCESS COMPLETE ===');
                     
