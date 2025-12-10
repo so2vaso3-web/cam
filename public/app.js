@@ -1220,6 +1220,28 @@ async function openCameraCapture(type) {
                 console.error('Error playing video:', err);
             });
         };
+        
+        // Add click event listener to capture button when modal opens
+        setTimeout(() => {
+            const captureButton = modal.querySelector('.btn-capture');
+            if (captureButton) {
+                // Remove old listeners by cloning
+                const newButton = captureButton.cloneNode(true);
+                captureButton.parentNode.replaceChild(newButton, captureButton);
+                
+                // Add new listener
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Capture button clicked via event listener, type:', type);
+                    capturePhotoFromCamera(type, e);
+                }, { once: false });
+                
+                console.log('Capture button event listener added for type:', type);
+            } else {
+                console.error('Capture button not found in modal');
+            }
+        }, 100);
     } catch (error) {
         console.error('Error accessing camera:', error);
         let errorMessage = 'Không thể truy cập camera. ';
