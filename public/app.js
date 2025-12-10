@@ -2159,6 +2159,27 @@ window.onclick = function(event) {
     }
 }
 
+// Notification functions
+function showNotification(message, isError = false) {
+    const notification = document.getElementById('notification');
+    const messageEl = document.getElementById('notification-message');
+    if (notification && messageEl) {
+        messageEl.textContent = message;
+        notification.className = 'notification' + (isError ? ' error' : '');
+        notification.classList.add('show');
+        setTimeout(() => {
+            hideNotification();
+        }, 5000);
+    }
+}
+
+function hideNotification() {
+    const notification = document.getElementById('notification');
+    if (notification) {
+        notification.classList.remove('show');
+    }
+}
+
 // Initialize
 checkAuth();
 
