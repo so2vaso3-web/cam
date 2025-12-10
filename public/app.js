@@ -1427,8 +1427,8 @@ if (document.readyState === 'loading') {
 let cameraStream = null;
 let currentCameraType = null;
 
-// Open camera capture modal - Make it globally accessible
-window.openCameraCapture = async function(type) {
+// Open camera capture - Use native camera app on mobile
+window.openCameraCapture = function(type) {
     console.log('=== openCameraCapture CALLED ===', type);
     
     if (!type) {
@@ -1437,9 +1437,18 @@ window.openCameraCapture = async function(type) {
         return;
     }
     
-    currentCameraType = type;
-    
-    // Map type to modal ID (cccd-front -> front, cccd-back -> back)
+    // Simply use file input with capture attribute - opens native camera
+    const input = document.getElementById(type);
+    if (input) {
+        console.log('Opening native camera for:', type);
+        input.click();
+    } else {
+        console.error('Input not found:', type);
+        alert('Lỗi: Không tìm thấy input element. Vui lòng tải lại trang.');
+    }
+};
+
+// Close camera capture
     const modalId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
     const modal = document.getElementById(`camera-modal-${modalId}`);
     const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
