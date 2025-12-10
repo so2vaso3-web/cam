@@ -68,16 +68,16 @@ select {
 
 /* Mobile-specific optimizations */
 @media screen and (max-width: 768px) {
-    /* Prevent text selection on mobile */
-    body {
-        -webkit-user-select: none;
-        user-select: none;
-    }
-    
     /* Allow text selection in inputs and textareas */
     input, textarea {
         -webkit-user-select: text;
         user-select: text;
+    }
+    
+    /* Allow text selection in buttons for accessibility */
+    button {
+        -webkit-user-select: none;
+        user-select: none;
     }
     
     /* Larger touch targets */

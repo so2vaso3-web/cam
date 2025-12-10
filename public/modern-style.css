@@ -56,8 +56,6 @@ body {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
 }
 
 /* Top Header - Modern Glass Effect */

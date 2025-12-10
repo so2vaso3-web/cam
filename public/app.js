@@ -238,48 +238,88 @@ function initAuthSystem() {
         }, { once: false, passive: false });
     });
     
-    // Login button
+    // Login button - Make it globally accessible
     const loginBtn = document.getElementById('login-btn');
     console.log('Login button found:', !!loginBtn);
     if (loginBtn) {
-        loginBtn.addEventListener('click', function(e) {
+        // Remove any existing listeners first
+        const newLoginBtn = loginBtn.cloneNode(true);
+        loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
+        
+        // Add event listeners
+        newLoginBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             console.log('Login button clicked');
             login();
-        }, { once: false, passive: false });
+            return false;
+        }, { once: false, passive: false, capture: true });
         
-        // Also set onclick as backup
-        loginBtn.onclick = function(e) {
+        newLoginBtn.addEventListener('touchend', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
+            console.log('Login button touched');
+            login();
+            return false;
+        }, { once: false, passive: false, capture: true });
+        
+        // Also set onclick as backup
+        newLoginBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
             console.log('Login button onclick triggered');
             login();
             return false;
         };
+        
+        // Make it globally accessible
+        window.loginBtn = newLoginBtn;
     } else {
         console.error('Login button not found!');
     }
     
-    // Register button
+    // Register button - Make it globally accessible
     const registerBtn = document.getElementById('register-btn');
     console.log('Register button found:', !!registerBtn);
     if (registerBtn) {
-        registerBtn.addEventListener('click', function(e) {
+        // Remove any existing listeners first
+        const newRegisterBtn = registerBtn.cloneNode(true);
+        registerBtn.parentNode.replaceChild(newRegisterBtn, registerBtn);
+        
+        // Add event listeners
+        newRegisterBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             console.log('Register button clicked');
             register();
-        }, { once: false, passive: false });
+            return false;
+        }, { once: false, passive: false, capture: true });
         
-        // Also set onclick as backup
-        registerBtn.onclick = function(e) {
+        newRegisterBtn.addEventListener('touchend', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
+            console.log('Register button touched');
+            register();
+            return false;
+        }, { once: false, passive: false, capture: true });
+        
+        // Also set onclick as backup
+        newRegisterBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
             console.log('Register button onclick triggered');
             register();
             return false;
         };
+        
+        // Make it globally accessible
+        window.registerBtn = newRegisterBtn;
     } else {
         console.error('Register button not found!');
     }
