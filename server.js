@@ -800,17 +800,19 @@ app.get('/api/admin/verifications', authenticateToken, (req, res) => {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
+  // Get ALL users with verification files (simplified query)
   db.all(`SELECT id, username, email, cccd_front, cccd_back, face_video, face_photo, verification_status, verification_notes, created_at
     FROM users 
-    WHERE ((cccd_front IS NOT NULL AND cccd_front != '') 
+    WHERE (cccd_front IS NOT NULL AND cccd_front != '') 
        OR (cccd_back IS NOT NULL AND cccd_back != '') 
        OR (face_video IS NOT NULL AND face_video != '')
-       OR (face_photo IS NOT NULL AND face_photo != ''))
-       AND (verification_status IS NULL OR verification_status = '' OR verification_status = 'pending' OR verification_status = 'rejected')
+       OR (face_photo IS NOT NULL AND face_photo != '')
     ORDER BY created_at DESC`, (err, verifications) => {
     if (err) {
+      console.error('Error fetching verifications:', err);
       return res.status(500).json({ error: 'Database error' });
     }
+    console.log(`Found ${verifications.length} verifications`);
     res.json({ verifications });
   });
 });

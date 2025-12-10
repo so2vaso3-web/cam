@@ -722,6 +722,12 @@ window.onclick = function(event) {
 
 // Load verifications
 async function loadVerifications() {
+    console.log('Loading verifications...');
+    const list = document.getElementById('verifications-list');
+    if (list) {
+        list.innerHTML = '<p>Đang tải...</p>';
+    }
+    
     try {
         const response = await fetch('/api/admin/verifications', {
             headers: {
@@ -729,33 +735,49 @@ async function loadVerifications() {
             }
         });
         
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Verifications data:', data);
         
         if (response.ok) {
+            console.log('Found verifications:', data.verifications?.length || 0);
             displayVerifications(data.verifications || []);
         } else {
             console.error('Error loading verifications:', data.error);
+            if (list) {
+                list.innerHTML = `<p style="color: #ff4444;">Lỗi: ${data.error || 'Không thể tải danh sách'}</p>`;
+            }
         }
     } catch (error) {
         console.error('Error loading verifications:', error);
+        if (list) {
+            list.innerHTML = `<p style="color: #ff4444;">Lỗi kết nối: ${error.message}</p>`;
+        }
     }
 }
 
 // Display verifications
 function displayVerifications(verifications) {
+    console.log('Displaying verifications:', verifications.length);
     const list = document.getElementById('verifications-list');
-    if (!list) return;
-    
-    list.innerHTML = '';
-    
-    if (verifications.length === 0) {
-        list.innerHTML = '<p>Chưa có yêu cầu xác minh nào.</p>';
+    if (!list) {
+        console.error('verifications-list element not found!');
         return;
     }
     
-    verifications.forEach(verification => {
+    list.innerHTML = '';
+    
+    if (!verifications || verifications.length === 0) {
+        list.innerHTML = '<p style="padding: 2rem; text-align: center; color: #999;">Chưa có yêu cầu xác minh nào.</p>';
+        return;
+    }
+    
+    console.log('Rendering', verifications.length, 'verification items');
+    
+    verifications.forEach((verification, index) => {
+        console.log(`Rendering verification ${index + 1}:`, verification.id, verification.username, verification.verification_status);
         const item = document.createElement('div');
-        item.className = `verification-item ${verification.verification_status}`;
+        item.className = `verification-item ${verification.verification_status || 'pending'}`;
         item.innerHTML = `
             <div class="verification-header">
                 <div>
