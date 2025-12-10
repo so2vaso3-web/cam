@@ -233,28 +233,70 @@ window.copyReferralLink = function() {
 
 // Fallback copy method for older browsers
 function fallbackCopy(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
+    // Try multiple methods
+    let copied = false;
+    
+    // Method 1: textarea + execCommand
     try {
-        document.execCommand('copy');
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.top = '0';
+        textarea.style.left = '0';
+        textarea.style.width = '2em';
+        textarea.style.height = '2em';
+        textarea.style.padding = '0';
+        textarea.style.border = 'none';
+        textarea.style.outline = 'none';
+        textarea.style.boxShadow = 'none';
+        textarea.style.background = 'transparent';
+        textarea.style.opacity = '0';
+        textarea.style.zIndex = '-1';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        
+        if (document.execCommand('copy')) {
+            copied = true;
+        }
+        document.body.removeChild(textarea);
+    } catch (err) {
+        console.error('Method 1 failed:', err);
+    }
+    
+    // Method 2: Select input field if exists
+    if (!copied) {
+        try {
+            const codeInput = document.getElementById('referral-code-display');
+            const linkInput = document.getElementById('referral-link-display');
+            const input = codeInput || linkInput;
+            
+            if (input) {
+                input.select();
+                input.setSelectionRange(0, 99999); // For mobile
+                if (document.execCommand('copy')) {
+                    copied = true;
+                }
+            }
+        } catch (err) {
+            console.error('Method 2 failed:', err);
+        }
+    }
+    
+    if (copied) {
         if (typeof showNotification === 'function') {
             showNotification('Đã sao chép!', false);
         } else {
             alert('Đã sao chép!');
         }
-    } catch (err) {
-        console.error('Fallback copy failed:', err);
+    } else {
+        // Last resort: Show text in alert for manual copy
+        const message = `Vui lòng sao chép thủ công:\n\n${text}`;
         if (typeof showNotification === 'function') {
-            showNotification('Không thể sao chép. Vui lòng sao chép thủ công.', true);
+            showNotification(message, true);
         } else {
-            alert('Không thể sao chép. Vui lòng sao chép thủ công.');
+            prompt('Vui lòng sao chép:', text);
         }
-    } finally {
-        document.body.removeChild(textarea);
     }
 }
 
