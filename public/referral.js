@@ -88,7 +88,7 @@ function displayReferralInfo() {
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                 <input type="text" id="referral-code-display" value="${referralInfo.referral_code || 'N/A'}" 
                        readonly style="flex: 1; padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; font-size: 1.1rem; font-weight: 600; text-align: center;">
-                <button onclick="copyReferralCode()" style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <button type="button" onclick="copyReferralCode()" style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     Sao Chép
                 </button>
             </div>
