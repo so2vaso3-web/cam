@@ -1272,21 +1272,6 @@ async function openCameraCapture(type) {
                 captureButton.addEventListener('pointerup', handleCapture, { passive: false });
                 
                 console.log('✓ Capture button event listeners attached for type:', type);
-                    
-                    console.log('=== BUTTON PRESSED ===');
-                    console.log('Type:', type);
-                    console.log('Event type:', e.type);
-                    console.log('Event:', e);
-                    
-                    // Visual feedback
-                    newButton.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        newButton.style.transform = '';
-                        isCapturing = false;
-                    }, 300);
-                    
-                    capturePhotoFromCamera(type, e);
-                };
                 
                 // Add multiple event types for maximum compatibility
                 newButton.addEventListener('click', handleCapture, { passive: false });
