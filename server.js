@@ -52,7 +52,39 @@ app.use(session({
 }));
 
 // Database setup
-const db = new sqlite3.Database('./database.db');
+const dbPath = process.env.DATABASE_PATH || './database.db';
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('Error opening database:', err);
+  } else {
+    console.log(`Connected to SQLite database: ${dbPath}`);
+  }
+});
+
+// Auto-initialize referral system on startup
+db.serialize(() => {
+  // Check if referral tables exist
+  db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='referrals'", (err, row) => {
+    if (err) {
+      console.error('Error checking referral tables:', err);
+      return;
+    }
+    if (!row) {
+      console.log('⚠️  Referral tables not found. Running initialization...');
+      console.log('💡 Run "npm run init-db" manually if this fails.');
+      // Try to run init script
+      try {
+        const { execSync } = require('child_process');
+        execSync('node init-referral-db.js', { stdio: 'inherit' });
+        console.log('✅ Database initialized successfully');
+      } catch (error) {
+        console.error('❌ Auto-init failed. Please run: npm run init-db');
+      }
+    } else {
+      console.log('✅ Referral system tables already exist');
+    }
+  });
+});
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');

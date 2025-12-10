@@ -33,6 +33,10 @@ function displayReferralInfo() {
                    unlockInfo.referrals < 20 ? 20 - unlockInfo.referrals :
                    unlockInfo.referrals < 50 ? 50 - unlockInfo.referrals : 0;
 
+    // Get current URL for referral link
+    const currentUrl = window.location.origin + window.location.pathname;
+    const referralLink = `${currentUrl}?ref=${referralInfo.referral_code || ''}`;
+
     referralSection.innerHTML = `
         <div class="referral-card" style="background: #1a1a1a; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #333;">
             <h3 style="color: #e0e0e0; margin-bottom: 1rem;">Mã Giới Thiệu Của Bạn</h3>
@@ -42,6 +46,20 @@ function displayReferralInfo() {
                 <button onclick="copyReferralCode()" style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     Sao Chép
                 </button>
+            </div>
+            
+            <div style="margin-top: 1.5rem;">
+                <label style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Link Giới Thiệu:</label>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <input type="text" id="referral-link-display" value="${referralLink}" 
+                           readonly style="flex: 1; padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; font-size: 0.9rem; word-break: break-all;">
+                    <button onclick="copyReferralLink()" style="padding: 0.75rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                        Sao Chép Link
+                    </button>
+                </div>
+                <p style="color: #999; font-size: 0.8rem; margin-top: 0.5rem;">
+                    Gửi link này cho bạn bè. Khi họ đăng ký, cả 2 bạn đều nhận phần thưởng!
+                </p>
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
@@ -109,6 +127,16 @@ function copyReferralCode() {
         codeInput.select();
         document.execCommand('copy');
         alert('Đã sao chép mã giới thiệu!');
+    }
+}
+
+// Copy referral link
+function copyReferralLink() {
+    const linkInput = document.getElementById('referral-link-display');
+    if (linkInput) {
+        linkInput.select();
+        document.execCommand('copy');
+        alert('Đã sao chép link giới thiệu!');
     }
 }
 

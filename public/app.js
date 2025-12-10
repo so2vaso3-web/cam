@@ -2,6 +2,30 @@ let currentUser = null;
 let currentToken = null;
 let currentTaskId = null;
 
+// Check for referral code in URL
+const urlParams = new URLSearchParams(window.location.search);
+const referralCodeFromUrl = urlParams.get('ref');
+if (referralCodeFromUrl) {
+    // Store in sessionStorage to use during registration
+    sessionStorage.setItem('referral_code', referralCodeFromUrl);
+    // Pre-fill referral code input if on register form
+    setTimeout(() => {
+        const refInput = document.getElementById('register-referral-code');
+        if (refInput) {
+            refInput.value = referralCodeFromUrl;
+            refInput.readOnly = true;
+            refInput.style.background = '#1a1a1a';
+            refInput.style.color = '#667eea';
+            refInput.style.fontWeight = '600';
+            refInput.title = 'Mã giới thiệu từ link - Không thể sửa';
+        }
+        // Auto switch to register tab if on login
+        if (document.getElementById('login-form') && document.getElementById('login-form').style.display !== 'none') {
+            showAuthTab('register');
+        }
+    }, 100);
+}
+
 // Check if user is logged in
 function checkAuth() {
     const token = localStorage.getItem('token');
@@ -71,8 +95,9 @@ async function register() {
         return;
     }
 
-    // Get referral code if provided
-    const referralCode = document.getElementById('register-referral-code')?.value?.trim() || null;
+    // Get referral code from input or sessionStorage (from URL)
+    const refInput = document.getElementById('register-referral-code');
+    const referralCode = refInput?.value?.trim() || sessionStorage.getItem('referral_code') || null;
 
     try {
         const response = await fetch('/api/register', {
