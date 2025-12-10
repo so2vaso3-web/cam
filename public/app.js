@@ -1378,14 +1378,7 @@ function validateCCCDImage(file, previewId, errorId, callback) {
                 errors.push(`Độ phân giải quá thấp (${img.width}x${img.height}px). Yêu cầu tối thiểu: ${minWidth}x${minHeight}px`);
             }
             
-            // Check aspect ratio - CCCD should be roughly rectangular (not too square, not too wide)
-            // Typical CCCD aspect ratio is around 1.5:1 to 1.8:1, but allow wider range for mobile photos
-            const aspectRatio = img.width / img.height;
-            // Nới lỏng validation: chỉ cảnh báo nếu quá vuông (< 1.0) hoặc quá dài (> 3.0)
-            // Vì trên mobile có thể chụp ở nhiều góc độ khác nhau
-            if (aspectRatio < 0.8 || aspectRatio > 3.5) {
-                errors.push('Tỷ lệ khung hình không đúng. Có thể ảnh bị cắt góc hoặc chụp không đầy đủ.');
-            }
+            // Bỏ validation tỷ lệ khung hình - cho phép chụp bất kỳ tỷ lệ nào
             
             // Check file size (should be reasonable for quality) - nới lỏng cho mobile
             if (file.size < 30 * 1024) {  // Giảm từ 50KB xuống 30KB
