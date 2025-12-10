@@ -150,7 +150,7 @@ function copyReferralCode() {
     if (codeInput) {
         codeInput.select();
         document.execCommand('copy');
-        alert('Đã sao chép mã giới thiệu!');
+        showNotification('Đã sao chép mã giới thiệu!', false);
     }
 }
 
@@ -160,7 +160,7 @@ function copyReferralLink() {
     if (linkInput) {
         linkInput.select();
         document.execCommand('copy');
-        alert('Đã sao chép link giới thiệu!');
+        showNotification('Đã sao chép link giới thiệu!', false);
     }
 }
 

@@ -310,7 +310,7 @@ async function submitTask() {
 
         if (response.ok) {
             closeTaskModal();
-            alert('Nộp nhiệm vụ thành công! Vui lòng chờ admin duyệt.');
+            showNotification('Nộp nhiệm vụ thành công! Vui lòng chờ admin duyệt.', false);
             loadTasks();
         } else {
             errorDiv.textContent = data.error || 'Nộp nhiệm vụ thất bại';
@@ -506,7 +506,7 @@ async function withdraw() {
                 errorDiv.textContent = '';
                 
                 // Show alert and redirect to verification
-                alert('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.');
+                showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
                 
                 // Switch to profile tab to show verification
                 showSection('profile');
@@ -594,7 +594,7 @@ async function withdraw() {
             // If response is not JSON
             if (response.ok) {
                 // Success but no JSON - treat as success
-                alert('Yêu cầu rút tiền đã được gửi!');
+                showNotification('Yêu cầu rút tiền đã được gửi!', false);
                 document.getElementById('withdraw-amount').value = '';
                 document.getElementById('withdraw-method').value = '';
                 document.getElementById('withdraw-account').value = '';
@@ -622,7 +622,7 @@ async function withdraw() {
                 errorDiv.textContent = '';
                 
                 // Show alert and redirect
-                alert('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.');
+                showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
                 
                 // Switch to profile tab
                 showSection('profile');
@@ -1284,7 +1284,7 @@ async function openCameraCapture(type) {
     
     // Check if we're on HTTPS or localhost
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        alert('Camera chỉ hoạt động trên HTTPS hoặc localhost. Vui lòng truy cập qua HTTPS.');
+        showNotification('Camera chỉ hoạt động trên HTTPS hoặc localhost. Vui lòng truy cập qua HTTPS.', true);
         return;
     }
     
