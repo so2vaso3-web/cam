@@ -1856,9 +1856,14 @@ textarea::placeholder {
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-primary);
-    font-size: 0.95rem;
+    font-size: 16px; /* Prevents zoom on iOS */
     transition: all 0.3s;
     font-family: inherit;
+    /* Mobile optimizations */
+    min-height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
 }
 
 .auth-input:focus {
