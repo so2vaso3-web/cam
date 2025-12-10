@@ -828,8 +828,17 @@ async function startVideo() {
             dataTransfer.items.add(file);
             document.getElementById('face-video').files = dataTransfer.files;
             
-            // Capture photo from video stream
-            capturePhoto();
+            // Photo should already be captured during instructions, but ensure it's shown
+            const capturedPhotoContainer = document.getElementById('captured-photo-container');
+            const facePhotoInput = document.getElementById('face-photo');
+            if (!facePhotoInput?.files?.[0] && capturedPhotoContainer) {
+                // If photo wasn't captured during instructions, capture it now
+                console.log('Photo not captured during instructions, capturing now...');
+                capturePhotoSilently();
+            } else if (capturedPhotoContainer) {
+                // Show the container if photo exists
+                capturedPhotoContainer.style.display = 'block';
+            }
             
             // Show submit button after video is completed
             setTimeout(() => {
