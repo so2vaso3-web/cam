@@ -124,12 +124,20 @@ function displayReferralInfo() {
                     <div class="lock-message">${unlockInfo.message || 'Mời thêm người để mở khóa rút tiền'}</div>
                     ${needed > 0 ? `
                         <div class="lock-progress">
-                            <div class="lock-progress-text">Còn thiếu: <strong>${needed} người</strong></div>
+                            <div class="lock-progress-text">Đã mời: <strong style="color: #2ed573;">${referralInfo.active_referrals || 0}</strong> / ${referralInfo.active_referrals + needed} người</div>
                             <div class="lock-progress-bar">
                                 <div class="lock-progress-fill" style="width: ${((referralInfo.active_referrals || 0) / (referralInfo.active_referrals + needed) * 100)}%;"></div>
                             </div>
                         </div>
                     ` : ''}
+                    <div class="lock-requirements">
+                        <div class="lock-requirements-title">Yêu cầu mở khóa:</div>
+                        <div class="lock-requirements-list">
+                            <div>• Mời 10 người → Rút tối đa 100.000 ₫</div>
+                            <div>• Mời 20 người → Rút không giới hạn</div>
+                            <div>• Mời 50 người → VIP, rút 10.000.000 ₫/ngày</div>
+                        </div>
+                    </div>
                 </div>
             ` : `
                 <div class="withdrawal-unlock-card">
@@ -277,7 +285,7 @@ function displayReferralEarnings(earnings) {
     }).join('');
 }
 
-// Check withdrawal unlock and show popup if locked
+// Check withdrawal unlock status (no popup, info is shown in profile)
 async function checkWithdrawalUnlock() {
     const token = getCurrentToken();
     if (!token) return;
@@ -294,105 +302,12 @@ async function checkWithdrawalUnlock() {
             
             // Store in global for withdrawal form
             window.withdrawalUnlockInfo = unlockInfo;
-
-            // Show popup if locked
-            if (!unlockInfo.unlocked) {
-                showWithdrawalLockPopup(unlockInfo);
-            }
+            
+            // Info is already displayed in referral section, no popup needed
         }
     } catch (error) {
         console.error('Error checking withdrawal unlock:', error);
     }
-}
-
-// Show withdrawal lock popup
-function showWithdrawalLockPopup(unlockInfo) {
-    // Remove existing popup
-    const existing = document.getElementById('withdrawal-lock-popup');
-    if (existing) {
-        existing.remove();
-    }
-
-    const needed = unlockInfo.referrals < 10 ? 10 - unlockInfo.referrals :
-                   unlockInfo.referrals < 20 ? 20 - unlockInfo.referrals :
-                   unlockInfo.referrals < 50 ? 50 - unlockInfo.referrals : 0;
-
-    const popup = document.createElement('div');
-    popup.id = 'withdrawal-lock-popup';
-    popup.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.8);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-    `;
-
-    popup.innerHTML = `
-        <div style="background: #1a1a1a; padding: 2rem; border-radius: 12px; max-width: 500px; width: 100%; border: 2px solid #ff4444;">
-            <h2 style="color: #ff4444; margin-bottom: 1rem; text-align: center;">🔒 Rút Tiền Bị Khóa</h2>
-            <p style="color: #e0e0e0; margin-bottom: 1.5rem; text-align: center;">
-                ${unlockInfo.message}
-            </p>
-            ${needed > 0 ? `
-                <div style="margin-bottom: 1.5rem;">
-                    <div style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                        Đã mời: <strong style="color: #2ed573;">${unlockInfo.referrals}</strong> / 
-                        ${unlockInfo.referrals + needed} người
-                    </div>
-                    <div style="background: #2d2d2d; border-radius: 4px; height: 12px; overflow: hidden;">
-                        <div style="background: linear-gradient(90deg, #2ed573, #667eea); height: 100%; width: ${(unlockInfo.referrals / (unlockInfo.referrals + needed) * 100)}%; transition: width 0.3s;"></div>
-                    </div>
-                </div>
-            ` : ''}
-            <div style="background: #2d2d2d; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                <div style="color: #e0e0e0; font-weight: 600; margin-bottom: 0.75rem;">Yêu cầu mở khóa:</div>
-                <div style="color: #999; font-size: 0.9rem; line-height: 1.6;">
-                    • Mời 10 người → Rút tối đa 100.000 ₫<br>
-                    • Mời 20 người → Rút không giới hạn<br>
-                    • Mời 50 người → VIP, rút 10.000.000 ₫/ngày
-                </div>
-            </div>
-            <div style="display: flex; gap: 1rem;">
-                <button onclick="closeWithdrawalLockPopup()" style="flex: 1; padding: 0.75rem; background: #404040; color: #e0e0e0; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    Đóng
-                </button>
-                <button onclick="goToReferralSection()" style="flex: 1; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    Xem Mã Giới Thiệu
-                </button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(popup);
-}
-
-// Close withdrawal lock popup
-function closeWithdrawalLockPopup() {
-    const popup = document.getElementById('withdrawal-lock-popup');
-    if (popup) {
-        popup.remove();
-    }
-}
-
-// Go to referral section
-function goToReferralSection() {
-    closeWithdrawalLockPopup();
-    // Switch to profile tab and scroll to referral section
-    if (typeof showProfileTab === 'function') {
-        showProfileTab();
-    }
-    setTimeout(() => {
-        const section = document.getElementById('referral-section');
-        if (section) {
-            section.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 300);
 }
 
 // Format currency
