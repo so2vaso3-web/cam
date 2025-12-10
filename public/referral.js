@@ -165,177 +165,159 @@ function displayReferralInfo() {
     loadReferralEarnings();
 }
 
-// Copy referral code - Use modern Clipboard API (GLOBAL)
+// Copy referral code - SIMPLE AND WORKING
 window.copyReferralCode = function() {
     const codeInput = document.getElementById('referral-code-display');
     if (!codeInput) {
-        console.error('Referral code input not found');
+        alert('Không tìm thấy mã giới thiệu!');
         return;
     }
     
-    const code = codeInput.value;
+    // Select and copy
+    codeInput.select();
+    codeInput.setSelectionRange(0, 99999); // For mobile
     
-    // Check if we're on localhost or non-HTTPS - use fallback immediately
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const isHTTPS = window.location.protocol === 'https:';
-    
-    // Use modern Clipboard API only on HTTPS (not localhost)
-    if (!isLocalhost && isHTTPS && navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code).then(() => {
-            showSimpleNotification('Đã sao chép mã giới thiệu!', false);
-        }).catch(err => {
-            console.error('Failed to copy:', err);
-            // Fallback to old method
-            fallbackCopy(code);
-        });
-    } else {
-        // Always use fallback on localhost or non-HTTPS
-        fallbackCopy(code);
+    try {
+        const success = document.execCommand('copy');
+        if (success) {
+            showCopyNotification('Đã sao chép mã giới thiệu!');
+        } else {
+            // Try Clipboard API as fallback
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(codeInput.value).then(() => {
+                    showCopyNotification('Đã sao chép mã giới thiệu!');
+                }).catch(() => {
+                    showCopyNotification('Vui lòng chọn và copy thủ công', true);
+                });
+            } else {
+                showCopyNotification('Vui lòng chọn và copy thủ công', true);
+            }
+        }
+    } catch (err) {
+        // Try Clipboard API as fallback
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(codeInput.value).then(() => {
+                showCopyNotification('Đã sao chép mã giới thiệu!');
+            }).catch(() => {
+                showCopyNotification('Vui lòng chọn và copy thủ công', true);
+            });
+        } else {
+            showCopyNotification('Vui lòng chọn và copy thủ công', true);
+        }
     }
 };
 
-// Copy referral link - Use modern Clipboard API (GLOBAL)
+// Copy referral link - SIMPLE AND WORKING
 window.copyReferralLink = function() {
     const linkInput = document.getElementById('referral-link-display');
     if (!linkInput) {
-        console.error('Referral link input not found');
+        alert('Không tìm thấy link giới thiệu!');
         return;
     }
     
-    const link = linkInput.value;
+    // Select and copy
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999); // For mobile
     
-    // Check if we're on localhost or non-HTTPS - use fallback immediately
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const isHTTPS = window.location.protocol === 'https:';
-    
-    // Use modern Clipboard API only on HTTPS (not localhost)
-    if (!isLocalhost && isHTTPS && navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(link).then(() => {
-            showSimpleNotification('Đã sao chép link giới thiệu!', false);
-        }).catch(err => {
-            console.error('Failed to copy:', err);
-            // Fallback to old method
-            fallbackCopy(link);
-        });
-    } else {
-        // Always use fallback on localhost or non-HTTPS
-        fallbackCopy(link);
+    try {
+        const success = document.execCommand('copy');
+        if (success) {
+            showCopyNotification('Đã sao chép link giới thiệu!');
+        } else {
+            // Try Clipboard API as fallback
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(linkInput.value).then(() => {
+                    showCopyNotification('Đã sao chép link giới thiệu!');
+                }).catch(() => {
+                    showCopyNotification('Vui lòng chọn và copy thủ công', true);
+                });
+            } else {
+                showCopyNotification('Vui lòng chọn và copy thủ công', true);
+            }
+        }
+    } catch (err) {
+        // Try Clipboard API as fallback
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                showCopyNotification('Đã sao chép link giới thiệu!');
+            }).catch(() => {
+                showCopyNotification('Vui lòng chọn và copy thủ công', true);
+            });
+        } else {
+            showCopyNotification('Vui lòng chọn và copy thủ công', true);
+        }
     }
 };
 
-// Simple notification function - always works
-function showSimpleNotification(message, isError) {
-    // Try to use existing showNotification first (wait a bit for DOM to be ready)
-    if (typeof showNotification === 'function') {
-        // Check if notification element exists
-        const notificationEl = document.getElementById('notification');
-        if (notificationEl) {
-            try {
-                showNotification(message, isError);
-                return;
-            } catch (e) {
-                console.error('showNotification error:', e);
-            }
-        }
+// Show copy notification - ALWAYS VISIBLE
+function showCopyNotification(message, isError) {
+    // Remove existing notification if any
+    const existing = document.getElementById('copy-notification');
+    if (existing) {
+        existing.remove();
     }
     
-    // Create simple toast notification as fallback
+    // Create notification
     const notification = document.createElement('div');
+    notification.id = 'copy-notification';
     notification.textContent = message;
     notification.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 80px;
         right: 20px;
-        background: ${isError ? '#ff4444' : '#4CAF50'};
+        background: ${isError ? '#ff4757' : '#2ed573'};
         color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        z-index: 10000;
-        font-size: 14px;
-        font-weight: 500;
-        max-width: 300px;
-        word-wrap: break-word;
-        transform: translateX(0);
-        opacity: 1;
-        transition: all 0.3s ease-out;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        z-index: 99999;
+        font-size: 15px;
+        font-weight: 600;
+        min-width: 200px;
+        text-align: center;
+        animation: slideInRight 0.3s ease-out;
     `;
+    
+    // Add animation
+    if (!document.getElementById('copy-notification-style')) {
+        const style = document.createElement('style');
+        style.id = 'copy-notification-style';
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
     
     document.body.appendChild(notification);
     
-    // Force reflow
-    notification.offsetHeight;
-    
     // Auto remove after 3 seconds
     setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
+        notification.style.animation = 'slideOutRight 0.3s ease-out';
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.remove();
             }
         }, 300);
     }, 3000);
-}
-
-// Fallback copy method for older browsers
-function fallbackCopy(text) {
-    // Try multiple methods
-    let copied = false;
-    
-    // Method 1: textarea + execCommand
-    try {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.top = '0';
-        textarea.style.left = '0';
-        textarea.style.width = '2em';
-        textarea.style.height = '2em';
-        textarea.style.padding = '0';
-        textarea.style.border = 'none';
-        textarea.style.outline = 'none';
-        textarea.style.boxShadow = 'none';
-        textarea.style.background = 'transparent';
-        textarea.style.opacity = '0';
-        textarea.style.zIndex = '-1';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        
-        if (document.execCommand('copy')) {
-            copied = true;
-        }
-        document.body.removeChild(textarea);
-    } catch (err) {
-        console.error('Method 1 failed:', err);
-    }
-    
-    // Method 2: Select input field if exists
-    if (!copied) {
-        try {
-            const codeInput = document.getElementById('referral-code-display');
-            const linkInput = document.getElementById('referral-link-display');
-            const input = codeInput || linkInput;
-            
-            if (input) {
-                input.select();
-                input.setSelectionRange(0, 99999); // For mobile
-                if (document.execCommand('copy')) {
-                    copied = true;
-                }
-            }
-        } catch (err) {
-            console.error('Method 2 failed:', err);
-        }
-    }
-    
-    if (copied) {
-        showSimpleNotification('Đã sao chép!', false);
-    } else {
-        // Last resort: Show text in alert for manual copy
-        showSimpleNotification('Không thể sao chép tự động. Vui lòng chọn và copy thủ công.', true);
-    }
 }
 
 // Load referral chain
