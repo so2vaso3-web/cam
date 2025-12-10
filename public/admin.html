@@ -659,6 +659,47 @@
             <div id="verifications-list" class="verifications-list"></div>
         </div>
 
+        <!-- Referral Tree -->
+        <div id="referral-section" class="admin-section">
+            <h2 style="color: #e0e0e0; margin-bottom: 1.5rem;">Cây Giới Thiệu</h2>
+            <div style="margin-bottom: 1.5rem;">
+                <input type="number" id="referral-user-id" placeholder="Nhập User ID để xem cây giới thiệu" 
+                       style="padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; width: 300px; margin-right: 1rem;">
+                <button onclick="loadReferralTreeForAdmin()" 
+                        style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Xem Cây
+                </button>
+            </div>
+            <div id="referral-tree-section"></div>
+        </div>
+
+        <!-- KYC Data -->
+        <div id="kyc-data-section" class="admin-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="color: #e0e0e0; margin: 0;">Dữ Liệu KYC</h2>
+                <button onclick="exportKYCData()" 
+                        style="padding: 0.75rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Xuất Excel
+                </button>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <input type="text" id="kyc-search" placeholder="Tìm theo số CCCD, phone, email, tên..." 
+                       style="flex: 1; padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0;">
+                <select id="kyc-status-filter" 
+                        style="padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0;">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="pending">Đang chờ</option>
+                    <option value="approved">Đã duyệt</option>
+                    <option value="rejected">Đã từ chối</option>
+                </select>
+                <button onclick="loadKYCData()" 
+                        style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Tìm Kiếm
+                </button>
+            </div>
+            <div id="kyc-data-list"></div>
+        </div>
+
         <!-- Statistics -->
         <div id="stats-section" class="admin-section">
             <div class="stats-grid">
@@ -780,5 +821,6 @@
     </div>
 
     <script src="admin.js"></script>
+    <script src="admin-referral.js"></script>
 </body>
 </html>
