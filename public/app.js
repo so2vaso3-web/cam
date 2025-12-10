@@ -1365,6 +1365,10 @@ function goToNextStep() {
 window.capturePhotoFromCamera = function(type, event) {
     console.log('=== CAPTURE PHOTO START ===');
     console.log('Type:', type);
+    console.log('Event:', event);
+    
+    // ALERT to confirm function is called (remove after testing)
+    alert('Function được gọi! Đang chụp ảnh...');
     
     // Prevent default if event exists
     if (event) {
