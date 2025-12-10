@@ -766,13 +766,17 @@ async function loadProfile() {
     }
     
     // Always load referral info when profile is shown
-    setTimeout(() => {
-        if (typeof loadReferralInfo === 'function') {
-            loadReferralInfo();
-        } else {
-            console.error('loadReferralInfo function not found!');
-        }
-    }, 500);
+    if (typeof loadReferralInfo === 'function') {
+        loadReferralInfo().catch(err => {
+            console.error('Error loading referral info:', err);
+            // Retry after 1 second
+            setTimeout(() => {
+                loadReferralInfo().catch(e => console.error('Retry failed:', e));
+            }, 1000);
+        });
+    } else {
+        console.error('loadReferralInfo function not found!');
+    }
 }
 
 // Video recording variables

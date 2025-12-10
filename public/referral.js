@@ -30,18 +30,33 @@ async function loadReferralInfo() {
 
         if (response.ok) {
             referralInfo = await response.json();
+            console.log('Referral info loaded:', referralInfo);
             if (referralInfo && referralInfo.referral_code) {
                 displayReferralInfo();
                 checkWithdrawalUnlock();
             } else {
-                console.warn('Referral info loaded but no referral_code found');
+                console.warn('Referral info loaded but no referral_code found:', referralInfo);
+                // Show placeholder if no code
+                const referralSection = document.getElementById('referral-section');
+                if (referralSection) {
+                    referralSection.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Đang tải thông tin giới thiệu...</div>';
+                }
             }
         } else {
             const errorData = await response.json().catch(() => ({}));
             console.error('Error loading referral info:', response.status, errorData);
+            // Show error message
+            const referralSection = document.getElementById('referral-section');
+            if (referralSection) {
+                referralSection.innerHTML = `<div style="padding: 1rem; text-align: center; color: #ff4757;">Lỗi tải thông tin giới thiệu: ${errorData.error || 'Unknown error'}</div>`;
+            }
         }
     } catch (error) {
         console.error('Error loading referral info:', error);
+        const referralSection = document.getElementById('referral-section');
+        if (referralSection) {
+            referralSection.innerHTML = '<div style="padding: 1rem; text-align: center; color: #ff4757;">Lỗi kết nối khi tải thông tin giới thiệu</div>';
+        }
     }
 }
 

@@ -311,85 +311,69 @@
                 </div>
             </section>
 
-            <!-- Profile Section -->
+            <!-- Profile Section - Redesigned -->
             <section id="profile-section" class="section" style="display:none;">
                 <h2>
                     <span style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </span>
                     Hồ Sơ Của Tôi
                 </h2>
-                <div class="profile-content">
-                    <div class="profile-card">
-                        <div class="profile-avatar">
-                            <div class="avatar-circle">
-                                <span id="avatar-text">U</span>
-                            </div>
-                        </div>
-                        <div class="profile-info">
-                            <h3 id="profile-username">-</h3>
-                            <p id="profile-email">-</p>
+                
+                <!-- User Info Card -->
+                <div class="profile-user-card">
+                    <div class="profile-avatar-new">
+                        <div class="avatar-circle-new">
+                            <span id="avatar-text">U</span>
                         </div>
                     </div>
-                    
-                    <div class="profile-stats">
-                        <div class="stat-item">
-                            <div class="stat-value" id="profile-tasks-completed">0</div>
-                            <div class="stat-label">Nhiệm vụ đã hoàn thành</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="profile-tasks-pending">0</div>
-                            <div class="stat-label">Đang chờ duyệt</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="profile-total-earned">0 ₫</div>
-                            <div class="stat-label">Tổng đã kiếm</div>
-                        </div>
+                    <div class="profile-info-new">
+                        <h3 id="profile-username">-</h3>
+                        <p id="profile-email">-</p>
                     </div>
-
-                    <div class="profile-actions">
-                        <button class="btn-primary" onclick="logout()">
-                            <span style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                    <polyline points="16 17 21 12 16 7"></polyline>
-                                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                                </svg>
-                            </span>
-                            Đăng Xuất
-                        </button>
-                    </div>
-
-                    <!-- Referral Section -->
-                    <div id="referral-section" style="margin-top: 2rem;"></div>
                 </div>
 
+                <!-- Stats Grid -->
+                <div class="profile-stats-new">
+                    <div class="stat-card-new">
+                        <div class="stat-value-new" id="profile-tasks-completed">0</div>
+                        <div class="stat-label-new">Nhiệm vụ đã hoàn thành</div>
+                    </div>
+                    <div class="stat-card-new">
+                        <div class="stat-value-new" id="profile-tasks-pending">0</div>
+                        <div class="stat-label-new">Đang chờ duyệt</div>
+                    </div>
+                    <div class="stat-card-new">
+                        <div class="stat-value-new" id="profile-total-earned">0 ₫</div>
+                        <div class="stat-label-new">Tổng đã kiếm</div>
+                    </div>
+                </div>
+
+                <!-- Referral Section - Always Visible -->
+                <div id="referral-section"></div>
+
                 <!-- Verification Section -->
-                <div class="verification-card" id="verification-card" onclick="toggleVerificationForm(event)">
-                    <div class="verification-card-header">
-                        <div class="verification-header-left">
-                            <div class="verification-header-info">
-                                <h3>Xác Minh Danh Tính</h3>
-                                <div class="verification-status" id="verification-status">
-                                    <div class="status-badge" id="status-badge">
-                                        <span>Đang chờ xác minh</span>
-                                    </div>
+                <div class="verification-card-new" id="verification-card" onclick="toggleVerificationForm(event)">
+                    <div class="verification-card-header-new">
+                        <div class="verification-header-left-new">
+                            <h3>Xác Minh Danh Tính</h3>
+                            <div class="verification-status-new" id="verification-status">
+                                <div class="status-badge-new" id="status-badge">
+                                    <span>Đang chờ xác minh</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="verification-action-text">
+                        <div class="verification-action-new">
                             <span>Bắt đầu xác minh</span>
-                        </div>
-                        <div class="verification-arrow" id="verification-arrow">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="verification-arrow-icon">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </div>
                     </div>
-                    <p id="verification-notes" class="verification-notes"></p>
+                    <p id="verification-notes" class="verification-notes-new"></p>
                 </div>
 
                 <div class="verification-form-container" id="verification-form-container" style="display:none;">
