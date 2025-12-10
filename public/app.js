@@ -1285,11 +1285,17 @@ function goToNextStep() {
 }
 
 // Capture photo from camera
-function capturePhotoFromCamera(type) {
+function capturePhotoFromCamera(type, event) {
     console.log('capturePhotoFromCamera called with type:', type);
     
+    // Prevent default if event exists
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     // Disable button to prevent double-click
-    const button = event?.target?.closest('.btn-capture') || document.querySelector('.btn-capture');
+    const button = event?.target?.closest('.btn-capture') || document.querySelector(`#camera-modal-${type === 'cccd-front' ? 'front' : 'back'} .btn-capture`);
     if (button) {
         button.style.opacity = '0.5';
         button.style.pointerEvents = 'none';
