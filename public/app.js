@@ -85,39 +85,115 @@ function showAuthTab(tab) {
     }
 }
 
-// Initialize auth event listeners - Works even if DOM already loaded
+// Initialize auth event listeners - Multiple fallbacks to ensure it works
 function initAuthListeners() {
-    // Tab switching
-    document.querySelectorAll('.auth-tab-btn').forEach(btn => {
-        // Remove old listeners
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        // Add new listener
-        newBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const tab = this.dataset.tab;
-            showAuthTab(tab);
-        });
-    });
+    console.log('Initializing auth listeners...');
     
-    // Login button
-    const loginBtn = document.getElementById('login-btn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            login();
+    // Tab switching - Use event delegation for reliability
+    const authTabs = document.querySelector('.auth-tabs-new');
+    if (authTabs) {
+        authTabs.addEventListener('click', function(e) {
+            const btn = e.target.closest('.auth-tab-btn');
+            if (btn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const tab = btn.dataset.tab;
+                if (tab) {
+                    showAuthTab(tab);
+                }
+            }
         });
     }
     
-    // Register button
-    const registerBtn = document.getElementById('register-btn');
-    if (registerBtn) {
-        registerBtn.addEventListener('click', function(e) {
+    // Also attach directly to buttons as backup
+    document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            register();
+            const tab = this.dataset.tab;
+            if (tab) {
+                showAuthTab(tab);
+            }
         });
+    });
+    
+    // Login button - Multiple attempts
+    function attachLoginBtn() {
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            // Remove any existing listeners by cloning
+            const newBtn = loginBtn.cloneNode(true);
+            loginBtn.parentNode.replaceChild(newBtn, loginBtn);
+            
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Login button clicked');
+                if (typeof login === 'function') {
+                    login();
+                } else {
+                    console.error('login function not defined');
+                }
+            });
+            
+            // Also add as onclick as fallback
+            newBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof login === 'function') {
+                    login();
+                }
+            };
+            
+            console.log('Login button attached');
+            return true;
+        }
+        return false;
+    }
+    
+    // Register button - Multiple attempts
+    function attachRegisterBtn() {
+        const registerBtn = document.getElementById('register-btn');
+        if (registerBtn) {
+            // Remove any existing listeners by cloning
+            const newBtn = registerBtn.cloneNode(true);
+            registerBtn.parentNode.replaceChild(newBtn, registerBtn);
+            
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Register button clicked');
+                if (typeof register === 'function') {
+                    register();
+                } else {
+                    console.error('register function not defined');
+                }
+            });
+            
+            // Also add as onclick as fallback
+            newBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof register === 'function') {
+                    register();
+                }
+            };
+            
+            console.log('Register button attached');
+            return true;
+        }
+        return false;
+    }
+    
+    // Try to attach buttons
+    if (!attachLoginBtn()) {
+        setTimeout(attachLoginBtn, 100);
+        setTimeout(attachLoginBtn, 500);
+    }
+    
+    if (!attachRegisterBtn()) {
+        setTimeout(attachRegisterBtn, 100);
+        setTimeout(attachRegisterBtn, 500);
     }
     
     // Enter key support
@@ -127,7 +203,7 @@ function initAuthListeners() {
         loginUsername.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                login();
+                if (typeof login === 'function') login();
             }
         });
     }
@@ -135,7 +211,7 @@ function initAuthListeners() {
         loginPassword.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                login();
+                if (typeof login === 'function') login();
             }
         });
     }
@@ -147,20 +223,34 @@ function initAuthListeners() {
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    register();
+                    if (typeof register === 'function') register();
                 }
             });
         }
     });
+    
+    console.log('Auth listeners initialization complete');
 }
 
-// Initialize on DOM ready or immediately if already loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAuthListeners);
-} else {
-    // DOM already loaded
-    initAuthListeners();
+// Initialize with multiple fallbacks
+function ensureAuthListeners() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            initAuthListeners();
+            // Retry after a delay
+            setTimeout(initAuthListeners, 100);
+        });
+    } else {
+        // DOM already loaded
+        initAuthListeners();
+        // Retry after a delay to ensure elements exist
+        setTimeout(initAuthListeners, 100);
+        setTimeout(initAuthListeners, 500);
+    }
 }
+
+// Start initialization
+ensureAuthListeners();
 
 // Register
 async function register() {
@@ -2312,5 +2402,8 @@ function hideNotification() {
 }
 
 // Initialize
+// Initialize everything
 checkAuth();
+// Ensure auth listeners are attached after checkAuth
+setTimeout(ensureAuthListeners, 100);
 
