@@ -572,6 +572,15 @@ app.post('/api/admin/submissions/:id/review', authenticateToken, (req, res) => {
             db.run('INSERT INTO transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
               [submission.user_id, task.reward, 'credit', `Phần thưởng nhiệm vụ: ${task.reward} ₫`],
               () => {
+                // Calculate referral commission (if referral system is loaded)
+                try {
+                  const referralSystem = require('./referral-system');
+                  referralSystem.calculateTaskCommission(db, submission.user_id, task.reward);
+                } catch (refErr) {
+                  console.error('Referral system not available:', refErr);
+                  // Continue without referral commission if module not loaded
+                }
+                
                 res.json({ message: 'Submission reviewed and reward added' });
               });
           });
