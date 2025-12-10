@@ -1214,12 +1214,26 @@ async function openCameraCapture(type) {
         video.srcObject = cameraStream;
         modal.style.display = 'flex';
         
-        // Wait for video to be ready
+        // Wait for video to be ready and ensure it plays
         video.onloadedmetadata = () => {
-            video.play().catch(err => {
+            console.log('Video metadata loaded, starting playback...');
+            video.play().then(() => {
+                console.log('Video is playing');
+            }).catch(err => {
                 console.error('Error playing video:', err);
+                alert('Không thể phát video. Vui lòng thử lại.');
             });
         };
+        
+        // Also handle when video can play
+        video.oncanplay = () => {
+            console.log('Video can play, ready for capture');
+        };
+        
+        // Ensure video plays (some browsers need this)
+        video.setAttribute('playsinline', '');
+        video.setAttribute('autoplay', '');
+        video.muted = true; // Mute to allow autoplay on mobile
         
         // Add click event listener to capture button when modal opens
         setTimeout(() => {
