@@ -1506,6 +1506,13 @@ window.retakePhoto = function(type) {
 window.confirmPhoto = function(type) {
     console.log('Confirming photo:', type);
     
+    // Check if file exists in input
+    const input = document.getElementById(type);
+    if (!input || !input.files || !input.files[0]) {
+        alert('Vui lòng chụp ảnh trước khi tiếp tục.');
+        return;
+    }
+    
     if (type === 'cccd-front') {
         // Step 1 (mặt trước) → Step 2 (mặt sau)
         console.log('Moving to step 2 (CCCD mặt sau)');
@@ -2228,54 +2235,7 @@ window.retakePhoto = function(type) {
     openCameraCapture(type);
 };
 
-// Confirm photo and go to next step - GLOBAL
-window.confirmPhoto = function(type) {
-    console.log('=== CONFIRM PHOTO ===', type);
-    const photoData = window.capturedPhotos?.[type];
-    if (!photoData || !photoData.file) {
-        alert('Không tìm thấy ảnh đã chụp. Vui lòng chụp lại.');
-        return;
-    }
-    
-    // Set file to input (if not already set)
-    const input = document.getElementById(type);
-    if (input && photoData.file) {
-        try {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(photoData.file);
-            input.files = dataTransfer.files;
-            console.log('✓ File confirmed in input');
-        } catch (e) {
-            console.error('Error setting file:', e);
-        }
-    }
-    
-    // Show success message
-    const previewId = `cccd-${type}-preview`;
-    const preview = document.getElementById(previewId);
-    if (preview) {
-        preview.innerHTML = `
-            <div style="text-align: center; padding: 1rem; background: #1a1a1a; border-radius: 8px; margin-top: 1rem; border: 2px solid #2ed573;">
-                <p style="color: #2ed573; font-weight: 600;">✓ Ảnh đã được xác nhận!</p>
-            </div>
-        `;
-    }
-    
-    // Go to next step automatically
-    setTimeout(() => {
-        // This is now handled by confirmPhoto() function
-        // Keep this for backward compatibility but it should not be called anymore
-        if (type === 'cccd-front') {
-            // Step 1 (mặt trước) → Step 2 (mặt sau)
-            console.log('Moving to step 2 (CCCD mặt sau)');
-            goToNextStep();
-        } else if (type === 'cccd-back') {
-            // Step 2 (mặt sau) → Step 3 (video mặt)
-            console.log('Moving to step 3 (Video mặt)');
-            goToNextStep();
-        }
-    }, 800); // Slightly longer delay to show confirmation
-};
+// Duplicate confirmPhoto removed - using the one defined earlier
 
 // Logout
 function logout() {
