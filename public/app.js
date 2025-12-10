@@ -1160,8 +1160,11 @@ let currentCameraType = null;
 // Open camera capture modal
 async function openCameraCapture(type) {
     currentCameraType = type;
-    const modal = document.getElementById(`camera-modal-${type}`);
-    const video = document.getElementById(`camera-preview-${type}`);
+    // Map type to modal ID (cccd-front -> front, cccd-back -> back)
+    const modalId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
+    const modal = document.getElementById(`camera-modal-${modalId}`);
+    const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
+    const video = document.getElementById(`camera-preview-${videoId}`);
     
     // Check if getUserMedia is supported (with fallback for older browsers)
     let getUserMedia = null;
@@ -1204,6 +1207,10 @@ async function openCameraCapture(type) {
         
         cameraStream = await streamPromise;
         
+        if (!modal || !video) {
+            throw new Error('Modal or video element not found');
+        }
+        
         video.srcObject = cameraStream;
         modal.style.display = 'flex';
         
@@ -1235,8 +1242,12 @@ async function openCameraCapture(type) {
 
 // Close camera capture
 function closeCameraCapture(type) {
-    const modal = document.getElementById(`camera-modal-${type}`);
-    modal.style.display = 'none';
+    // Map type to modal ID (cccd-front -> front, cccd-back -> back)
+    const modalId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
+    const modal = document.getElementById(`camera-modal-${modalId}`);
+    if (modal) {
+        modal.style.display = 'none';
+    }
     
     if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
@@ -1275,8 +1286,10 @@ function goToNextStep() {
 
 // Capture photo from camera
 function capturePhotoFromCamera(type) {
-    const video = document.getElementById(`camera-preview-${type}`);
-    const canvas = document.getElementById(`camera-canvas-${type}`);
+    // Map type to video/canvas ID (cccd-front -> front, cccd-back -> back)
+    const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
+    const video = document.getElementById(`camera-preview-${videoId}`);
+    const canvas = document.getElementById(`camera-canvas-${videoId}`);
     const input = document.getElementById(`cccd-${type}`);
     
     if (video && video.videoWidth > 0) {
@@ -1302,9 +1315,9 @@ function capturePhotoFromCamera(type) {
                         closeCameraCapture(type);
                         // Auto go to next step after 1 second
                         setTimeout(() => {
-                            if (type === 'front') {
+                            if (type === 'cccd-front') {
                                 goToNextStep();
-                            } else if (type === 'back') {
+                            } else if (type === 'cccd-back') {
                                 goToNextStep();
                             }
                         }, 1000);
