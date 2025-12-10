@@ -121,12 +121,8 @@ async function register() {
                 const newUrl = window.location.pathname;
                 window.history.replaceState({}, '', newUrl);
             }
-            // Show success message with bonus info
-            if (data.signup_bonus) {
-                alert(`🎉 Đăng ký thành công!\n\nBạn đã nhận ${data.signup_bonus.toLocaleString('vi-VN')} ₫ tiền thưởng đăng ký!`);
-            } else {
-                alert('Đăng ký thành công!');
-            }
+            // Show success message with bonus info (silent - no alert)
+            // Bonus info will be shown in balance update
             showMainContent();
             errorDiv.textContent = '';
         } else {
@@ -770,12 +766,11 @@ async function loadProfile() {
     // Always load referral info when profile is shown
     setTimeout(() => {
         if (typeof loadReferralInfo === 'function') {
-            console.log('Loading referral info...');
             loadReferralInfo();
         } else {
             console.error('loadReferralInfo function not found!');
         }
-    }, 300);
+    }, 500);
 }
 
 // Video recording variables

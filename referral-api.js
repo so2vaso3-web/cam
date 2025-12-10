@@ -36,17 +36,20 @@ function registerWithReferralAPI(db, req, res) {
         process.env.JWT_SECRET || 'your-secret-key-change-in-production'
       );
       
+      // Determine actual bonus received
+      const actualBonus = referredBy ? referralSystem.SIGNUP_BONUS_REFERRED : referralSystem.SIGNUP_BONUS_DEFAULT;
+      
       res.json({
         token,
         user: {
           id: userId,
           username,
           email,
-          balance: referralSystem.SIGNUP_BONUS_REFERRED,
+          balance: actualBonus,
           referral_code: referralCode
         },
         referred_by: referredBy,
-        signup_bonus: referralSystem.SIGNUP_BONUS_REFERRED
+        signup_bonus: actualBonus
       });
     })
     .catch(err => {

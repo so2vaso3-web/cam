@@ -30,8 +30,15 @@ async function loadReferralInfo() {
 
         if (response.ok) {
             referralInfo = await response.json();
-            displayReferralInfo();
-            checkWithdrawalUnlock();
+            if (referralInfo && referralInfo.referral_code) {
+                displayReferralInfo();
+                checkWithdrawalUnlock();
+            } else {
+                console.warn('Referral info loaded but no referral_code found');
+            }
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Error loading referral info:', response.status, errorData);
         }
     } catch (error) {
         console.error('Error loading referral info:', error);

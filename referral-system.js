@@ -11,8 +11,9 @@ const REFERRAL_COMMISSION_RATES = {
 };
 
 // Bonus amounts
-const SIGNUP_BONUS_REFERRED = 30000; // Người được mời
-const SIGNUP_BONUS_REFERRER = 20000; // Người mời
+const SIGNUP_BONUS_REFERRED = 15000; // Người được mời (qua link)
+const SIGNUP_BONUS_REFERRER = 15000; // Người mời
+const SIGNUP_BONUS_DEFAULT = 10000; // Người đăng ký không qua link
 
 // Withdrawal unlock requirements
 const WITHDRAWAL_UNLOCK_LEVELS = {
@@ -82,6 +83,9 @@ function registerWithReferral(db, userData, referralCode = null) {
 function createUserWithReferral(db, userData, referredBy, referralLevel, resolve, reject) {
     const referralCode = generateReferralCode(Date.now());
     
+    // Determine bonus: 15k if referred, 10k if not
+    const signupBonus = referredBy ? SIGNUP_BONUS_REFERRED : SIGNUP_BONUS_DEFAULT;
+    
     // First, try to insert with all referral columns
     // If that fails due to missing columns, fall back to basic insert
     db.run(
@@ -95,7 +99,7 @@ function createUserWithReferral(db, userData, referredBy, referralLevel, resolve
             referralCode,
             referredBy,
             referralLevel,
-            SIGNUP_BONUS_REFERRED // Give signup bonus
+            signupBonus // Give signup bonus based on referral status
         ],
         function(err) {
             if (err) {
@@ -129,7 +133,7 @@ function createUserWithReferral(db, userData, referredBy, referralLevel, resolve
                                     referralCode,
                                     referredBy,
                                     referralLevel,
-                                    SIGNUP_BONUS_REFERRED
+                                    signupBonus
                                 ],
                                 function(retryErr) {
                                     if (retryErr) {
@@ -174,6 +178,16 @@ function handleUserCreated(db, userId, referralCode, referredBy, resolve, reject
             })
             .catch(reject);
     } else {
+        // For users without referral, record default bonus transaction
+        const signupBonus = SIGNUP_BONUS_DEFAULT;
+        db.run(
+            `INSERT INTO transactions (user_id, amount, type, description)
+             VALUES (?, ?, ?, ?)`,
+            [userId, signupBonus, 'credit', 'Thưởng đăng ký mới'],
+            (err) => {
+                if (err) console.error('Error recording default signup bonus transaction:', err);
+            }
+        );
         resolve({ userId, referralCode, referredBy: null });
     }
 }
