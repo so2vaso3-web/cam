@@ -1239,6 +1239,8 @@ async function openCameraCapture(type) {
                 let isCapturing = false;
                 
                 const handleCapture = (e) => {
+                    console.log('=== HANDLE CAPTURE CALLED ===', type, e.type);
+                    
                     if (isCapturing) {
                         console.log('Already capturing, ignoring...');
                         return;
@@ -1250,9 +1252,12 @@ async function openCameraCapture(type) {
                     isCapturing = true;
                     
                     console.log('=== BUTTON CLICKED ===', type);
+                    console.log('Video ready flag:', videoReady);
+                    console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+                    console.log('Video paused:', video.paused, 'ended:', video.ended);
                     
-                    // Check if video is ready
-                    if (!videoReady || !video.videoWidth || !video.videoHeight) {
+                    // Check if video is ready - but don't block if dimensions exist
+                    if (!video.videoWidth || !video.videoHeight || video.videoWidth === 0 || video.videoHeight === 0) {
                         console.log('Video not ready yet, waiting...');
                         alert('Vui lòng đợi camera sẵn sàng...');
                         isCapturing = false;
@@ -1261,15 +1266,25 @@ async function openCameraCapture(type) {
                     
                     // Visual feedback
                     captureButton.style.transform = 'scale(0.9)';
+                    captureButton.style.opacity = '0.7';
                     setTimeout(() => {
                         captureButton.style.transform = '';
+                        captureButton.style.opacity = '1';
                     }, 200);
                     
-                    // Call capture function directly
-                    setTimeout(() => {
+                    // Call capture function DIRECTLY - no delay
+                    console.log('Calling capturePhotoFromCamera NOW...');
+                    try {
                         capturePhotoFromCamera(type, e);
+                    } catch (err) {
+                        console.error('Error calling capturePhotoFromCamera:', err);
+                        alert('Lỗi: ' + err.message);
+                    }
+                    
+                    // Reset flag after a delay
+                    setTimeout(() => {
                         isCapturing = false;
-                    }, 50);
+                    }, 1000);
                 };
                 
                 // Attach multiple event types for maximum compatibility
@@ -1405,21 +1420,40 @@ window.capturePhotoFromCamera = function(type, event) {
         if (controls) controls.style.display = originalStates.controls || '';
     };
     
-    // Function to capture when video is ready
+    // Function to capture when video is ready - SIMPLIFIED
     const doCapture = () => {
+        console.log('=== doCapture called ===');
+        console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+        console.log('Video paused:', video.paused, 'ended:', video.ended);
+        
         // Check if video has valid dimensions
         if (!video.videoWidth || !video.videoHeight || video.videoWidth === 0 || video.videoHeight === 0) {
-            console.log('Video not ready, dimensions:', video.videoWidth, 'x', video.videoHeight);
-            // Wait a bit and try again
-            setTimeout(doCapture, 200);
+            console.log('Video not ready, waiting...');
+            // Wait a bit and try again (max 10 times = 2 seconds)
+            if (doCapture.retryCount === undefined) doCapture.retryCount = 0;
+            doCapture.retryCount++;
+            if (doCapture.retryCount < 10) {
+                setTimeout(doCapture, 200);
+            } else {
+                alert('Camera chưa sẵn sàng. Vui lòng thử lại.');
+                restoreUI();
+                if (button) {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                }
+            }
             return;
         }
         
-        // Check if video is playing
+        // Reset retry count
+        doCapture.retryCount = 0;
+        
+        // Check if video is playing - if not, try to play
         if (video.paused || video.ended) {
-            console.log('Video not playing, trying to play...');
+            console.log('Video not playing, starting playback...');
             video.play().then(() => {
-                setTimeout(doCapture, 300);
+                console.log('Video play() successful');
+                setTimeout(doCapture, 200);
             }).catch(err => {
                 console.error('Cannot play video:', err);
                 alert('Không thể phát video. Vui lòng thử lại.');
@@ -1431,6 +1465,8 @@ window.capturePhotoFromCamera = function(type, event) {
             });
             return;
         }
+        
+        console.log('✓ Video is ready and playing, proceeding with capture...');
         
         console.log('Video ready, hiding UI and capturing...');
         console.log('Video size:', video.videoWidth, 'x', video.videoHeight);
