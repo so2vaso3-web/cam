@@ -2322,7 +2322,18 @@ function hideNotification() {
 
 // Initialize
 // Initialize everything
-checkAuth();
+// Initialize app when DOM is ready
+function initApp() {
+    checkAuth();
+    // Ensure auth system is initialized after DOM is ready
+    setTimeout(initAuthSystem, 100);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 // Ensure auth listeners are attached after checkAuth
 setTimeout(ensureAuthListeners, 100);
 
