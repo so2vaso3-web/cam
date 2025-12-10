@@ -165,8 +165,8 @@ function displayReferralInfo() {
     loadReferralEarnings();
 }
 
-// Copy referral code - Use modern Clipboard API
-function copyReferralCode() {
+// Copy referral code - Use modern Clipboard API (GLOBAL)
+window.copyReferralCode = function() {
     const codeInput = document.getElementById('referral-code-display');
     if (!codeInput) {
         console.error('Referral code input not found');
@@ -190,8 +190,8 @@ function copyReferralCode() {
     }
 }
 
-// Copy referral link - Use modern Clipboard API
-function copyReferralLink() {
+// Copy referral link - Use modern Clipboard API (GLOBAL)
+window.copyReferralLink = function() {
     const linkInput = document.getElementById('referral-link-display');
     if (!linkInput) {
         console.error('Referral link input not found');
