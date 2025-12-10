@@ -1776,6 +1776,7 @@ select option {
     align-items: center;
     justify-content: center;
     pointer-events: none;
+    z-index: 10000;
 }
 
 .guide-frame {
@@ -1794,6 +1795,8 @@ select option {
     align-items: center;
     background: #2d2d2d;
     flex-shrink: 0;
+    position: relative;
+    z-index: 10002;
 }
 
 .btn-capture {
@@ -1806,12 +1809,22 @@ select option {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s;
+    transition: all 0.2s;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 10001;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.btn-capture:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .btn-capture:active {
-    transform: scale(0.95);
+    transform: scale(0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .capture-circle {
