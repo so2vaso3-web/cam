@@ -247,12 +247,23 @@ const authenticateToken = (req, res, next) => {
 
 // Routes
 
-// Register
+// Register with referral support
 app.post('/api/register', async (req, res) => {
-  const { username, email, password, phone } = req.body;
+  const { username, email, password, phone, referral_code } = req.body;
 
   if (!username || !email || !password || !phone) {
     return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
+  }
+
+  // Anti-fake: Validate registration
+  try {
+    const validation = await antiFake.validateRegistration(db, { phone, email });
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.errors.join(', ') });
+    }
+  } catch (err) {
+    console.error('Validation error:', err);
+    return res.status(500).json({ error: 'Lỗi kiểm tra thông tin' });
   }
 
   // Validate phone number (Vietnamese format)
@@ -266,23 +277,8 @@ app.post('/api/register', async (req, res) => {
     return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 6 ký tự' });
   }
 
-  const hashedPassword = bcrypt.hashSync(password, 10);
-
-  db.run(
-    'INSERT INTO users (username, email, password, phone) VALUES (?, ?, ?, ?)',
-    [username, email, hashedPassword, cleanPhone],
-    function(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint')) {
-          return res.status(400).json({ error: 'Username or email already exists' });
-        }
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      const token = jwt.sign({ id: this.lastID, username, role: 'user' }, JWT_SECRET);
-      res.json({ token, user: { id: this.lastID, username, email, balance: 0 } });
-    }
-  );
+  // Use referral system to register
+  referralAPI.registerWithReferralAPI(db, req, res);
 });
 
 // Login
@@ -349,39 +345,75 @@ app.get('/api/referral/withdrawal-unlock', authenticateToken, (req, res) => {
   referralAPI.checkWithdrawalUnlockAPI(db, req, res);
 });
 
-// Upload verification documents
+// Upload verification documents with OCR
 app.post('/api/verification/upload', extractUserFromToken, authenticateToken, upload.fields([
   { name: 'cccd_front', maxCount: 1 },
   { name: 'cccd_back', maxCount: 1 },
   { name: 'face_video', maxCount: 1 },
   { name: 'face_photo', maxCount: 1 }
-]), (req, res) => {
+]), async (req, res) => {
   const userId = req.user.id;
   const updates = [];
   const values = [];
+  const imagePaths = {};
 
   if (req.files.cccd_front) {
     updates.push('cccd_front = ?');
     values.push(req.files.cccd_front[0].filename);
+    imagePaths.cccd_front = path.join(uploadsDir, req.files.cccd_front[0].filename);
   }
 
   if (req.files.cccd_back) {
     updates.push('cccd_back = ?');
     values.push(req.files.cccd_back[0].filename);
+    imagePaths.cccd_back = path.join(uploadsDir, req.files.cccd_back[0].filename);
   }
 
   if (req.files.face_video) {
     updates.push('face_video = ?');
     values.push(req.files.face_video[0].filename);
+    imagePaths.face_video = path.join(uploadsDir, req.files.face_video[0].filename);
   }
 
   if (req.files.face_photo) {
     updates.push('face_photo = ?');
     values.push(req.files.face_photo[0].filename);
+    imagePaths.face_photo = path.join(uploadsDir, req.files.face_photo[0].filename);
   }
 
   if (updates.length === 0) {
     return res.status(400).json({ error: 'Không có file nào được upload' });
+  }
+
+  // OCR Extraction from CCCD front
+  let ocrResult = null;
+  if (imagePaths.cccd_front && fs.existsSync(imagePaths.cccd_front)) {
+    try {
+      ocrResult = await ocrService.extractCCCDInfo(imagePaths.cccd_front);
+      if (ocrResult.success && ocrResult.data.cccd_number) {
+        // Anti-fake: Check duplicate CCCD
+        const kycValidation = await antiFake.validateKYC(db, userId, ocrResult.data.cccd_number);
+        if (!kycValidation.valid) {
+          // Delete uploaded files
+          Object.values(imagePaths).forEach(filePath => {
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          });
+          return res.status(400).json({ 
+            error: kycValidation.errors.join(', '),
+            duplicate: true,
+            existing_user: kycValidation.duplicate_info
+          });
+        }
+
+        // Save OCR data
+        await ocrService.saveOCRData(db, userId, ocrResult.data, imagePaths, ocrResult);
+      }
+    } catch (err) {
+      console.error('OCR error:', err);
+      // Continue even if OCR fails
+    }
   }
 
   // Set status to pending if not already approved
@@ -399,7 +431,10 @@ app.post('/api/verification/upload', extractUserFromToken, authenticateToken, up
       return res.status(500).json({ error: 'Database error: ' + err.message });
     }
     console.log(`Verification files uploaded for user ${userId}`);
-    res.json({ message: 'Upload thành công! Đang chờ duyệt.' });
+    res.json({ 
+      message: 'Upload thành công! Đang chờ duyệt.',
+      ocr_extracted: ocrResult?.success || false
+    });
   });
 });
 
@@ -603,14 +638,8 @@ app.post('/api/admin/submissions/:id/review', authenticateToken, (req, res) => {
             db.run('INSERT INTO transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
               [submission.user_id, task.reward, 'credit', `Phần thưởng nhiệm vụ: ${task.reward} ₫`],
               () => {
-                // Calculate referral commission (if referral system is loaded)
-                try {
-                  const referralSystem = require('./referral-system');
-                  referralSystem.calculateTaskCommission(db, submission.user_id, task.reward);
-                } catch (refErr) {
-                  console.error('Referral system not available:', refErr);
-                  // Continue without referral commission if module not loaded
-                }
+                // Calculate referral commission
+                referralSystem.calculateTaskCommission(db, submission.user_id, task.reward);
                 
                 res.json({ message: 'Submission reviewed and reward added' });
               });
