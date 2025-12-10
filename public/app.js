@@ -1225,23 +1225,39 @@ async function openCameraCapture(type) {
         setTimeout(() => {
             const captureButton = modal.querySelector('.btn-capture');
             if (captureButton) {
-                // Remove old listeners by cloning
+                // Remove any existing listeners by cloning (but keep onclick)
+                const onclickAttr = captureButton.getAttribute('onclick');
                 const newButton = captureButton.cloneNode(true);
+                if (onclickAttr) {
+                    newButton.setAttribute('onclick', onclickAttr);
+                }
                 captureButton.parentNode.replaceChild(newButton, captureButton);
                 
-                // Add new listener
+                // Add event listener (both onclick and addEventListener will work)
                 newButton.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Capture button clicked via event listener, type:', type);
+                    console.log('=== BUTTON CLICKED (event listener) ===');
+                    console.log('Type:', type);
+                    console.log('Event:', e);
                     capturePhotoFromCamera(type, e);
-                }, { once: false });
+                }, { once: false, passive: false });
                 
-                console.log('Capture button event listener added for type:', type);
+                // Also add touch event for mobile
+                newButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('=== BUTTON TOUCHED (touch event) ===');
+                    console.log('Type:', type);
+                    capturePhotoFromCamera(type, e);
+                }, { once: false, passive: false });
+                
+                console.log('Capture button event listeners added for type:', type);
+                console.log('Button element:', newButton);
             } else {
                 console.error('Capture button not found in modal');
             }
-        }, 100);
+        }, 200);
     } catch (error) {
         console.error('Error accessing camera:', error);
         let errorMessage = 'Không thể truy cập camera. ';
@@ -1306,11 +1322,12 @@ function goToNextStep() {
     }
 }
 
-// Capture photo from camera
-function capturePhotoFromCamera(type, event) {
+// Capture photo from camera - Make sure it's globally accessible
+window.capturePhotoFromCamera = function(type, event) {
     console.log('=== CAPTURE PHOTO START ===');
     console.log('Type:', type);
     console.log('Event:', event);
+    console.log('Function called from:', new Error().stack);
     
     // Prevent default if event exists
     if (event) {
@@ -1467,7 +1484,7 @@ function capturePhotoFromCamera(type, event) {
     // Start capture
     captureFrame();
     console.log('=== CAPTURE PHOTO END ===');
-}
+};
 
 function initFileHandlers() {
     const cccdFront = document.getElementById('cccd-front');
