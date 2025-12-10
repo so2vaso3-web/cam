@@ -62,17 +62,70 @@ function showMainContent() {
     showSection('tasks');
 }
 
-// Auth tabs
+// Auth tabs - Updated for new design
 function showAuthTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
-    document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+    // Update tab buttons
+    document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === tab) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Update forms
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    
     if (tab === 'login') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
     } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        loginForm.classList.remove('active');
+        registerForm.classList.add('active');
     }
 }
+
+// Initialize auth event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.dataset.tab;
+            showAuthTab(tab);
+        });
+    });
+    
+    // Login button
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', login);
+    }
+    
+    // Register button
+    const registerBtn = document.getElementById('register-btn');
+    if (registerBtn) {
+        registerBtn.addEventListener('click', register);
+    }
+    
+    // Enter key support
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && loginForm.classList.contains('active')) {
+                login();
+            }
+        });
+    }
+    
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+        registerForm.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && registerForm.classList.contains('active')) {
+                register();
+            }
+        });
+    }
+});
 
 // Register
 async function register() {

@@ -141,50 +141,101 @@
         </a>
     </nav>
 
-    <!-- Login/Register Section -->
-    <section id="auth-section" class="auth-section">
-        <div class="auth-container">
-            <div class="auth-tabs">
-                <button class="tab-btn active" onclick="showAuthTab('login')">Đăng Nhập</button>
-                <button class="tab-btn" onclick="showAuthTab('register')">Đăng Ký</button>
-            </div>
-
-            <div id="login-form" class="auth-form">
-                <h2>Đăng Nhập</h2>
-                <input type="text" id="login-username" placeholder="Tên đăng nhập hoặc Email">
-                <input type="password" id="login-password" placeholder="Mật khẩu">
-                <button class="btn-primary" onclick="login()">
-                    <span style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+    <!-- Auth Section - Redesigned -->
+    <section id="auth-section" class="auth-page">
+        <div class="auth-wrapper">
+            <div class="auth-box">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <h1 class="auth-logo-text">TaskEarn</h1>
+                        <p class="auth-logo-subtitle">Nền tảng kiếm tiền uy tín</p>
+                    </div>
+                </div>
+                
+                <div class="auth-tabs-new">
+                    <button class="auth-tab-btn active" data-tab="login">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                             <polyline points="10 17 15 12 10 7"></polyline>
                             <line x1="15" y1="12" x2="3" y2="12"></line>
                         </svg>
-                    </span>
-                    Đăng Nhập
-                </button>
-                <div id="login-error" class="error-message"></div>
-            </div>
-
-            <div id="register-form" class="auth-form" style="display:none;">
-                <h2>Đăng Ký</h2>
-                <input type="text" id="register-username" placeholder="Tên đăng nhập" required>
-                <input type="email" id="register-email" placeholder="Email" required>
-                <input type="tel" id="register-phone" placeholder="Số điện thoại (bắt buộc)" required>
-                <input type="password" id="register-password" placeholder="Mật khẩu" required>
-                <input type="text" id="register-referral-code" placeholder="Mã giới thiệu (nếu có)" style="background: #2d2d2d; border: 1px solid #404040;">
-                <button class="btn-primary" onclick="register()">
-                    <span style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <span>Đăng Nhập</span>
+                    </button>
+                    <button class="auth-tab-btn" data-tab="register">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="8.5" cy="7" r="4"></circle>
                             <line x1="20" y1="8" x2="20" y2="14"></line>
                             <line x1="23" y1="11" x2="17" y2="11"></line>
                         </svg>
-                    </span>
-                    Đăng Ký
-                </button>
-                <div id="register-error" class="error-message"></div>
+                        <span>Đăng Ký</span>
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="login-form" class="auth-form-new active">
+                    <h2 class="auth-form-title">Chào mừng trở lại</h2>
+                    <p class="auth-form-subtitle">Đăng nhập để tiếp tục kiếm tiền</p>
+                    
+                    <div class="auth-input-group">
+                        <label class="auth-label">Tên đăng nhập hoặc Email</label>
+                        <input type="text" id="login-username" class="auth-input" placeholder="Nhập tên đăng nhập hoặc email">
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label class="auth-label">Mật khẩu</label>
+                        <input type="password" id="login-password" class="auth-input" placeholder="Nhập mật khẩu">
+                    </div>
+                    
+                    <button class="auth-btn-primary" id="login-btn">
+                        <span>Đăng Nhập</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    
+                    <div id="login-error" class="auth-error"></div>
+                </div>
+
+                <!-- Register Form -->
+                <div id="register-form" class="auth-form-new">
+                    <h2 class="auth-form-title">Tạo tài khoản mới</h2>
+                    <p class="auth-form-subtitle">Đăng ký ngay để nhận phần thưởng</p>
+                    
+                    <div class="auth-input-group">
+                        <label class="auth-label">Tên đăng nhập</label>
+                        <input type="text" id="register-username" class="auth-input" placeholder="Nhập tên đăng nhập" required>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label class="auth-label">Email</label>
+                        <input type="email" id="register-email" class="auth-input" placeholder="Nhập email" required>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label class="auth-label">Số điện thoại <span class="required">*</span></label>
+                        <input type="tel" id="register-phone" class="auth-input" placeholder="Nhập số điện thoại" required>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label class="auth-label">Mật khẩu</label>
+                        <input type="password" id="register-password" class="auth-input" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label class="auth-label">Mã giới thiệu <span class="optional">(Tùy chọn)</span></label>
+                        <input type="text" id="register-referral-code" class="auth-input auth-input-referral" placeholder="Nhập mã giới thiệu nếu có">
+                    </div>
+                    
+                    <button class="auth-btn-primary" id="register-btn">
+                        <span>Đăng Ký</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    
+                    <div id="register-error" class="auth-error"></div>
+                </div>
             </div>
         </div>
     </section>
