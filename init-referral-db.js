@@ -150,6 +150,17 @@ db.run(`
     console.error('  ❌ Error creating referral_bonuses table:', err.message);
   } else {
     console.log('  ✅ Referral_bonuses table created or already exists');
+    // Fix schema if using old column names
+    db.run(`ALTER TABLE referral_bonuses ADD COLUMN bonus_amount REAL`, (e) => {
+      if (e && !e.message.includes('duplicate column')) {
+        console.error('  ⚠️  Error adding bonus_amount column:', e.message);
+      }
+    });
+    db.run(`ALTER TABLE referral_bonuses ADD COLUMN type TEXT`, (e) => {
+      if (e && !e.message.includes('duplicate column')) {
+        console.error('  ⚠️  Error adding type column:', e.message);
+      }
+    });
   }
 });
 

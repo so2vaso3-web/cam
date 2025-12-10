@@ -169,12 +169,17 @@ function giveSignupBonus(db, referrerId, referredId) {
                      VALUES (?, ?, ?, ?)`,
                     [referrerId, null, SIGNUP_BONUS_REFERRER, 'referral_bonus'],
                     (err) => {
-                        if (!err) {
+                        if (err) {
+                            console.error('Error recording referrer bonus:', err);
+                        } else {
                             // Record transaction for referrer
                             db.run(
                                 `INSERT INTO transactions (user_id, amount, type, description)
                                  VALUES (?, ?, ?, ?)`,
-                                [referrerId, SIGNUP_BONUS_REFERRER, 'credit', 'Thưởng mời người mới đăng ký']
+                                [referrerId, SIGNUP_BONUS_REFERRER, 'credit', 'Thưởng mời người mới đăng ký'],
+                                (err) => {
+                                    if (err) console.error('Error recording referrer transaction:', err);
+                                }
                             );
                         }
                     }
@@ -186,12 +191,17 @@ function giveSignupBonus(db, referrerId, referredId) {
                      VALUES (?, ?, ?, ?)`,
                     [referredId, referrerId, SIGNUP_BONUS_REFERRED, 'signup_bonus'],
                     (err) => {
-                        if (!err) {
+                        if (err) {
+                            console.error('Error recording referred bonus:', err);
+                        } else {
                             // Record transaction for referred user
                             db.run(
                                 `INSERT INTO transactions (user_id, amount, type, description)
                                  VALUES (?, ?, ?, ?)`,
-                                [referredId, SIGNUP_BONUS_REFERRED, 'credit', 'Thưởng đăng ký bằng mã giới thiệu']
+                                [referredId, SIGNUP_BONUS_REFERRED, 'credit', 'Thưởng đăng ký bằng mã giới thiệu'],
+                                (err) => {
+                                    if (err) console.error('Error recording referred transaction:', err);
+                                }
                             );
                         }
                     }
