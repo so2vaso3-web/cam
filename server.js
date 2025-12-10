@@ -9,6 +9,10 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const sampleTasks = require('./tasks-data');
+const referralSystem = require('./referral-system');
+const referralAPI = require('./referral-api');
+const ocrService = require('./ocr-service');
+const antiFake = require('./anti-fake');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -318,6 +322,33 @@ app.get('/api/me', authenticateToken, (req, res) => {
   });
 });
 
+// ========== REFERRAL ENDPOINTS ==========
+
+// Referral Info
+app.get('/api/referral/info', authenticateToken, (req, res) => {
+  referralAPI.getReferralInfoAPI(db, req, res);
+});
+
+// Referral Chain (F1-F5)
+app.get('/api/referral/chain', authenticateToken, (req, res) => {
+  referralAPI.getReferralChainAPI(db, req, res);
+});
+
+// Referral Earnings
+app.get('/api/referral/earnings', authenticateToken, (req, res) => {
+  referralAPI.getReferralEarningsAPI(db, req, res);
+});
+
+// Referral Bonuses
+app.get('/api/referral/bonuses', authenticateToken, (req, res) => {
+  referralAPI.getReferralBonusesAPI(db, req, res);
+});
+
+// Check Withdrawal Unlock
+app.get('/api/referral/withdrawal-unlock', authenticateToken, (req, res) => {
+  referralAPI.checkWithdrawalUnlockAPI(db, req, res);
+});
+
 // Upload verification documents
 app.post('/api/verification/upload', extractUserFromToken, authenticateToken, upload.fields([
   { name: 'cccd_front', maxCount: 1 },
@@ -604,63 +635,139 @@ app.get('/api/transactions', authenticateToken, (req, res) => {
 });
 
 // Withdraw request
-app.post('/api/withdraw', authenticateToken, (req, res) => {
+app.post('/api/withdraw', authenticateToken, async (req, res) => {
   const { amount, payment_method, account_info } = req.body;
 
   if (!amount || !payment_method || !account_info) {
     return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
   }
 
-  // Check if user is verified
-  db.get('SELECT balance, verification_status FROM users WHERE id = ?', [req.user.id], (err, user) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Check verification status - must be exactly 'approved'
-    // Also check if column exists (for old databases)
-    const verificationStatus = user.verification_status || 'pending';
-    if (verificationStatus !== 'approved') {
-      console.log(`Withdrawal blocked: User ${req.user.id} verification_status = ${verificationStatus}`);
-      return res.status(403).json({ 
-        error: 'Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.',
-        requires_verification: true
+  // Check withdrawal unlock first
+  try {
+    const unlockInfo = await referralSystem.checkWithdrawalUnlock(db, req.user.id);
+    
+    if (!unlockInfo.unlocked) {
+      return res.status(403).json({
+        error: unlockInfo.message,
+        requires_referrals: true,
+        needed: unlockInfo.referrals < 10 ? 10 - unlockInfo.referrals : 
+                unlockInfo.referrals < 20 ? 20 - unlockInfo.referrals : 
+                unlockInfo.referrals < 50 ? 50 - unlockInfo.referrals : 0,
+        current_referrals: unlockInfo.referrals
       });
     }
 
-    if (user.balance < amount) {
-      return res.status(400).json({ error: 'Số dư không đủ' });
+    // Check amount limits
+    if (unlockInfo.maxAmount && amount > unlockInfo.maxAmount) {
+      return res.status(400).json({
+        error: `Số tiền rút tối đa là ${unlockInfo.maxAmount.toLocaleString('vi-VN')} ₫`
+      });
     }
 
-    // Update balance FIRST (trừ tiền ngay)
-    db.run('UPDATE users SET balance = balance - ? WHERE id = ?', [amount, req.user.id], (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
+    // Check daily limit for VIP
+    if (unlockInfo.dailyLimit) {
+      // Check today's withdrawals
+      const today = new Date().toISOString().split('T')[0];
+      db.get(
+        `SELECT SUM(amount) as total FROM withdrawal_requests 
+         WHERE user_id = ? AND DATE(created_at) = ? AND status = 'approved'`,
+        [req.user.id, today],
+        (err, result) => {
+          if (err) {
+            return res.status(500).json({ error: 'Database error' });
+          }
+          const todayTotal = result.total || 0;
+          if (todayTotal + amount > unlockInfo.dailyLimit) {
+            return res.status(400).json({
+              error: `Đã vượt quá giới hạn rút trong ngày (${unlockInfo.dailyLimit.toLocaleString('vi-VN')} ₫)`
+            });
+          }
+          continueWithdrawal();
+        }
+      );
+    } else {
+      continueWithdrawal();
+    }
 
-      // Create withdrawal transaction
-      const methodNames = {
-        'bank': 'Chuyển khoản ngân hàng',
-        'momo': 'Ví MoMo',
-        'zalo': 'Ví ZaloPay'
-      };
-      const methodName = methodNames[payment_method] || payment_method;
-      
-      db.run('INSERT INTO transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
-        [req.user.id, -amount, 'withdrawal', `Yêu cầu rút tiền: ${methodName} - ${account_info}`], (err) => {
+    function continueWithdrawal() {
+      // Check if user is verified
+      db.get('SELECT balance, verification_status, active_referrals FROM users WHERE id = ?', 
+        [req.user.id], (err, user) => {
         if (err) {
-          // Rollback balance if transaction insert fails
-          db.run('UPDATE users SET balance = balance + ? WHERE id = ?', [amount, req.user.id], () => {});
           return res.status(500).json({ error: 'Database error' });
         }
-        res.json({ message: 'Yêu cầu rút tiền đã được gửi' });
+
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Check verification status
+        const verificationStatus = user.verification_status || 'pending';
+        if (verificationStatus !== 'approved') {
+          return res.status(403).json({ 
+            error: 'Bạn cần xác minh danh tính trước khi rút tiền',
+            requires_verification: true
+          });
+        }
+
+        if (user.balance < amount) {
+          return res.status(400).json({ error: 'Số dư không đủ' });
+        }
+
+        // Update balance FIRST
+        db.run('UPDATE users SET balance = balance - ? WHERE id = ?', 
+          [amount, req.user.id], (err) => {
+          if (err) {
+            return res.status(500).json({ error: 'Database error' });
+          }
+
+          // Create withdrawal request
+          db.run(
+            `INSERT INTO withdrawal_requests 
+             (user_id, amount, method, account_number, account_name, status, referral_count, withdrawal_unlock_level)
+             VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)`,
+            [req.user.id, amount, payment_method, account_info.account_number || account_info, 
+             account_info.account_name || 'N/A', user.active_referrals || 0, unlockInfo.unlockLevel],
+            function(err) {
+              if (err) {
+                // Rollback balance
+                db.run('UPDATE users SET balance = balance + ? WHERE id = ?', [amount, req.user.id], () => {});
+                return res.status(500).json({ error: 'Database error' });
+              }
+
+              // Create transaction record
+              const methodNames = {
+                'bank': 'Chuyển khoản ngân hàng',
+                'momo': 'Ví MoMo',
+                'zalo': 'Ví ZaloPay'
+              };
+              const methodName = methodNames[payment_method] || payment_method;
+              
+              db.run('INSERT INTO transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
+                [req.user.id, -amount, 'withdrawal', `Yêu cầu rút tiền: ${methodName} - ${account_info}`], 
+                (err) => {
+                  if (err) {
+                    console.error('Error creating transaction:', err);
+                  }
+                }
+              );
+
+              // Calculate referral commission
+              referralSystem.calculateWithdrawalCommission(db, req.user.id, amount);
+
+              res.json({ 
+                message: 'Yêu cầu rút tiền đã được gửi',
+                withdrawal_id: this.lastID
+              });
+            }
+          );
+        });
       });
-    });
-  });
+    }
+  } catch (err) {
+    console.error('Withdrawal error:', err);
+    res.status(500).json({ error: 'Lỗi xử lý yêu cầu rút tiền' });
+  }
 });
 
 // ========== ADMIN ENDPOINTS ==========
