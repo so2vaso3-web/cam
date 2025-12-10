@@ -722,12 +722,15 @@ window.onclick = function(event) {
     }
 }
 
+let allVerifications = [];
+let filteredVerifications = [];
+
 // Load verifications
 async function loadVerifications() {
     console.log('Loading verifications...');
     const list = document.getElementById('verifications-list');
     if (list) {
-        list.innerHTML = '<p>Đang tải...</p>';
+        list.innerHTML = '<p style="padding: 2rem; text-align: center; color: #999;">Đang tải...</p>';
     }
     
     try {
@@ -743,18 +746,63 @@ async function loadVerifications() {
         
         if (response.ok) {
             console.log('Found verifications:', data.verifications?.length || 0);
-            displayVerifications(data.verifications || []);
+            allVerifications = data.verifications || [];
+            applyFilters();
         } else {
             console.error('Error loading verifications:', data.error);
             if (list) {
-                list.innerHTML = `<p style="color: #ff4444;">Lỗi: ${data.error || 'Không thể tải danh sách'}</p>`;
+                list.innerHTML = `<p style="color: #ff4444; padding: 2rem; text-align: center;">Lỗi: ${data.error || 'Không thể tải danh sách'}</p>`;
             }
         }
     } catch (error) {
         console.error('Error loading verifications:', error);
         if (list) {
-            list.innerHTML = `<p style="color: #ff4444;">Lỗi kết nối: ${error.message}</p>`;
+            list.innerHTML = `<p style="color: #ff4444; padding: 2rem; text-align: center;">Lỗi kết nối: ${error.message}</p>`;
         }
+    }
+}
+
+// Apply search and filter
+function applyFilters() {
+    const searchInput = document.getElementById('verification-search');
+    const statusFilter = document.getElementById('verification-status-filter');
+    
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    const statusValue = statusFilter?.value || '';
+    
+    filteredVerifications = allVerifications.filter(v => {
+        const matchSearch = !searchTerm || 
+            (v.username && v.username.toLowerCase().includes(searchTerm)) ||
+            (v.email && v.email.toLowerCase().includes(searchTerm));
+        const matchStatus = !statusValue || v.verification_status === statusValue;
+        return matchSearch && matchStatus;
+    });
+    
+    displayVerifications(filteredVerifications);
+}
+
+// Initialize search/filter listeners when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('verification-search');
+        const statusFilter = document.getElementById('verification-status-filter');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
+        if (statusFilter) {
+            statusFilter.addEventListener('change', applyFilters);
+        }
+    });
+} else {
+    const searchInput = document.getElementById('verification-search');
+    const statusFilter = document.getElementById('verification-status-filter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyFilters);
     }
 }
 
