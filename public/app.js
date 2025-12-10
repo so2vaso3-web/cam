@@ -2,28 +2,15 @@ let currentUser = null;
 let currentToken = null;
 let currentTaskId = null;
 
+// ============================================
+// AUTH SYSTEM - COMPLETELY REBUILT FROM SCRATCH
+// ============================================
+
 // Check for referral code in URL
 const urlParams = new URLSearchParams(window.location.search);
 const referralCodeFromUrl = urlParams.get('ref');
 if (referralCodeFromUrl) {
-    // Store in sessionStorage to use during registration
     sessionStorage.setItem('referral_code', referralCodeFromUrl);
-    // Pre-fill referral code input if on register form
-    setTimeout(() => {
-        const refInput = document.getElementById('register-referral-code');
-        if (refInput) {
-            refInput.value = referralCodeFromUrl;
-            refInput.readOnly = true;
-            refInput.style.background = '#1a1a1a';
-            refInput.style.color = '#667eea';
-            refInput.style.fontWeight = '600';
-            refInput.title = 'Mã giới thiệu từ link - Không thể sửa';
-        }
-        // Auto switch to register tab if on login
-        if (document.getElementById('login-form') && document.getElementById('login-form').style.display !== 'none') {
-            showAuthTab('register');
-        }
-    }, 100);
 }
 
 // Check if user is logged in
@@ -39,32 +26,42 @@ function checkAuth() {
 
 // Show auth section
 function showAuthSection() {
-    document.getElementById('auth-section').style.display = 'flex';
-    document.getElementById('main-content').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = 'none';
-    document.getElementById('bottomNav').style.display = 'none';
+    const authSection = document.getElementById('auth-section');
+    const mainContent = document.getElementById('main-content');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const bottomNav = document.getElementById('bottomNav');
+    
+    if (authSection) authSection.style.display = 'flex';
+    if (mainContent) mainContent.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (bottomNav) bottomNav.style.display = 'none';
 }
 
 // Show main content
 function showMainContent() {
-    document.getElementById('auth-section').style.display = 'none';
-    document.getElementById('main-content').style.display = 'block';
-    document.getElementById('logoutBtn').style.display = 'block';
-    document.getElementById('bottomNav').style.display = 'flex';
+    const authSection = document.getElementById('auth-section');
+    const mainContent = document.getElementById('main-content');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const bottomNav = document.getElementById('bottomNav');
+    
+    if (authSection) authSection.style.display = 'none';
+    if (mainContent) mainContent.style.display = 'block';
+    if (logoutBtn) logoutBtn.style.display = 'block';
+    if (bottomNav) bottomNav.style.display = 'flex';
+    
     loadTasks();
     loadBalance();
-    // Set first tab as active
+    
     const firstTab = document.querySelector('.bottom-nav .nav-item');
     if (firstTab) {
         setActiveTab(firstTab);
     }
-    // Show tasks section by default
     showSection('tasks');
 }
 
-// Auth tabs - Updated for new design
+// Switch auth tabs
 function showAuthTab(tab) {
-    // Update tab buttons
+    // Update buttons
     document.querySelectorAll('.auth-tab-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.tab === tab) {
@@ -77,39 +74,157 @@ function showAuthTab(tab) {
     const registerForm = document.getElementById('register-form');
     
     if (tab === 'login') {
-        loginForm.classList.add('active');
-        registerForm.classList.remove('active');
+        if (loginForm) loginForm.classList.add('active');
+        if (registerForm) registerForm.classList.remove('active');
     } else {
-        loginForm.classList.remove('active');
-        registerForm.classList.add('active');
+        if (loginForm) loginForm.classList.remove('active');
+        if (registerForm) registerForm.classList.add('active');
+        
+        // Pre-fill referral code if from URL
+        if (referralCodeFromUrl) {
+            setTimeout(() => {
+                const refInput = document.getElementById('register-referral-code');
+                if (refInput) {
+                    refInput.value = referralCodeFromUrl;
+                    refInput.readOnly = true;
+                    refInput.style.background = '#1a1a1a';
+                    refInput.style.color = '#667eea';
+                    refInput.style.fontWeight = '600';
+                }
+            }, 50);
+        }
     }
 }
 
-// Initialize auth event listeners - Multiple fallbacks to ensure it works
-function initAuthListeners() {
-    console.log('Initializing auth listeners...');
-    
-    // Tab switching - Use event delegation for reliability
-    const authTabs = document.querySelector('.auth-tabs-new');
-    if (authTabs) {
-        authTabs.addEventListener('click', function(e) {
-            const btn = e.target.closest('.auth-tab-btn');
-            if (btn) {
-                e.preventDefault();
-                e.stopPropagation();
-                const tab = btn.dataset.tab;
-                if (tab) {
-                    showAuthTab(tab);
-                }
-            }
-        });
+// Login function
+async function login() {
+    const usernameEl = document.getElementById('login-username');
+    const passwordEl = document.getElementById('login-password');
+    const errorDiv = document.getElementById('login-error');
+
+    if (!usernameEl || !passwordEl || !errorDiv) {
+        console.error('Login form elements not found');
+        return;
     }
-    
-    // Also attach directly to buttons as backup
+
+    const username = usernameEl.value.trim();
+    const password = passwordEl.value;
+
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+
+    if (!username || !password) {
+        errorDiv.textContent = 'Vui lòng điền đầy đủ thông tin';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('token', data.token);
+            currentToken = data.token;
+            currentUser = data.user;
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+            showMainContent();
+        } else {
+            errorDiv.textContent = data.error || 'Đăng nhập thất bại';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+// Register function
+async function register() {
+    const usernameEl = document.getElementById('register-username');
+    const emailEl = document.getElementById('register-email');
+    const phoneEl = document.getElementById('register-phone');
+    const passwordEl = document.getElementById('register-password');
+    const errorDiv = document.getElementById('register-error');
+
+    if (!usernameEl || !emailEl || !phoneEl || !passwordEl || !errorDiv) {
+        console.error('Register form elements not found');
+        return;
+    }
+
+    const username = usernameEl.value.trim();
+    const email = emailEl.value.trim();
+    const phone = phoneEl.value.trim();
+    const password = passwordEl.value;
+
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+
+    if (!username || !email || !phone || !password) {
+        errorDiv.textContent = 'Vui lòng điền đầy đủ thông tin';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+    const cleanPhone = phone.replace(/\s/g, '');
+    if (!phoneRegex.test(cleanPhone)) {
+        errorDiv.textContent = 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số)';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    const refInput = document.getElementById('register-referral-code');
+    const referralCode = refInput?.value?.trim() || sessionStorage.getItem('referral_code') || null;
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, phone: cleanPhone, password, referral_code: referralCode })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('token', data.token);
+            currentToken = data.token;
+            currentUser = data.user;
+            
+            if (sessionStorage.getItem('referral_code')) {
+                sessionStorage.removeItem('referral_code');
+            }
+            
+            const bonusAmount = data.signup_bonus || 0;
+            showNotification(`Đăng ký thành công! Bạn đã nhận ${bonusAmount.toLocaleString('vi-VN')} ₫ tiền thưởng đăng ký!`);
+            
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+            showMainContent();
+        } else {
+            errorDiv.textContent = data.error || 'Đăng ký thất bại';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Register error:', error);
+        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+// Initialize auth system - Simple and reliable
+function initAuthSystem() {
+    // Tab buttons
     document.querySelectorAll('.auth-tab-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             const tab = this.dataset.tab;
             if (tab) {
                 showAuthTab(tab);
@@ -117,140 +232,56 @@ function initAuthListeners() {
         });
     });
     
-    // Login button - Multiple attempts
-    function attachLoginBtn() {
-        const loginBtn = document.getElementById('login-btn');
-        if (loginBtn) {
-            // Remove any existing listeners by cloning
-            const newBtn = loginBtn.cloneNode(true);
-            loginBtn.parentNode.replaceChild(newBtn, loginBtn);
-            
-            newBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Login button clicked');
-                if (typeof login === 'function') {
-                    login();
-                } else {
-                    console.error('login function not defined');
-                }
-            });
-            
-            // Also add as onclick as fallback
-            newBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (typeof login === 'function') {
-                    login();
-                }
-            };
-            
-            console.log('Login button attached');
-            return true;
-        }
-        return false;
+    // Login button
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            login();
+        });
     }
     
-    // Register button - Multiple attempts
-    function attachRegisterBtn() {
-        const registerBtn = document.getElementById('register-btn');
-        if (registerBtn) {
-            // Remove any existing listeners by cloning
-            const newBtn = registerBtn.cloneNode(true);
-            registerBtn.parentNode.replaceChild(newBtn, registerBtn);
-            
-            newBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Register button clicked');
-                if (typeof register === 'function') {
-                    register();
-                } else {
-                    console.error('register function not defined');
-                }
-            });
-            
-            // Also add as onclick as fallback
-            newBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (typeof register === 'function') {
-                    register();
-                }
-            };
-            
-            console.log('Register button attached');
-            return true;
-        }
-        return false;
-    }
-    
-    // Try to attach buttons
-    if (!attachLoginBtn()) {
-        setTimeout(attachLoginBtn, 100);
-        setTimeout(attachLoginBtn, 500);
-    }
-    
-    if (!attachRegisterBtn()) {
-        setTimeout(attachRegisterBtn, 100);
-        setTimeout(attachRegisterBtn, 500);
+    // Register button
+    const registerBtn = document.getElementById('register-btn');
+    if (registerBtn) {
+        registerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            register();
+        });
     }
     
     // Enter key support
-    const loginUsername = document.getElementById('login-username');
-    const loginPassword = document.getElementById('login-password');
-    if (loginUsername) {
-        loginUsername.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (typeof login === 'function') login();
-            }
-        });
-    }
-    if (loginPassword) {
-        loginPassword.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (typeof login === 'function') login();
-            }
-        });
-    }
-    
-    const registerInputs = ['register-username', 'register-email', 'register-phone', 'register-password', 'register-referral-code'];
-    registerInputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.addEventListener('keypress', function(e) {
+    ['login-username', 'login-password'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (typeof register === 'function') register();
+                    login();
                 }
             });
         }
     });
     
-    console.log('Auth listeners initialization complete');
+    ['register-username', 'register-email', 'register-phone', 'register-password', 'register-referral-code'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    register();
+                }
+            });
+        }
+    });
 }
 
-// Initialize with multiple fallbacks
-function ensureAuthListeners() {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            initAuthListeners();
-            // Retry after a delay
-            setTimeout(initAuthListeners, 100);
-        });
-    } else {
-        // DOM already loaded
-        initAuthListeners();
-        // Retry after a delay to ensure elements exist
-        setTimeout(initAuthListeners, 100);
-        setTimeout(initAuthListeners, 500);
-    }
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuthSystem);
+} else {
+    initAuthSystem();
 }
-
-// Start initialization
-ensureAuthListeners();
 
 // Register
 async function register() {
