@@ -1434,20 +1434,82 @@ function validateCCCDImage(file, previewId, errorId, callback) {
     reader.readAsDataURL(file);
 }
 
-// Show CCCD preview with guide overlay
+// Show CCCD preview with guide overlay and action buttons
 function showCCCDPreview(previewId, src, width, height) {
     const preview = document.getElementById(previewId);
     const aspectRatio = width / height;
     
+    // Determine which step this is
+    const isFront = previewId === 'cccd-front-preview';
+    const type = isFront ? 'cccd-front' : 'cccd-back';
+    
     preview.innerHTML = `
-        <div style="position: relative; display: inline-block; margin-top: 0.5rem;">
-            <img src="${src}" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 3px solid #667eea; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+        <div style="position: relative; display: inline-block; margin-top: 0.5rem; width: 100%;">
+            <img src="${src}" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 3px solid #667eea; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); display: block; margin: 0 auto;">
             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 2px dashed rgba(255, 255, 255, 0.5); pointer-events: none; border-radius: 8px;"></div>
-            <div style="position: absolute; bottom: -25px; left: 0; right: 0; text-align: center; color: #2ed573; font-size: 0.85rem; font-weight: 600;">
+            <div style="text-align: center; margin-top: 0.75rem; color: #2ed573; font-size: 0.85rem; font-weight: 600;">
                 ✓ Ảnh hợp lệ: ${width}x${height}px
+            </div>
+            <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap;">
+                <button type="button" onclick="retakePhoto('${type}')" style="padding: 0.75rem 1.5rem; background: #404040; color: #fff; border: 2px solid #555; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <path d="M1 4v6h6"></path>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                    Chụp Lại
+                </button>
+                <button type="button" onclick="confirmPhoto('${type}')" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Tiếp Tục
+                </button>
             </div>
         </div>
     `;
+}
+
+// Retake photo - clear current photo and allow retaking
+function retakePhoto(type) {
+    console.log('Retaking photo:', type);
+    
+    // Clear the input
+    const input = document.getElementById(type);
+    if (input) {
+        input.value = '';
+    }
+    
+    // Clear preview
+    const previewId = type === 'cccd-front' ? 'cccd-front-preview' : 'cccd-back-preview';
+    const preview = document.getElementById(previewId);
+    if (preview) {
+        preview.innerHTML = '';
+    }
+    
+    // Clear error
+    const errorId = type === 'cccd-front' ? 'cccd-front-error' : 'cccd-back-error';
+    const errorDiv = document.getElementById(errorId);
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+    }
+    
+    console.log('Photo cleared, ready to retake');
+}
+
+// Confirm photo and go to next step
+function confirmPhoto(type) {
+    console.log('Confirming photo:', type);
+    
+    if (type === 'cccd-front') {
+        // Step 1 (mặt trước) → Step 2 (mặt sau)
+        console.log('Moving to step 2 (CCCD mặt sau)');
+        goToNextStep();
+    } else if (type === 'cccd-back') {
+        // Step 2 (mặt sau) → Step 3 (video mặt)
+        console.log('Moving to step 3 (Video mặt)');
+        goToNextStep();
+    }
 }
 
 // Show image preview (for other uses)
@@ -1962,10 +2024,8 @@ function initFileHandlers() {
                         e.target.value = '';
                         return;
                     }
-                    // Auto go to next step
-                    setTimeout(() => {
-                        goToNextStep();
-                    }, 1000);
+                    // Don't auto go to next step - wait for user to click "Tiếp Tục"
+                    // User can click "Chụp Lại" if not satisfied
                 });
             }
         });
@@ -1980,10 +2040,8 @@ function initFileHandlers() {
                         e.target.value = '';
                         return;
                     }
-                    // Auto go to next step
-                    setTimeout(() => {
-                        goToNextStep();
-                    }, 1000);
+                    // Don't auto go to next step - wait for user to click "Tiếp Tục"
+                    // User can click "Chụp Lại" if not satisfied
                 });
             }
         });
@@ -2200,6 +2258,8 @@ window.confirmPhoto = function(type) {
     
     // Go to next step automatically
     setTimeout(() => {
+        // This is now handled by confirmPhoto() function
+        // Keep this for backward compatibility but it should not be called anymore
         if (type === 'cccd-front') {
             // Step 1 (mặt trước) → Step 2 (mặt sau)
             console.log('Moving to step 2 (CCCD mặt sau)');
