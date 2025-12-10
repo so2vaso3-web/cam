@@ -165,159 +165,74 @@ function displayReferralInfo() {
     loadReferralEarnings();
 }
 
-// Copy referral code - SIMPLE AND WORKING
+// ========== COPY FUNCTIONS - MỚI HOÀN TOÀN ==========
+
 window.copyReferralCode = function() {
-    const codeInput = document.getElementById('referral-code-display');
-    if (!codeInput) {
-        alert('Không tìm thấy mã giới thiệu!');
-        return;
-    }
+    const input = document.getElementById('referral-code-display');
+    if (!input) return;
     
-    // Select and copy
-    codeInput.select();
-    codeInput.setSelectionRange(0, 99999); // For mobile
+    input.focus();
+    input.select();
     
+    let copied = false;
     try {
-        const success = document.execCommand('copy');
-        if (success) {
-            showCopyNotification('Đã sao chép mã giới thiệu!');
-        } else {
-            // Try Clipboard API as fallback
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(codeInput.value).then(() => {
-                    showCopyNotification('Đã sao chép mã giới thiệu!');
-                }).catch(() => {
-                    showCopyNotification('Vui lòng chọn và copy thủ công', true);
-                });
-            } else {
-                showCopyNotification('Vui lòng chọn và copy thủ công', true);
-            }
-        }
-    } catch (err) {
-        // Try Clipboard API as fallback
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(codeInput.value).then(() => {
-                showCopyNotification('Đã sao chép mã giới thiệu!');
-            }).catch(() => {
-                showCopyNotification('Vui lòng chọn và copy thủ công', true);
-            });
-        } else {
-            showCopyNotification('Vui lòng chọn và copy thủ công', true);
-        }
+        copied = document.execCommand('copy');
+    } catch(e) {}
+    
+    if (copied) {
+        showToast('✅ Đã sao chép mã!');
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            showToast('✅ Đã sao chép mã!');
+        }).catch(() => {
+            showToast('❌ Vui lòng copy thủ công');
+        });
+    } else {
+        showToast('❌ Vui lòng copy thủ công');
     }
 };
 
-// Copy referral link - SIMPLE AND WORKING
 window.copyReferralLink = function() {
-    const linkInput = document.getElementById('referral-link-display');
-    if (!linkInput) {
-        alert('Không tìm thấy link giới thiệu!');
-        return;
-    }
+    const input = document.getElementById('referral-link-display');
+    if (!input) return;
     
-    // Select and copy
-    linkInput.select();
-    linkInput.setSelectionRange(0, 99999); // For mobile
+    input.focus();
+    input.select();
     
+    let copied = false;
     try {
-        const success = document.execCommand('copy');
-        if (success) {
-            showCopyNotification('Đã sao chép link giới thiệu!');
-        } else {
-            // Try Clipboard API as fallback
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(linkInput.value).then(() => {
-                    showCopyNotification('Đã sao chép link giới thiệu!');
-                }).catch(() => {
-                    showCopyNotification('Vui lòng chọn và copy thủ công', true);
-                });
-            } else {
-                showCopyNotification('Vui lòng chọn và copy thủ công', true);
-            }
-        }
-    } catch (err) {
-        // Try Clipboard API as fallback
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(linkInput.value).then(() => {
-                showCopyNotification('Đã sao chép link giới thiệu!');
-            }).catch(() => {
-                showCopyNotification('Vui lòng chọn và copy thủ công', true);
-            });
-        } else {
-            showCopyNotification('Vui lòng chọn và copy thủ công', true);
-        }
+        copied = document.execCommand('copy');
+    } catch(e) {}
+    
+    if (copied) {
+        showToast('✅ Đã sao chép link!');
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            showToast('✅ Đã sao chép link!');
+        }).catch(() => {
+            showToast('❌ Vui lòng copy thủ công');
+        });
+    } else {
+        showToast('❌ Vui lòng copy thủ công');
     }
 };
 
-// Show copy notification - ALWAYS VISIBLE
-function showCopyNotification(message, isError) {
-    // Remove existing notification if any
-    const existing = document.getElementById('copy-notification');
-    if (existing) {
-        existing.remove();
-    }
+function showToast(msg) {
+    const old = document.getElementById('toast-msg');
+    if (old) old.remove();
     
-    // Create notification
-    const notification = document.createElement('div');
-    notification.id = 'copy-notification';
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        background: ${isError ? '#ff4757' : '#2ed573'};
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        z-index: 99999;
-        font-size: 15px;
-        font-weight: 600;
-        min-width: 200px;
-        text-align: center;
-        animation: slideInRight 0.3s ease-out;
-    `;
+    const div = document.createElement('div');
+    div.id = 'toast-msg';
+    div.textContent = msg;
+    div.style.cssText = 'position:fixed;top:100px;right:20px;background:#2ed573;color:#fff;padding:16px 24px;border-radius:10px;font-weight:600;z-index:999999;box-shadow:0 4px 20px rgba(0,0,0,0.3);font-size:15px;';
     
-    // Add animation
-    if (!document.getElementById('copy-notification-style')) {
-        const style = document.createElement('style');
-        style.id = 'copy-notification-style';
-        style.textContent = `
-            @keyframes slideInRight {
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            @keyframes slideOutRight {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
+    document.body.appendChild(div);
     
-    document.body.appendChild(notification);
-    
-    // Auto remove after 3 seconds
     setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease-out';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }, 3000);
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 0.3s';
+        setTimeout(() => div.remove(), 300);
+    }, 2500);
 }
 
 // Load referral chain
