@@ -1427,8 +1427,16 @@ if (document.readyState === 'loading') {
 let cameraStream = null;
 let currentCameraType = null;
 
-// Open camera capture modal
-async function openCameraCapture(type) {
+// Open camera capture modal - Make it globally accessible
+window.openCameraCapture = async function(type) {
+    console.log('=== openCameraCapture CALLED ===', type);
+    
+    if (!type) {
+        console.error('No type provided');
+        alert('Lỗi: Không xác định được loại ảnh cần chụp');
+        return;
+    }
+    
     currentCameraType = type;
     
     // Map type to modal ID (cccd-front -> front, cccd-back -> back)
@@ -1437,12 +1445,30 @@ async function openCameraCapture(type) {
     const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
     const video = document.getElementById(`camera-preview-${videoId}`);
     
+    console.log('Modal ID:', `camera-modal-${modalId}`);
+    console.log('Modal found:', !!modal);
+    console.log('Video ID:', `camera-preview-${videoId}`);
+    console.log('Video found:', !!video);
+    
+    if (!modal) {
+        console.error('Modal not found:', `camera-modal-${modalId}`);
+        alert('Lỗi: Không tìm thấy camera modal. Vui lòng tải lại trang.');
+        return;
+    }
+    
+    if (!video) {
+        console.error('Video not found:', `camera-preview-${videoId}`);
+        alert('Lỗi: Không tìm thấy video element. Vui lòng tải lại trang.');
+        return;
+    }
+    
     // Check if getUserMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('getUserMedia not supported');
         // Fallback to file input if getUserMedia not supported
         const input = document.getElementById(type);
         if (input) {
-            console.log('getUserMedia not supported, using file input');
+            console.log('Using file input fallback');
             input.click();
             return;
         }
@@ -1451,15 +1477,20 @@ async function openCameraCapture(type) {
     }
     
     // Check if we're on HTTPS or localhost
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    const isSecure = location.protocol === 'https:' || 
+                     location.hostname === 'localhost' || 
+                     location.hostname === '127.0.0.1' ||
+                     location.hostname.includes('zenith5g.com');
+    
+    if (!isSecure) {
+        console.warn('Not HTTPS, using file input fallback');
         // Fallback to file input if not HTTPS
         const input = document.getElementById(type);
         if (input) {
-            console.log('Not HTTPS, using file input');
             input.click();
             return;
         }
-        showNotification('Camera chỉ hoạt động trên HTTPS hoặc localhost. Vui lòng truy cập qua HTTPS.', true);
+        showNotification('Camera chỉ hoạt động trên HTTPS. Vui lòng truy cập qua HTTPS.', true);
         return;
     }
     
@@ -1503,19 +1534,22 @@ async function openCameraCapture(type) {
         video.muted = true; // Required for autoplay on mobile
         
         // Set video source (STANDARD METHOD)
+        console.log('Setting video source...');
         video.srcObject = cameraStream;
         
         // Force play on mobile
         const playVideo = () => {
+            console.log('Attempting to play video...');
             video.play().then(() => {
-                console.log('✓ Video is playing');
+                console.log('✓ Video is playing successfully');
             }).catch(err => {
                 console.error('Error playing video:', err);
                 // Try again after a short delay
                 setTimeout(() => {
+                    console.log('Retrying video play...');
                     video.play().catch(e => {
                         console.error('Retry failed:', e);
-                        alert('Không thể phát video. Vui lòng thử lại.');
+                        alert('Không thể phát video. Vui lòng thử lại hoặc kiểm tra quyền camera.');
                     });
                 }, 500);
             });
@@ -1523,7 +1557,7 @@ async function openCameraCapture(type) {
         
         // Wait for video to be ready and play (STANDARD METHOD)
         video.onloadedmetadata = () => {
-            console.log('Video metadata loaded');
+            console.log('Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
             playVideo();
         };
         
@@ -1531,8 +1565,15 @@ async function openCameraCapture(type) {
             console.log('✓ Video can play, ready for capture');
         };
         
+        video.onerror = (e) => {
+            console.error('Video error:', e);
+            alert('Lỗi khi tải video. Vui lòng thử lại.');
+        };
+        
         // Also try to play immediately (for some browsers)
         setTimeout(playVideo, 100);
+        
+        console.log('Camera setup complete, modal should be visible now');
         
         // Wait for video to be fully ready before allowing capture
         let videoReady = false;
