@@ -109,6 +109,7 @@
                 <input type="email" id="register-email" placeholder="Email" required>
                 <input type="tel" id="register-phone" placeholder="Số điện thoại (bắt buộc)" required>
                 <input type="password" id="register-password" placeholder="Mật khẩu" required>
+                <input type="text" id="register-referral-code" placeholder="Mã giới thiệu (nếu có)" style="background: #2d2d2d; border: 1px solid #404040;">
                 <button class="btn-primary" onclick="register()">
                     <span style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -302,6 +303,9 @@
                             Đăng Xuất
                         </button>
                     </div>
+
+                    <!-- Referral Section -->
+                    <div id="referral-section" style="margin-top: 2rem;"></div>
                 </div>
 
                 <!-- Verification Section -->
@@ -565,6 +569,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="referral.js"></script>
 </body>
 </html>
 

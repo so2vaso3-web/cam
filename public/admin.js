@@ -57,6 +57,12 @@ function showAdminTab(tab) {
     } else if (tab === 'verifications') {
         console.log('Verifications tab clicked, loading data...');
         loadVerifications();
+    } else if (tab === 'referral') {
+        // Referral tree will be loaded when user enters ID
+    } else if (tab === 'kyc-data') {
+        if (typeof loadKYCData === 'function') {
+            loadKYCData();
+        }
     } else if (tab === 'users') {
         loadUsers();
     } else if (tab === 'withdrawals') {

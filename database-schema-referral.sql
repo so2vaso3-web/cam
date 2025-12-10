@@ -98,6 +98,15 @@ CREATE TABLE IF NOT EXISTS referral_bonuses (
     FOREIGN KEY (referrer_id) REFERENCES users(id)
 );
 
+-- User blocks table (for anti-fake)
+CREATE TABLE IF NOT EXISTS user_blocks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    reason TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id);
@@ -105,4 +114,6 @@ CREATE INDEX IF NOT EXISTS idx_referrals_level ON referrals(level);
 CREATE INDEX IF NOT EXISTS idx_kyc_cccd ON kyc_data(cccd_number);
 CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code);
 CREATE INDEX IF NOT EXISTS idx_users_referred_by ON users(referred_by);
+CREATE INDEX IF NOT EXISTS idx_users_cccd_number ON users(cccd_number);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
 

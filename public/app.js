@@ -71,11 +71,14 @@ async function register() {
         return;
     }
 
+    // Get referral code if provided
+    const referralCode = document.getElementById('register-referral-code')?.value?.trim() || null;
+
     try {
         const response = await fetch('/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, phone: cleanPhone, password })
+            body: JSON.stringify({ username, email, phone: cleanPhone, password, referral_code: referralCode })
         });
 
         const data = await response.json();
@@ -595,7 +598,18 @@ async function withdraw() {
                     }
                 }, 300);
             } else {
-                errorDiv.textContent = (data && data.error) || 'Rút tiền thất bại';
+                // Check if it's a referral lock error
+                if (data && data.requires_referrals) {
+                    showWithdrawalLockPopup({
+                        unlocked: false,
+                        referrals: data.current_referrals || 0,
+                        message: data.error || 'Bạn cần mời thêm người để mở khóa rút tiền',
+                        needed: data.needed || 0
+                    });
+                    errorDiv.textContent = '';
+                } else {
+                    errorDiv.textContent = (data && data.error) || 'Rút tiền thất bại';
+                }
             }
         }
     } catch (error) {
@@ -700,6 +714,11 @@ async function loadProfile() {
             
             // Load verification status
             loadVerificationStatus();
+            
+            // Load referral info
+            if (typeof loadReferralInfo === 'function') {
+                loadReferralInfo();
+            }
         }
     } catch (error) {
         console.error('Error loading profile:', error);
