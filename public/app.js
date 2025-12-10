@@ -1216,17 +1216,24 @@ async function openCameraCapture(type) {
             console.log('✓ Video can play, ready for capture');
         };
         
+        // Wait for video to be fully ready before allowing capture
+        let videoReady = false;
+        const checkVideoReady = () => {
+            if (video.videoWidth > 0 && video.videoHeight > 0 && !video.paused && !video.ended) {
+                videoReady = true;
+                console.log('✓ Video is ready for capture:', video.videoWidth, 'x', video.videoHeight);
+            } else {
+                setTimeout(checkVideoReady, 100);
+            }
+        };
+        checkVideoReady();
+        
         // Add click event listener to capture button when modal opens
         setTimeout(() => {
             const captureButton = modal.querySelector('.btn-capture');
             if (captureButton) {
-                // Remove any existing listeners by cloning (but keep onclick)
-                const onclickAttr = captureButton.getAttribute('onclick');
-                const newButton = captureButton.cloneNode(true);
-                if (onclickAttr) {
-                    newButton.setAttribute('onclick', onclickAttr);
-                }
-                captureButton.parentNode.replaceChild(newButton, captureButton);
+                // Remove onclick attribute and use addEventListener instead (better for mobile)
+                captureButton.removeAttribute('onclick');
                 
                 // Handle capture with both click and touch
                 let isCapturing = false;
@@ -1239,7 +1246,32 @@ async function openCameraCapture(type) {
                     
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
                     isCapturing = true;
+                    
+                    console.log('=== BUTTON CLICKED ===', type);
+                    
+                    // Check if video is ready
+                    if (!videoReady || !video.videoWidth || !video.videoHeight) {
+                        console.log('Video not ready yet, waiting...');
+                        alert('Vui lòng đợi camera sẵn sàng...');
+                        isCapturing = false;
+                        return;
+                    }
+                    
+                        // Call capture function directly
+                    setTimeout(() => {
+                        capturePhotoFromCamera(type, e);
+                        isCapturing = false;
+                    }, 50);
+                };
+                
+                // Attach multiple event types for maximum compatibility
+                captureButton.addEventListener('click', handleCapture, { passive: false });
+                captureButton.addEventListener('touchend', handleCapture, { passive: false });
+                captureButton.addEventListener('pointerup', handleCapture, { passive: false });
+                
+                console.log('✓ Capture button event listeners attached for type:', type);
                     
                     console.log('=== BUTTON PRESSED ===');
                     console.log('Type:', type);
