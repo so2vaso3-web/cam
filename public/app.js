@@ -2243,7 +2243,12 @@ async function submitVerification() {
                 // Re-enable button
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Gửi Xác Minh';
+                    const span = submitBtn.querySelector('span');
+                    if (span) {
+                        span.textContent = 'Gửi Xác Minh';
+                    } else {
+                        submitBtn.textContent = 'Gửi Xác Minh';
+                    }
                 }
                 return; // Success, exit retry loop
             } else {
@@ -2251,7 +2256,12 @@ async function submitVerification() {
                 errorDiv.textContent = data.error || 'Gửi xác minh thất bại';
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Gửi Xác Minh';
+                    const span = submitBtn.querySelector('span');
+                    if (span) {
+                        span.textContent = 'Gửi Xác Minh';
+                    } else {
+                        submitBtn.textContent = 'Gửi Xác Minh';
+                    }
                 }
                 return;
             }
@@ -2272,7 +2282,12 @@ async function submitVerification() {
                 // All retries failed
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Gửi Xác Minh';
+                    const span = submitBtn.querySelector('span');
+                    if (span) {
+                        span.textContent = 'Gửi Xác Minh';
+                    } else {
+                        submitBtn.textContent = 'Gửi Xác Minh';
+                    }
                 }
             }
         }
