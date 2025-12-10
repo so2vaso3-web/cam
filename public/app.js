@@ -776,6 +776,8 @@ async function startVideo() {
         const recordedVideo = document.getElementById('recorded-video');
         
         videoPreview.srcObject = stream;
+        // Mirror video preview (flip horizontally) so it's not reversed
+        videoPreview.style.transform = 'scaleX(-1)';
         recordingContainer.style.display = 'block';
         startBtn.style.display = 'none';
         recordedVideo.style.display = 'none';
@@ -815,6 +817,8 @@ async function startVideo() {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             recordedVideo.src = url;
+            // Don't mirror recorded video (keep original orientation)
+            recordedVideo.style.transform = '';
             recordedVideo.style.display = 'block';
             
             // Create file from blob

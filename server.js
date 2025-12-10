@@ -802,7 +802,10 @@ app.get('/api/admin/verifications', authenticateToken, (req, res) => {
 
   db.all(`SELECT id, username, email, cccd_front, cccd_back, face_video, face_photo, verification_status, verification_notes, created_at
     FROM users 
-    WHERE cccd_front IS NOT NULL OR cccd_back IS NOT NULL OR face_video IS NOT NULL
+    WHERE (cccd_front IS NOT NULL AND cccd_front != '') 
+       OR (cccd_back IS NOT NULL AND cccd_back != '') 
+       OR (face_video IS NOT NULL AND face_video != '')
+       OR (face_photo IS NOT NULL AND face_photo != '')
     ORDER BY created_at DESC`, (err, verifications) => {
     if (err) {
       return res.status(500).json({ error: 'Database error' });
