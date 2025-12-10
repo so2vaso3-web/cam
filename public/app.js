@@ -1166,74 +1166,55 @@ async function openCameraCapture(type) {
     const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
     const video = document.getElementById(`camera-preview-${videoId}`);
     
-    // Check if getUserMedia is supported (with fallback for older browsers)
-    let getUserMedia = null;
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        getUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-    } else if (navigator.getUserMedia) {
-        getUserMedia = navigator.getUserMedia.bind(navigator);
-    } else if (navigator.webkitGetUserMedia) {
-        getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
-    } else if (navigator.mozGetUserMedia) {
-        getUserMedia = navigator.mozGetUserMedia.bind(navigator);
-    }
-    
-    if (!getUserMedia) {
+    // Check if getUserMedia is supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('Trình duyệt của bạn không hỗ trợ truy cập camera. Vui lòng sử dụng Chrome, Firefox, Safari hoặc Edge.');
         return;
     }
     
+    // Check if we're on HTTPS or localhost
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        alert('Camera chỉ hoạt động trên HTTPS hoặc localhost. Vui lòng truy cập qua HTTPS.');
+        return;
+    }
+    
     try {
-        // Request camera access with explicit permission request
-        let streamPromise;
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            streamPromise = navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: 'environment', // Use back camera
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                }
-            });
-        } else {
-            // Fallback for older browsers
-            streamPromise = new Promise((resolve, reject) => {
-                getUserMedia({
-                    video: {
-                        facingMode: 'environment'
-                    }
-                }, resolve, reject);
-            });
-        }
-        
-        cameraStream = await streamPromise;
+        // Request camera access (STANDARD METHOD)
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: 'environment', // Use back camera
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            }
+        });
         
         if (!modal || !video) {
             throw new Error('Modal or video element not found');
         }
         
+        // Set video source (STANDARD METHOD)
         video.srcObject = cameraStream;
         modal.style.display = 'flex';
         
-        // Wait for video to be ready and ensure it plays
+        // Ensure video attributes for mobile
+        video.setAttribute('playsinline', '');
+        video.setAttribute('autoplay', '');
+        video.muted = true; // Required for autoplay on mobile
+        
+        // Wait for video to be ready and play (STANDARD METHOD)
         video.onloadedmetadata = () => {
-            console.log('Video metadata loaded, starting playback...');
+            console.log('Video metadata loaded');
             video.play().then(() => {
-                console.log('Video is playing');
+                console.log('✓ Video is playing');
             }).catch(err => {
                 console.error('Error playing video:', err);
                 alert('Không thể phát video. Vui lòng thử lại.');
             });
         };
         
-        // Also handle when video can play
         video.oncanplay = () => {
-            console.log('Video can play, ready for capture');
+            console.log('✓ Video can play, ready for capture');
         };
-        
-        // Ensure video plays (some browsers need this)
-        video.setAttribute('playsinline', '');
-        video.setAttribute('autoplay', '');
-        video.muted = true; // Mute to allow autoplay on mobile
         
         // Add click event listener to capture button when modal opens
         setTimeout(() => {
@@ -1458,10 +1439,24 @@ window.capturePhotoFromCamera = function(type, event) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 console.log('Frame drawn to canvas');
                 
-                // Convert canvas to blob (JPEG, quality 0.9)
+                // Verify canvas has content (check data URL first)
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                if (dataUrl.length < 100) {
+                    console.error('Canvas data URL too short, image might be empty');
+                    alert('Ảnh chụp không hợp lệ. Vui lòng thử lại.');
+                    restoreUI();
+                    if (button) {
+                        button.disabled = false;
+                        button.style.opacity = '1';
+                    }
+                    return;
+                }
+                console.log('Canvas data URL length:', dataUrl.length);
+                
+                // Convert canvas to blob (JPEG, quality 0.9) - STANDARD METHOD
                 canvas.toBlob((blob) => {
-                    if (!blob) {
-                        console.error('Failed to create blob from canvas');
+                    if (!blob || blob.size === 0) {
+                        console.error('Blob is empty or null');
                         alert('Không thể tạo ảnh. Vui lòng thử lại.');
                         restoreUI();
                         if (button) {
@@ -1471,7 +1466,7 @@ window.capturePhotoFromCamera = function(type, event) {
                         return;
                     }
                     
-                    console.log('Blob created, size:', blob.size, 'bytes');
+                    console.log('✓ Blob created, size:', blob.size, 'bytes');
                     
                     // RESTORE UI AFTER CAPTURE
                     restoreUI();

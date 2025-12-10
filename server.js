@@ -14,6 +14,27 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+// HTTPS Redirect Middleware (for Railway/production)
+app.use((req, res, next) => {
+  // Check if request is HTTP and not localhost
+  if (req.header('x-forwarded-proto') !== 'https' && process.env.NODE_ENV === 'production') {
+    res.redirect(`https://${req.header('host')}${req.url}`);
+  } else {
+    next();
+  }
+});
+
+// Security headers
+app.use((req, res, next) => {
+  // Force HTTPS
+  if (req.header('x-forwarded-proto') === 'https' || process.env.NODE_ENV !== 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  // Prevent mixed content
+  res.setHeader('Content-Security-Policy', "upgrade-insecure-requests");
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
