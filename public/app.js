@@ -112,6 +112,21 @@ async function register() {
             localStorage.setItem('token', data.token);
             currentToken = data.token;
             currentUser = data.user;
+            // Clear referral code from sessionStorage after successful registration
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.removeItem('referral_code');
+            }
+            // Remove ref parameter from URL
+            if (referralCodeFromUrl) {
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+            // Show success message with bonus info
+            if (data.signup_bonus) {
+                alert(`🎉 Đăng ký thành công!\n\nBạn đã nhận ${data.signup_bonus.toLocaleString('vi-VN')} ₫ tiền thưởng đăng ký!`);
+            } else {
+                alert('Đăng ký thành công!');
+            }
             showMainContent();
             errorDiv.textContent = '';
         } else {
@@ -739,14 +754,14 @@ async function loadProfile() {
             
             // Load verification status
             loadVerificationStatus();
-            
-            // Load referral info
-            if (typeof loadReferralInfo === 'function') {
-                loadReferralInfo();
-            }
         }
     } catch (error) {
         console.error('Error loading profile:', error);
+    }
+    
+    // Always load referral info when profile is shown
+    if (typeof loadReferralInfo === 'function') {
+        loadReferralInfo();
     }
 }
 

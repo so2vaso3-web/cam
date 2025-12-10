@@ -163,17 +163,38 @@ function giveSignupBonus(db, referrerId, referredId) {
         [SIGNUP_BONUS_REFERRER, referrerId],
         (err) => {
             if (!err) {
-                // Record bonus transaction
+                // Record bonus transaction for referrer
                 db.run(
-                    `INSERT INTO referral_bonuses (user_id, referrer_id, bonus_type, amount, description)
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [referrerId, null, 'signup_referrer', SIGNUP_BONUS_REFERRER, 'Thưởng mời người mới đăng ký']
+                    `INSERT INTO referral_bonuses (user_id, referrer_id, bonus_amount, type)
+                     VALUES (?, ?, ?, ?)`,
+                    [referrerId, null, SIGNUP_BONUS_REFERRER, 'referral_bonus'],
+                    (err) => {
+                        if (!err) {
+                            // Record transaction for referrer
+                            db.run(
+                                `INSERT INTO transactions (user_id, amount, type, description)
+                                 VALUES (?, ?, ?, ?)`,
+                                [referrerId, SIGNUP_BONUS_REFERRER, 'credit', 'Thưởng mời người mới đăng ký']
+                            );
+                        }
+                    }
                 );
                 
+                // Record bonus transaction for referred user
                 db.run(
-                    `INSERT INTO referral_bonuses (user_id, referrer_id, bonus_type, amount, description)
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [referredId, referrerId, 'signup_referred', SIGNUP_BONUS_REFERRED, 'Thưởng đăng ký bằng mã giới thiệu']
+                    `INSERT INTO referral_bonuses (user_id, referrer_id, bonus_amount, type)
+                     VALUES (?, ?, ?, ?)`,
+                    [referredId, referrerId, SIGNUP_BONUS_REFERRED, 'signup_bonus'],
+                    (err) => {
+                        if (!err) {
+                            // Record transaction for referred user
+                            db.run(
+                                `INSERT INTO transactions (user_id, amount, type, description)
+                                 VALUES (?, ?, ?, ?)`,
+                                [referredId, SIGNUP_BONUS_REFERRED, 'credit', 'Thưởng đăng ký bằng mã giới thiệu']
+                            );
+                        }
+                    }
                 );
             }
         }
@@ -183,13 +204,19 @@ function giveSignupBonus(db, referrerId, referredId) {
 // Update referral counts
 function updateReferralCounts(db, referrerId) {
     db.get(
-        'SELECT COUNT(*) as count FROM referrals WHERE referrer_id = ? AND status = ?',
-        [referrerId, 'active'],
+        'SELECT COUNT(*) as count FROM referrals WHERE referrer_id = ?',
+        [referrerId],
         (err, result) => {
             if (!err && result) {
+                const count = result.count || 0;
                 db.run(
                     'UPDATE users SET total_referrals = ?, active_referrals = ? WHERE id = ?',
-                    [result.count, result.count, referrerId]
+                    [count, count, referrerId],
+                    (err) => {
+                        if (err) {
+                            console.error('Error updating referral counts:', err);
+                        }
+                    }
                 );
             }
         }
@@ -247,9 +274,16 @@ function calculateWithdrawalCommission(db, userId, withdrawalAmount) {
                         if (!err) {
                             // Record earnings
                             db.run(
-                                `INSERT INTO referral_earnings (referrer_id, referred_id, level, amount, source, description)
-                                 VALUES (?, ?, ?, ?, ?, ?)`,
-                                [referrer.id, userId, level, commission, 'withdrawal', `Hoa hồng F${level} từ rút tiền`]
+                                `INSERT INTO referral_earnings (referrer_id, referred_id, source_type, source_id, amount, commission_percent, level)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                                [referrer.id, userId, 'withdrawal', 0, commission, REFERRAL_COMMISSION_RATES[level] * 100, level]
+                            );
+                            
+                            // Record transaction
+                            db.run(
+                                `INSERT INTO transactions (user_id, amount, type, description)
+                                 VALUES (?, ?, ?, ?)`,
+                                [referrer.id, commission, 'credit', `Hoa hồng F${level} từ rút tiền`]
                             );
                             
                             // Record bonus transaction
