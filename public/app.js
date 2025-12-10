@@ -1469,8 +1469,8 @@ function showCCCDPreview(previewId, src, width, height) {
     `;
 }
 
-// Retake photo - clear current photo and allow retaking
-function retakePhoto(type) {
+// Retake photo - clear current photo and allow retaking (GLOBAL)
+window.retakePhoto = function(type) {
     console.log('Retaking photo:', type);
     
     // Clear the input
@@ -1494,11 +1494,16 @@ function retakePhoto(type) {
         errorDiv.textContent = '';
     }
     
+    // Clear stored photo if exists
+    if (window.capturedPhotos && window.capturedPhotos[type]) {
+        delete window.capturedPhotos[type];
+    }
+    
     console.log('Photo cleared, ready to retake');
-}
+};
 
-// Confirm photo and go to next step
-function confirmPhoto(type) {
+// Confirm photo and go to next step (GLOBAL)
+window.confirmPhoto = function(type) {
     console.log('Confirming photo:', type);
     
     if (type === 'cccd-front') {
@@ -1510,7 +1515,7 @@ function confirmPhoto(type) {
         console.log('Moving to step 3 (Video mặt)');
         goToNextStep();
     }
-}
+};
 
 // Show image preview (for other uses)
 function showImagePreview(previewId, src) {
