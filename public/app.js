@@ -85,11 +85,16 @@ function showAuthTab(tab) {
     }
 }
 
-// Initialize auth event listeners
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize auth event listeners - Works even if DOM already loaded
+function initAuthListeners() {
     // Tab switching
     document.querySelectorAll('.auth-tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        // Remove old listeners
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        // Add new listener
+        newBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             const tab = this.dataset.tab;
             showAuthTab(tab);
         });
@@ -98,45 +103,90 @@ document.addEventListener('DOMContentLoaded', function() {
     // Login button
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) {
-        loginBtn.addEventListener('click', login);
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            login();
+        });
     }
     
     // Register button
     const registerBtn = document.getElementById('register-btn');
     if (registerBtn) {
-        registerBtn.addEventListener('click', register);
+        registerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            register();
+        });
     }
     
     // Enter key support
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && loginForm.classList.contains('active')) {
+    const loginUsername = document.getElementById('login-username');
+    const loginPassword = document.getElementById('login-password');
+    if (loginUsername) {
+        loginUsername.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                login();
+            }
+        });
+    }
+    if (loginPassword) {
+        loginPassword.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
                 login();
             }
         });
     }
     
-    const registerForm = document.getElementById('register-form');
-    if (registerForm) {
-        registerForm.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && registerForm.classList.contains('active')) {
-                register();
-            }
-        });
-    }
-});
+    const registerInputs = ['register-username', 'register-email', 'register-phone', 'register-password', 'register-referral-code'];
+    registerInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    register();
+                }
+            });
+        }
+    });
+}
+
+// Initialize on DOM ready or immediately if already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuthListeners);
+} else {
+    // DOM already loaded
+    initAuthListeners();
+}
 
 // Register
 async function register() {
-    const username = document.getElementById('register-username').value;
-    const email = document.getElementById('register-email').value;
-    const phone = document.getElementById('register-phone').value;
-    const password = document.getElementById('register-password').value;
+    const usernameEl = document.getElementById('register-username');
+    const emailEl = document.getElementById('register-email');
+    const phoneEl = document.getElementById('register-phone');
+    const passwordEl = document.getElementById('register-password');
     const errorDiv = document.getElementById('register-error');
+
+    if (!usernameEl || !emailEl || !phoneEl || !passwordEl || !errorDiv) {
+        console.error('Register form elements not found');
+        return;
+    }
+
+    const username = usernameEl.value.trim();
+    const email = emailEl.value.trim();
+    const phone = phoneEl.value.trim();
+    const password = passwordEl.value;
+
+    // Clear previous error
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
 
     if (!username || !email || !phone || !password) {
         errorDiv.textContent = 'Vui lòng điền đầy đủ thông tin';
+        errorDiv.style.display = 'block';
         return;
     }
 
@@ -145,6 +195,7 @@ async function register() {
     const cleanPhone = phone.replace(/\s/g, '');
     if (!phoneRegex.test(cleanPhone)) {
         errorDiv.textContent = 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số)';
+        errorDiv.style.display = 'block';
         return;
     }
 
@@ -178,13 +229,17 @@ async function register() {
             const bonusAmount = data.signup_bonus || 0;
             showNotification(`Đăng ký thành công! Bạn đã nhận ${bonusAmount.toLocaleString('vi-VN')} ₫ tiền thưởng đăng ký!`);
             
-            showMainContent();
             errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+            showMainContent();
         } else {
             errorDiv.textContent = data.error || 'Đăng ký thất bại';
+            errorDiv.style.display = 'block';
         }
     } catch (error) {
-        errorDiv.textContent = 'Lỗi kết nối';
+        console.error('Register error:', error);
+        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        errorDiv.style.display = 'block';
     }
 }
 
@@ -207,13 +262,17 @@ async function login() {
             localStorage.setItem('token', data.token);
             currentToken = data.token;
             currentUser = data.user;
-            showMainContent();
             errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+            showMainContent();
         } else {
             errorDiv.textContent = data.error || 'Đăng nhập thất bại';
+            errorDiv.style.display = 'block';
         }
     } catch (error) {
-        errorDiv.textContent = 'Lỗi kết nối';
+        console.error('Login error:', error);
+        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        errorDiv.style.display = 'block';
     }
 }
 

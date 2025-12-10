@@ -1908,11 +1908,13 @@ textarea::placeholder {
     border-radius: 8px;
     border: 1px solid rgba(255, 71, 87, 0.3);
     text-align: center;
+    min-height: 20px;
     display: none;
 }
 
-.auth-error:not(:empty) {
-    display: block;
+.auth-error:not(:empty),
+.auth-error[style*="display: block"] {
+    display: block !important;
 }
 
 /* Mobile Responsive */
