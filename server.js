@@ -828,6 +828,39 @@ app.get('/api/admin/verifications', authenticateToken, (req, res) => {
   });
 });
 
+// TEST ENDPOINT: Get all users with any verification data (for debugging)
+app.get('/api/admin/verifications/test', authenticateToken, (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  // Get ALL users first
+  db.all('SELECT id, username, email, cccd_front, cccd_back, face_video, face_photo, verification_status FROM users', (err, allUsers) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error: ' + err.message });
+    }
+    
+    // Get users with verification files
+    db.all(`SELECT id, username, email, cccd_front, cccd_back, face_video, face_photo, verification_status, verification_notes, created_at
+      FROM users 
+      WHERE (cccd_front IS NOT NULL AND cccd_front != '') 
+         OR (cccd_back IS NOT NULL AND cccd_back != '') 
+         OR (face_video IS NOT NULL AND face_video != '')
+         OR (face_photo IS NOT NULL AND face_photo != '')
+      ORDER BY created_at DESC`, (err, verifications) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error: ' + err.message });
+      }
+      res.json({ 
+        allUsersCount: allUsers.length,
+        allUsers: allUsers,
+        verificationsCount: verifications.length,
+        verifications: verifications 
+      });
+    });
+  });
+});
+
 // Admin: Review verification
 app.post('/api/admin/verifications/:id/review', authenticateToken, (req, res) => {
   if (req.user.role !== 'admin') {
