@@ -841,9 +841,13 @@ async function startVideo() {
         // Start recording
         mediaRecorder.start(100); // Collect data every 100ms
         
+        // Calculate total duration from all instructions
+        const totalDurationSeconds = instructions.reduce((sum, inst) => sum + inst.duration, 0);
+        
         // Initialize countdown and instructions
-        currentTime = 8;
+        currentTime = Math.ceil(totalDurationSeconds);
         currentInstruction = 0;
+        let photoCaptured = false; // Track if photo has been captured
         
         // Start countdown
         updateCountdown();
@@ -852,15 +856,14 @@ async function startVideo() {
         // Start instructions
         showInstruction(0);
         let instructionTime = 0;
-        let photoCaptured = false; // Track if photo has been captured
         
         instructionInterval = setInterval(() => {
             instructionTime += 0.1;
-            let totalDuration = 0;
+            let accumulatedDuration = 0;
             
             for (let i = 0; i < instructions.length; i++) {
-                totalDuration += instructions[i].duration;
-                if (instructionTime < totalDuration) {
+                accumulatedDuration += instructions[i].duration;
+                if (instructionTime < accumulatedDuration) {
                     if (i !== currentInstruction) {
                         currentInstruction = i;
                         showInstruction(i);
@@ -877,13 +880,10 @@ async function startVideo() {
             }
         }, 100);
         
-        // Calculate total duration from all instructions
-        const totalDuration = instructions.reduce((sum, inst) => sum + inst.duration, 0) * 1000;
-        
         // Auto stop after all instructions complete
         recordingTimer = setTimeout(() => {
             stopVideo();
-        }, totalDuration);
+        }, totalDurationSeconds * 1000);
         
     } catch (error) {
         console.error('Error accessing camera:', error);
