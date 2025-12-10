@@ -49,6 +49,12 @@ function showAdminTab(tab) {
         section.classList.add('active');
     }
     
+    // Load data when tab is shown
+    if (tab === 'verifications') {
+        console.log('Verifications tab clicked, loading data...');
+        loadVerifications();
+    }
+    
     if (tab === 'tasks') {
         loadTasks();
     } else if (tab === 'submissions') {
