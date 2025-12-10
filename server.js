@@ -324,7 +324,7 @@ app.post('/api/register', async (req, res) => {
   }
 
   // Validate phone number (Vietnamese format)
-  const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+  const phoneRegex = /^(0|\+84)[35789][0-9]{8}$/;
   const cleanPhone = phone.replace(/\s/g, '');
   if (!phoneRegex.test(cleanPhone)) {
     return res.status(400).json({ error: 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số)' });

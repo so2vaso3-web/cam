@@ -173,12 +173,12 @@ async function register() {
         return;
     }
 
-    const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+    const phoneRegex = /^(0|\+84)[35789][0-9]{8}$/;
     const cleanPhone = phone.replace(/\s/g, '');
     if (!phoneRegex.test(cleanPhone)) {
-        errorDiv.textContent = 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số)';
-        errorDiv.style.display = 'block';
-        return;
+      errorDiv.textContent = 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số)';
+      errorDiv.style.display = 'block';
+      return;
     }
 
     const refInput = document.getElementById('register-referral-code');

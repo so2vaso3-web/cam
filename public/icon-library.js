@@ -106,3 +106,4 @@ function getIcon(name, size = 24) {
     return `<span class="icon-wrapper" style="width: ${size}px; height: ${size}px; display: inline-flex; align-items: center; justify-content: center;">${Icons[name] || ''}</span>`;
 }
 
+

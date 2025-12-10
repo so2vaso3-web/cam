@@ -89,7 +89,7 @@ function validateCCCDFormat(cccdNumber) {
 function validatePhoneFormat(phone) {
     if (!phone) return false;
     const cleaned = phone.replace(/\s/g, '');
-    return /^(0|\+84)[3|5|7|8|9][0-9]{8}$/.test(cleaned);
+    return /^(0|\+84)[35789][0-9]{8}$/.test(cleaned);
 }
 
 // Check for suspicious patterns (multiple accounts from same IP, device, etc.)
@@ -217,4 +217,5 @@ module.exports = {
     blockUser,
     checkSuspiciousActivity
 };
+
 

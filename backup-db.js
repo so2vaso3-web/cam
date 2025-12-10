@@ -41,3 +41,4 @@ if (backups.length > 10) {
 console.log(`✓ Total backups: ${backups.length}`);
 process.exit(0);
 
+
