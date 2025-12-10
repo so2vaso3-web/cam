@@ -1486,6 +1486,16 @@ async function openCameraCapture(type) {
         modal.style.width = '100vw';
         modal.style.height = '100vh';
         
+        // Ensure video is visible
+        if (video) {
+            video.style.display = 'block';
+        }
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        
         // Ensure video attributes for mobile
         video.setAttribute('playsinline', '');
         video.setAttribute('autoplay', '');
