@@ -287,12 +287,31 @@ function finish() {
 
 // Export for use in server.js
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { initReferralDB: function(dbInstance) {
-    db = dbInstance;
-    shouldClose = false;
-    // Run initialization
-    runInit();
-  }};
+  module.exports = { 
+    initReferralDB: function(dbInstance) {
+      db = dbInstance;
+      shouldClose = false;
+      // Check if users table exists first
+      db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", (err, usersTable) => {
+        if (err || !usersTable) {
+          console.error('❌ Users table not found! Please ensure server.js has created the users table first.');
+          return;
+        }
+        // Run initialization
+        runInit();
+      });
+    }
+  };
 }
 
-function runInit() {
+// If run directly (not imported), check users table first
+if (require.main === module) {
+  db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", (err, usersTable) => {
+    if (err || !usersTable) {
+      console.error('❌ Users table not found! Please ensure server.js has created the users table first.');
+      if (shouldClose) db.close();
+      return;
+    }
+    runInit();
+  });
+}
