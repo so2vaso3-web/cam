@@ -1490,9 +1490,6 @@ window.openCameraCapture = function(type) {
 
 // Close camera capture
 function closeCameraCapture(type) {
-
-// Close camera capture
-function closeCameraCapture(type) {
     // Map type to modal ID (cccd-front -> front, cccd-back -> back)
     const modalId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
     const modal = document.getElementById(`camera-modal-${modalId}`);
