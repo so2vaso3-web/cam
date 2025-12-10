@@ -119,44 +119,36 @@ function displayReferralInfo() {
             </div>
 
             ${!unlockInfo.unlocked ? `
-                <div style="margin-top: 1.5rem; padding: 1rem; background: #ff4444; border-radius: 8px; border-left: 4px solid #ff0000;">
-                    <div style="color: white; font-weight: 600; margin-bottom: 0.5rem;">🔒 Rút Tiền Bị Khóa</div>
-                    <div style="color: #ffe0e0; font-size: 0.9rem;">
-                        ${unlockInfo.message || 'Mời thêm người để mở khóa rút tiền'}
-                    </div>
+                <div class="withdrawal-lock-card">
+                    <div class="lock-title">Rút Tiền Bị Khóa</div>
+                    <div class="lock-message">${unlockInfo.message || 'Mời thêm người để mở khóa rút tiền'}</div>
                     ${needed > 0 ? `
-                        <div style="margin-top: 1rem;">
-                            <div style="color: white; font-size: 0.85rem; margin-bottom: 0.5rem;">
-                                Còn thiếu: <strong>${needed} người</strong>
-                            </div>
-                            <div style="background: rgba(255,255,255,0.2); border-radius: 4px; height: 8px; overflow: hidden;">
-                                <div style="background: white; height: 100%; width: ${((referralInfo.active_referrals || 0) / (referralInfo.active_referrals + needed) * 100)}%; transition: width 0.3s;"></div>
+                        <div class="lock-progress">
+                            <div class="lock-progress-text">Còn thiếu: <strong>${needed} người</strong></div>
+                            <div class="lock-progress-bar">
+                                <div class="lock-progress-fill" style="width: ${((referralInfo.active_referrals || 0) / (referralInfo.active_referrals + needed) * 100)}%;"></div>
                             </div>
                         </div>
                     ` : ''}
                 </div>
             ` : `
-                <div style="margin-top: 1.5rem; padding: 1rem; background: #2ed573; border-radius: 8px;">
-                    <div style="color: white; font-weight: 600;">✅ Rút Tiền Đã Mở Khóa</div>
-                    <div style="color: #e0ffe0; font-size: 0.9rem; margin-top: 0.5rem;">
-                        ${unlockInfo.message || 'Bạn có thể rút tiền bây giờ'}
-                    </div>
+                <div class="withdrawal-unlock-card">
+                    <div class="unlock-title">Rút Tiền Đã Mở Khóa</div>
+                    <div class="unlock-message">${unlockInfo.message || 'Bạn có thể rút tiền bây giờ'}</div>
                     ${unlockInfo.vip ? `
-                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.2); border-radius: 4px; color: white; font-weight: 600;">
-                            👑 VIP - Rút tối đa 10.000.000 ₫/ngày
-                        </div>
+                        <div class="vip-badge">VIP - Rút tối đa 10.000.000 ₫/ngày</div>
                     ` : ''}
                 </div>
             `}
         </div>
 
-        <div class="referral-chain-card" style="background: #1a1a1a; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #333;">
-            <h3 style="color: #e0e0e0; margin-bottom: 1rem;">Cây Giới Thiệu (F1-F5)</h3>
+        <div class="referral-chain-card-new">
+            <h3 class="referral-chain-title">Cây Giới Thiệu (F1-F5)</h3>
             <div id="referral-chain-list"></div>
         </div>
 
-        <div class="referral-earnings-card" style="background: #1a1a1a; padding: 1.5rem; border-radius: 12px; border: 1px solid #333;">
-            <h3 style="color: #e0e0e0; margin-bottom: 1rem;">Lịch Sử Hoa Hồng</h3>
+        <div class="referral-earnings-card-new">
+            <h3 class="referral-earnings-title">Lịch Sử Hoa Hồng</h3>
             <div id="referral-earnings-list"></div>
         </div>
     `;

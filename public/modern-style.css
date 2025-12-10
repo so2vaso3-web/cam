@@ -363,82 +363,189 @@ textarea::placeholder {
     color: var(--text-muted);
 }
 
-/* Profile Section - Modern Cards */
-.profile-card {
+/* Profile Section - Completely Redesigned */
+.profile-user-card {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
-    padding: 2.5rem;
-    border-radius: 20px;
-    text-align: center;
-    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
 }
 
-.avatar-circle {
-    width: 100px;
-    height: 100px;
+.avatar-circle-new {
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: var(--primary-gradient);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1.5rem;
-    font-size: 2.5rem;
+    font-size: 1.75rem;
     font-weight: 800;
     color: #ffffff;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    border: 4px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    flex-shrink: 0;
 }
 
-.profile-info h3 {
+.profile-info-new {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-info-new h3 {
     color: var(--text-primary);
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
     font-weight: 700;
 }
 
-.profile-info p {
+.profile-info-new p {
     color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.profile-stats-new {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
-.profile-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.stat-item {
-    background: rgba(102, 126, 234, 0.1);
-    padding: 1.5rem;
-    border-radius: 16px;
+.stat-card-new {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    padding: 1rem;
+    border-radius: 12px;
     text-align: center;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--border-color);
     transition: all 0.3s;
 }
 
-.stat-item:hover {
-    background: rgba(102, 126, 234, 0.2);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+.stat-card-new:hover {
+    border-color: rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
-.stat-item .stat-value {
-    font-size: 2rem;
+.stat-value-new {
+    font-size: 1.5rem;
     font-weight: 800;
     background: var(--gold-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
 }
 
-.stat-item .stat-label {
-    font-size: 0.85rem;
+.stat-label-new {
+    font-size: 0.75rem;
     color: var(--text-secondary);
     font-weight: 600;
+}
+
+/* Verification Card - Redesigned */
+.verification-card-new {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.verification-card-new:hover {
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: var(--shadow-md);
+}
+
+.verification-card-header-new {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.verification-header-left-new {
+    flex: 1;
+    min-width: 0;
+}
+
+.verification-header-left-new h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.verification-status-new {
+    margin: 0;
+}
+
+.status-badge-new {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge-new.status-pending {
+    background: linear-gradient(135deg, #ffa502 0%, #ff8c00 100%);
+    color: white;
+    box-shadow: 0 2px 6px rgba(255, 165, 2, 0.3);
+}
+
+.status-badge-new.status-approved {
+    background: linear-gradient(135deg, #2ed573 0%, #1dd65f 100%);
+    color: white;
+    box-shadow: 0 2px 6px rgba(46, 213, 115, 0.3);
+}
+
+.status-badge-new.status-rejected {
+    background: linear-gradient(135deg, #ff4757 0%, #ee5a6f 100%);
+    color: white;
+    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.3);
+}
+
+.verification-action-new {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #667eea;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.verification-arrow-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.verification-card-new.expanded .verification-arrow-icon {
+    transform: rotate(180deg);
+}
+
+.verification-notes-new {
+    color: #ff4757;
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    display: none;
 }
 
 /* Referral Section - Attractive Design */

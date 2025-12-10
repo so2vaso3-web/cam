@@ -373,9 +373,12 @@ function showSection(section) {
         case 'profile':
             document.getElementById('profile-section').style.display = 'block';
             loadProfile();
-            // Always load referral info when profile is shown
+            // Always load referral info immediately when profile is shown
             if (typeof loadReferralInfo === 'function') {
-                setTimeout(() => loadReferralInfo(), 200);
+                loadReferralInfo().catch(err => {
+                    console.error('Error loading referral info:', err);
+                    setTimeout(() => loadReferralInfo().catch(e => console.error('Retry failed:', e)), 1000);
+                });
             }
             break;
     }
@@ -753,9 +756,13 @@ async function loadProfile() {
                     .filter(s => s.status === 'approved')
                     .reduce((sum, s) => sum + (s.reward || 0), 0);
                 
-                document.getElementById('profile-tasks-completed').textContent = completed;
-                document.getElementById('profile-tasks-pending').textContent = pending;
-                document.getElementById('profile-total-earned').textContent = formatCurrency(totalEarned);
+                const completedEl = document.getElementById('profile-tasks-completed');
+                const pendingEl = document.getElementById('profile-tasks-pending');
+                const earnedEl = document.getElementById('profile-total-earned');
+                
+                if (completedEl) completedEl.textContent = completed;
+                if (pendingEl) pendingEl.textContent = pending;
+                if (earnedEl) earnedEl.textContent = formatCurrency(totalEarned);
             }
             
             // Load verification status
