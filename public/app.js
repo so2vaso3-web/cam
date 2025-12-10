@@ -1286,13 +1286,33 @@ function goToNextStep() {
 
 // Capture photo from camera
 function capturePhotoFromCamera(type) {
+    console.log('capturePhotoFromCamera called with type:', type);
+    
     // Map type to video/canvas ID (cccd-front -> front, cccd-back -> back)
     const videoId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
     const video = document.getElementById(`camera-preview-${videoId}`);
     const canvas = document.getElementById(`camera-canvas-${videoId}`);
-    const input = document.getElementById(`cccd-${type}`);
+    // Input ID is already correct: cccd-front or cccd-back
+    const input = document.getElementById(type);
     
-    if (video && video.videoWidth > 0) {
+    console.log('Elements found:', { video: !!video, canvas: !!canvas, input: !!input });
+    
+    if (!video) {
+        alert('Không tìm thấy video element');
+        return;
+    }
+    
+    if (!canvas) {
+        alert('Không tìm thấy canvas element');
+        return;
+    }
+    
+    if (!input) {
+        alert('Không tìm thấy input element');
+        return;
+    }
+    
+    if (video.videoWidth > 0 && video.videoHeight > 0) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         
@@ -1309,9 +1329,12 @@ function capturePhotoFromCamera(type) {
                 dataTransfer.items.add(file);
                 input.files = dataTransfer.files;
                 
+                console.log('File created, validating...');
+                
                 // Validate and show preview
                 validateCCCDImage(file, `cccd-${type}-preview`, `cccd-${type}-error`, (isValid) => {
                     if (isValid) {
+                        console.log('Image validated, closing camera...');
                         closeCameraCapture(type);
                         // Auto go to next step after 1 second
                         setTimeout(() => {
@@ -1321,10 +1344,16 @@ function capturePhotoFromCamera(type) {
                                 goToNextStep();
                             }
                         }, 1000);
+                    } else {
+                        console.log('Image validation failed');
                     }
                 });
+            } else {
+                alert('Không thể tạo file ảnh. Vui lòng thử lại.');
             }
         }, 'image/jpeg', 1.0);
+    } else {
+        alert('Camera chưa sẵn sàng. Vui lòng đợi một chút và thử lại.');
     }
 }
 
