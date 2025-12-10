@@ -1144,12 +1144,15 @@ async function loadVerificationStatus() {
                 'not_submitted': { text: 'Chưa xác minh', class: 'status-pending' },
                 'pending': { text: 'Đang chờ duyệt', class: 'status-pending' },
                 'approved': { text: 'Đã xác minh', class: 'status-approved' },
-                'rejected': { text: 'Đã từ chối', class: 'status-rejected' }
+                'rejected': { text: 'Bị từ chối', class: 'status-rejected' }
             };
             
             const statusInfo = statusMap[data.verification_status] || statusMap['not_submitted'];
-            statusBadge.className = `status-badge ${statusInfo.class}`;
-            statusBadge.querySelector('span').textContent = statusInfo.text;
+            const statusBadge = document.getElementById('status-badge');
+            if (statusBadge) {
+                statusBadge.textContent = statusInfo.text;
+                statusBadge.className = 'status-text ' + statusInfo.class;
+            }
             
             // Show notes if rejected
             if (data.verification_status === 'rejected' && data.verification_notes) {
