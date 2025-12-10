@@ -1431,19 +1431,6 @@ let currentCameraType = null;
 async function openCameraCapture(type) {
     currentCameraType = type;
     
-    // On mobile, use native file input with capture (simpler and more reliable)
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        // Use native file input on mobile - more reliable
-        const input = document.getElementById(type);
-        if (input) {
-            console.log('Mobile detected, using native file input');
-            input.click();
-            return;
-        }
-    }
-    
     // Map type to modal ID (cccd-front -> front, cccd-back -> back)
     const modalId = type === 'cccd-front' ? 'front' : type === 'cccd-back' ? 'back' : type;
     const modal = document.getElementById(`camera-modal-${modalId}`);
@@ -1455,6 +1442,7 @@ async function openCameraCapture(type) {
         // Fallback to file input if getUserMedia not supported
         const input = document.getElementById(type);
         if (input) {
+            console.log('getUserMedia not supported, using file input');
             input.click();
             return;
         }
@@ -1467,6 +1455,7 @@ async function openCameraCapture(type) {
         // Fallback to file input if not HTTPS
         const input = document.getElementById(type);
         if (input) {
+            console.log('Not HTTPS, using file input');
             input.click();
             return;
         }
@@ -1488,29 +1477,47 @@ async function openCameraCapture(type) {
             throw new Error('Modal or video element not found');
         }
         
-        // Set video source (STANDARD METHOD)
-        video.srcObject = cameraStream;
+        // Show modal FIRST before setting video source (important for mobile)
         modal.style.display = 'flex';
+        modal.style.zIndex = '10000'; // Ensure modal is on top
         
         // Ensure video attributes for mobile
         video.setAttribute('playsinline', '');
         video.setAttribute('autoplay', '');
+        video.setAttribute('webkit-playsinline', ''); // For iOS
         video.muted = true; // Required for autoplay on mobile
         
-        // Wait for video to be ready and play (STANDARD METHOD)
-        video.onloadedmetadata = () => {
-            console.log('Video metadata loaded');
+        // Set video source (STANDARD METHOD)
+        video.srcObject = cameraStream;
+        
+        // Force play on mobile
+        const playVideo = () => {
             video.play().then(() => {
                 console.log('✓ Video is playing');
             }).catch(err => {
                 console.error('Error playing video:', err);
-                alert('Không thể phát video. Vui lòng thử lại.');
+                // Try again after a short delay
+                setTimeout(() => {
+                    video.play().catch(e => {
+                        console.error('Retry failed:', e);
+                        alert('Không thể phát video. Vui lòng thử lại.');
+                    });
+                }, 500);
             });
+        };
+        
+        // Wait for video to be ready and play (STANDARD METHOD)
+        video.onloadedmetadata = () => {
+            console.log('Video metadata loaded');
+            playVideo();
         };
         
         video.oncanplay = () => {
             console.log('✓ Video can play, ready for capture');
         };
+        
+        // Also try to play immediately (for some browsers)
+        setTimeout(playVideo, 100);
         
         // Wait for video to be fully ready before allowing capture
         let videoReady = false;
