@@ -361,9 +361,18 @@ db.serialize(() => {
   });
 
   // Create default admin user and sample tasks
-  const adminPassword = bcrypt.hashSync('admin123', 10);
+  const adminPassword = bcrypt.hashSync('123123@', 10);
   db.run(`INSERT OR IGNORE INTO users (username, email, password, role) 
     VALUES ('admin', 'admin@example.com', ?, 'admin')`, [adminPassword]);
+  
+  // Update admin password to 123123@ if admin exists
+  db.run(`UPDATE users SET password = ? WHERE username = 'admin' AND role = 'admin'`, [adminPassword], (err) => {
+    if (err) {
+      console.error('Error updating admin password:', err);
+    } else {
+      console.log('Admin password updated to 123123@');
+    }
+  });
   
   // Get admin user ID and create sample tasks
   db.get(`SELECT id FROM users WHERE username = 'admin'`, (err, admin) => {
@@ -921,13 +930,15 @@ app.post('/api/withdraw', authenticateToken, async (req, res) => {
           return res.status(404).json({ error: 'User not found' });
         }
 
-        // Check verification status
-        const verificationStatus = user.verification_status || 'pending';
-        if (verificationStatus !== 'approved') {
-          return res.status(403).json({ 
-            error: 'Bạn cần xác minh danh tính trước khi rút tiền',
-            requires_verification: true
-          });
+        // Check verification status - skip for admin
+        if (req.user.role !== 'admin') {
+          const verificationStatus = user.verification_status || 'pending';
+          if (verificationStatus !== 'approved') {
+            return res.status(403).json({ 
+              error: 'Bạn cần xác minh danh tính trước khi rút tiền',
+              requires_verification: true
+            });
+          }
         }
 
         if (user.balance < amount) {

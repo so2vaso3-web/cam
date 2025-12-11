@@ -858,43 +858,64 @@ async function withdraw() {
         return;
     }
 
-    // CHECK VERIFICATION STATUS FIRST before sending request
+    // CHECK VERIFICATION STATUS FIRST before sending request (skip for admin)
+    // Check if user is admin first
+    let isAdmin = false;
     try {
-        const verificationCheck = await fetch('/api/verification/status', {
+        const userInfoResponse = await fetch('/api/me', {
             headers: {
                 'Authorization': `Bearer ${currentToken}`
             }
         });
-
-        if (verificationCheck.ok) {
-            const verificationData = await verificationCheck.json();
-            
-            // Check verification status - must be exactly 'approved'
-            const status = verificationData.verification_status;
-            console.log('Verification status check:', status);
-            
-            if (!status || status === 'not_submitted' || status === 'pending' || status === 'rejected' || status !== 'approved') {
-                errorDiv.textContent = '';
-                if (status === 'pending') {
-                    showNotification('Xác minh của bạn đang chờ duyệt. Vui lòng đợi admin duyệt trước khi rút tiền.', true);
-                } else if (status === 'rejected') {
-                    showNotification('Xác minh của bạn đã bị từ chối. Vui lòng xác minh lại.', true);
-                } else {
-                    showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
-                }
-                showVerificationForWithdraw();
-                return; // STOP HERE - don't send withdrawal request
-            }
-            
-            // Status is approved, continue with withdrawal
-            console.log('Verification approved, proceeding with withdrawal');
-        } else {
-            // If verification check fails, still try withdrawal (backend will check)
-            console.warn('Could not check verification status, proceeding with withdrawal request');
+        if (userInfoResponse.ok) {
+            const userInfo = await userInfoResponse.json();
+            isAdmin = userInfo.user && userInfo.user.role === 'admin';
         }
     } catch (error) {
-        console.error('Error checking verification:', error);
-        // Continue to withdrawal request, backend will check
+        console.error('Error checking user role:', error);
+    }
+    
+    // Skip verification check for admin
+    if (!isAdmin) {
+        try {
+            const verificationCheck = await fetch('/api/verification/status', {
+                headers: {
+                    'Authorization': `Bearer ${currentToken}`
+                }
+            });
+
+            if (verificationCheck.ok) {
+                const verificationData = await verificationCheck.json();
+                
+                // Check verification status - must be exactly 'approved'
+                const status = verificationData.verification_status;
+                console.log('Verification status check:', status);
+                
+                if (!status || status === 'not_submitted' || status === 'pending' || status === 'rejected' || status !== 'approved') {
+                    errorDiv.textContent = '';
+                    if (status === 'pending') {
+                        showNotification('Xác minh của bạn đang chờ duyệt. Vui lòng đợi admin duyệt trước khi rút tiền.', true);
+                    } else if (status === 'rejected') {
+                        showNotification('Xác minh của bạn đã bị từ chối. Vui lòng xác minh lại.', true);
+                    } else {
+                        showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
+                    }
+                    showVerificationForWithdraw();
+                    return; // STOP HERE - don't send withdrawal request
+                }
+                
+                // Status is approved, continue with withdrawal
+                console.log('Verification approved, proceeding with withdrawal');
+            } else {
+                // If verification check fails, still try withdrawal (backend will check)
+                console.warn('Could not check verification status, proceeding with withdrawal request');
+            }
+        } catch (error) {
+            console.error('Error checking verification:', error);
+            // Continue to withdrawal request, backend will check
+        }
+    } else {
+        console.log('Admin user - skipping verification check');
     }
 
     // If verified, proceed with withdrawal
