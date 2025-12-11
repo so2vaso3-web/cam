@@ -47,6 +47,70 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Compress responses (HTML/CSS/JS/JSON)
 app.use(compression({ threshold: 1024 }));
 
+// Serve index.html with dynamic meta tags for referral links (must be before static)
+app.get('/', (req, res, next) => {
+  const refCode = req.query.ref;
+  
+  // If no referral code, serve static file normally
+  if (!refCode) {
+    return next();
+  }
+  
+  // Read and modify HTML for referral links
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  fs.readFile(indexPath, 'utf8', (err, html) => {
+    if (err) {
+      console.error('Error reading index.html:', err);
+      return next();
+    }
+    
+    // Update meta tags for referral link
+    const baseUrl = req.protocol + '://' + req.get('host');
+    const currentUrl = baseUrl + req.originalUrl;
+    
+    // Replace OG meta tags
+    html = html.replace(
+      /<meta property="og:title" content="[^"]*">/,
+      `<meta property="og:title" content="🎁 Nhận 10.000₫ khi đăng ký qua link giới thiệu!">`
+    );
+    html = html.replace(
+      /<meta property="og:description" content="[^"]*">/,
+      `<meta property="og:description" content="Đăng ký ngay qua link này để nhận 10.000₫ vào tài khoản! Làm nhiệm vụ, kiếm tiền nhanh chóng.">`
+    );
+    html = html.replace(
+      /<meta property="og:url" content="[^"]*">/,
+      `<meta property="og:url" content="${currentUrl}">`
+    );
+    html = html.replace(
+      /<meta property="og:image" content="[^"]*">/,
+      `<meta property="og:image" content="${baseUrl}/og-image.png">`
+    );
+    
+    // Update Twitter meta tags
+    html = html.replace(
+      /<meta name="twitter:title" content="[^"]*">/,
+      `<meta name="twitter:title" content="🎁 Nhận 10.000₫ khi đăng ký qua link giới thiệu!">`
+    );
+    html = html.replace(
+      /<meta name="twitter:description" content="[^"]*">/,
+      `<meta name="twitter:description" content="Đăng ký ngay qua link này để nhận 10.000₫ vào tài khoản! Làm nhiệm vụ, kiếm tiền nhanh chóng.">`
+    );
+    html = html.replace(
+      /<meta name="twitter:image" content="[^"]*">/,
+      `<meta name="twitter:image" content="${baseUrl}/og-image.png">`
+    );
+    
+    // Update page title
+    html = html.replace(
+      /<title>[^<]*<\/title>/,
+      `<title>🎁 Nhận 10.000₫ - Đăng ký ngay! | TaskEarn</title>`
+    );
+    
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  });
+});
+
 // Static assets caching (improves load and repaint)
 app.use(express.static('public', {
   maxAge: '7d', // cache CSS/JS/fonts for a week
@@ -497,37 +561,6 @@ app.post('/api/verification/upload', extractUserFromToken, authenticateToken, up
     return res.status(400).json({ error: 'Không có file nào được upload' });
   }
 
-  // OCR Extraction from CCCD front
-  let ocrResult = null;
-  if (imagePaths.cccd_front && fs.existsSync(imagePaths.cccd_front)) {
-    try {
-      ocrResult = await ocrService.extractCCCDInfo(imagePaths.cccd_front);
-      if (ocrResult.success && ocrResult.data.cccd_number) {
-        // Anti-fake: Check duplicate CCCD
-        const kycValidation = await antiFake.validateKYC(db, userId, ocrResult.data.cccd_number);
-        if (!kycValidation.valid) {
-          // Delete uploaded files
-          Object.values(imagePaths).forEach(filePath => {
-            if (fs.existsSync(filePath)) {
-              fs.unlinkSync(filePath);
-            }
-          });
-          return res.status(400).json({ 
-            error: kycValidation.errors.join(', '),
-            duplicate: true,
-            existing_user: kycValidation.duplicate_info
-          });
-        }
-
-        // Save OCR data
-        await ocrService.saveOCRData(db, userId, ocrResult.data, imagePaths, ocrResult);
-      }
-    } catch (err) {
-      console.error('OCR error:', err);
-      // Continue even if OCR fails
-    }
-  }
-
   // Set status to pending if not already approved
   updates.push('verification_status = ?');
   values.push('pending');
@@ -537,16 +570,60 @@ app.post('/api/verification/upload', extractUserFromToken, authenticateToken, up
   console.log('Verification upload query:', updateQuery);
   console.log('Values:', values);
 
+  // Save files to database immediately (admin will see it right away)
   db.run(updateQuery, values, (err) => {
     if (err) {
       console.error('Error updating verification:', err);
       return res.status(500).json({ error: 'Database error: ' + err.message });
     }
-    console.log(`Verification files uploaded for user ${userId}`);
+    console.log(`Verification files uploaded for user ${userId} - Admin can see it now!`);
+    
+    // Return response immediately - admin will receive notification right away
     res.json({ 
       message: 'Upload thành công! Đang chờ duyệt.',
-      ocr_extracted: ocrResult?.success || false
+      ocr_extracted: false // Will be updated in background
     });
+
+    // Run OCR in background (async, non-blocking)
+    // This won't delay the response to user
+    if (imagePaths.cccd_front && fs.existsSync(imagePaths.cccd_front)) {
+      (async () => {
+        try {
+          console.log(`Starting OCR processing in background for user ${userId}...`);
+          const ocrResult = await ocrService.extractCCCDInfo(imagePaths.cccd_front);
+          
+          if (ocrResult.success && ocrResult.data.cccd_number) {
+            // Anti-fake: Check duplicate CCCD
+            const kycValidation = await antiFake.validateKYC(db, userId, ocrResult.data.cccd_number);
+            if (!kycValidation.valid) {
+              // Update status to rejected if duplicate
+              db.run(
+                `UPDATE users SET verification_status = ?, verification_notes = ? WHERE id = ?`,
+                ['rejected', kycValidation.errors.join(', '), userId],
+                (err) => {
+                  if (err) console.error('Error updating rejected status:', err);
+                  else console.log(`User ${userId} verification rejected: duplicate CCCD`);
+                }
+              );
+              // Delete uploaded files
+              Object.values(imagePaths).forEach(filePath => {
+                if (fs.existsSync(filePath)) {
+                  fs.unlinkSync(filePath);
+                }
+              });
+              return;
+            }
+
+            // Save OCR data in background
+            await ocrService.saveOCRData(db, userId, ocrResult.data, imagePaths, ocrResult);
+            console.log(`OCR processing completed for user ${userId}`);
+          }
+        } catch (err) {
+          console.error('Background OCR error:', err);
+          // Don't affect user experience - OCR is optional
+        }
+      })();
+    }
   });
 });
 
