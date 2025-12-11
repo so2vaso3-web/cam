@@ -7,6 +7,31 @@ let allUsers = [];
 let allWithdrawals = [];
 let allTransactions = [];
 
+// Helper function to format date with Vietnam timezone (UTC+7)
+function formatVietnamDate(dateString) {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
+// Helper function to format date only (no time) with Vietnam timezone
+function formatVietnamDateOnly(dateString) {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
 // Check admin access
 async function checkAdmin() {
     if (!currentToken) {
@@ -367,7 +392,7 @@ function displaySubmissions(submissions) {
                     ${submission.content}
                 </p>
                 <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
-                    Ngày nộp: ${new Date(submission.created_at).toLocaleString('vi-VN')}
+                    Ngày nộp: ${formatVietnamDate(submission.created_at)}
                 </p>
                 <div class="submission-actions">
                     <button class="btn-approve" onclick="reviewSubmission(${submission.id}, 'approved')">
@@ -471,7 +496,7 @@ function displayUsers(users) {
             <td>${user.email}</td>
             <td>${formatCurrency(user.balance)}</td>
             <td><span class="badge ${user.role === 'admin' ? 'badge-danger' : 'badge-info'}">${user.role}</span></td>
-            <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
+            <td>${formatVietnamDateOnly(user.created_at)}</td>
             <td>
                 <button class="btn-edit" onclick="openEditUser(${user.id})">
                     <span style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
@@ -578,7 +603,7 @@ function displayWithdrawals(withdrawals) {
             <td>${w.username} (${w.email})</td>
             <td style="color: #ff4757; font-weight: bold;">${formatCurrency(Math.abs(w.amount))}</td>
             <td>${w.description}</td>
-            <td>${new Date(w.created_at).toLocaleString('vi-VN')}</td>
+            <td>${formatVietnamDate(w.created_at)}</td>
             <td>
                 <button class="btn-approve" onclick="approveWithdrawal(${w.id}, ${w.user_id}, ${Math.abs(w.amount)})">
                     <span style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
@@ -645,7 +670,7 @@ function displayTransactions(transactions) {
             </td>
             <td><span class="badge ${isCredit ? 'badge-success' : 'badge-danger'}">${t.type}</span></td>
             <td>${t.description || '-'}</td>
-            <td>${new Date(t.created_at).toLocaleString('vi-VN')}</td>
+            <td>${formatVietnamDate(t.created_at)}</td>
         `;
         tbody.appendChild(row);
     });
@@ -870,7 +895,7 @@ function displayVerifications(verifications) {
         const statusColor = verification.verification_status === 'pending' ? '#ffaa00' : 
                            verification.verification_status === 'approved' ? '#2ed573' : '#ff4444';
         
-        const createdDate = verification.created_at ? new Date(verification.created_at).toLocaleString('vi-VN') : 'N/A';
+        const createdDate = formatVietnamDate(verification.created_at);
         
         item.innerHTML = `
             <div class="verification-header" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">

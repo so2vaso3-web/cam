@@ -773,7 +773,7 @@ async function loadMySubmissions() {
                     <p><strong>Nội dung:</strong> ${submission.content || 'Không có nội dung'}</p>
                     ${attachmentLinks}
                     <p><strong>Phần thưởng:</strong> ${formatCurrency(submission.reward)}</p>
-                    <p><strong>Ngày nộp:</strong> ${new Date(submission.created_at).toLocaleString('vi-VN')}</p>
+                    <p><strong>Ngày nộp:</strong> ${new Date(submission.created_at).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
                 `;
                 submissionsList.appendChild(item);
             });
@@ -818,6 +818,7 @@ async function loadTransactions() {
                         <strong>${description}</strong>
                         <p style="color: #999; font-size: 0.85rem; margin-top: 0.25rem;">
                             ${new Date(transaction.created_at).toLocaleString('vi-VN', {
+                                timeZone: 'Asia/Ho_Chi_Minh',
                                 day: '2-digit',
                                 month: '2-digit',
                                 year: 'numeric',

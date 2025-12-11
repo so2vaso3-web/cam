@@ -485,7 +485,7 @@ function displayReferralEarnings(earnings) {
                 <div>
                     <div style="color: #e0e0e0; font-weight: 600;">F${earning.level}: ${earning.description || earning.source}</div>
                     <div style="color: #999; font-size: 0.85rem; margin-top: 0.25rem;">
-                        Từ: ${earning.referred_username || 'N/A'} - ${new Date(earning.created_at).toLocaleString('vi-VN')}
+                        Từ: ${earning.referred_username || 'N/A'} - ${new Date(earning.created_at).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                     </div>
                 </div>
                 <div style="color: #2ed573; font-weight: 600; font-size: 1.1rem;">
