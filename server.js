@@ -71,7 +71,7 @@ app.get('/', (req, res, next) => {
     // Replace OG meta tags
     html = html.replace(
       /<meta property="og:title" content="[^"]*">/,
-      `<meta property="og:title" content="🎁 Nhận 10.000₫ khi đăng ký qua link giới thiệu!">`
+      `<meta property="og:title" content="💰 Nhận 10.000₫ khi đăng ký qua link giới thiệu!">`
     );
     html = html.replace(
       /<meta property="og:description" content="[^"]*">/,
@@ -89,7 +89,7 @@ app.get('/', (req, res, next) => {
     // Update Twitter meta tags
     html = html.replace(
       /<meta name="twitter:title" content="[^"]*">/,
-      `<meta name="twitter:title" content="🎁 Nhận 10.000₫ khi đăng ký qua link giới thiệu!">`
+      `<meta name="twitter:title" content="💰 Nhận 10.000₫ khi đăng ký qua link giới thiệu!">`
     );
     html = html.replace(
       /<meta name="twitter:description" content="[^"]*">/,
@@ -103,7 +103,7 @@ app.get('/', (req, res, next) => {
     // Update page title
     html = html.replace(
       /<title>[^<]*<\/title>/,
-      `<title>🎁 Nhận 10.000₫ - Đăng ký ngay! | TaskEarn</title>`
+      `<title>💰 Nhận 10.000₫ - Đăng ký ngay! | TaskEarn</title>`
     );
     
     res.setHeader('Content-Type', 'text/html');
