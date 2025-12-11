@@ -1500,13 +1500,48 @@ async function loadVerificationStatus() {
                 statusBadge.className = 'status-text ' + statusInfo.class;
             }
             
-            // Show notes if rejected
-            if (data.verification_status === 'rejected' && data.verification_notes) {
-                notes.textContent = `Lý do: ${data.verification_notes}`;
-                notes.style.display = 'block';
-                showNotification(`Xác minh bị từ chối: ${data.verification_notes}`, true);
+            // Handle approved status - hide button and show success message
+            const continueButton = document.querySelector('.ekyc-primary-btn');
+            if (data.verification_status === 'approved') {
+                // Hide the "Bắt đầu / Tiếp tục" button
+                if (continueButton) {
+                    continueButton.style.display = 'none';
+                }
+                
+                // Show success message
+                if (notes) {
+                    notes.textContent = '✅ Xác minh đã được duyệt thành công! Bạn có thể rút tiền ngay bây giờ.';
+                    notes.style.display = 'block';
+                    notes.style.color = '#2ed573';
+                    notes.style.fontWeight = '600';
+                    notes.style.padding = '1rem';
+                    notes.style.background = 'rgba(46, 213, 115, 0.1)';
+                    notes.style.borderRadius = '8px';
+                    notes.style.border = '1px solid #2ed573';
+                }
+                
+                // Show notification
+                showNotification('🎉 Xác minh đã được duyệt! Bạn có thể rút tiền ngay bây giờ.', false);
             } else {
-                notes.style.display = 'none';
+                // Show button for other statuses
+                if (continueButton) {
+                    continueButton.style.display = 'block';
+                }
+                
+                // Show notes if rejected
+                if (data.verification_status === 'rejected' && data.verification_notes) {
+                    notes.textContent = `Lý do: ${data.verification_notes}`;
+                    notes.style.display = 'block';
+                    notes.style.color = '#ff4757';
+                    notes.style.fontWeight = '600';
+                    notes.style.padding = '1rem';
+                    notes.style.background = 'rgba(255, 71, 87, 0.1)';
+                    notes.style.borderRadius = '8px';
+                    notes.style.border = '1px solid #ff4757';
+                    showNotification(`Xác minh bị từ chối: ${data.verification_notes}`, true);
+                } else {
+                    notes.style.display = 'none';
+                }
             }
             
             // Show previews if files exist
