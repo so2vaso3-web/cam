@@ -1226,16 +1226,16 @@ async function startVideo() {
                 const overlayChild = videoOverlay.querySelector('.video-overlay');
                 if (overlayChild) overlayChild.style.display = 'none';
             }
-            if (videoStatus) {
-                videoStatus.textContent = 'Video đã ghi xong. Nhấn gửi xác minh.';
-                videoStatus.style.display = 'block';
-            }
-            
             // Create file from blob
             const file = new File([blob], 'face-video.webm', { type: 'video/webm' });
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
-            document.getElementById('face-video').files = dataTransfer.files;
+            const faceVideoInput = document.getElementById('face-video');
+            faceVideoInput.files = dataTransfer.files;
+            
+            // Also store in window for fallback
+            if (!window.capturedFiles) window.capturedFiles = {};
+            window.capturedFiles['face-video'] = file;
             
             // Photo should already be captured during instructions (HIDDEN from user)
             const capturedPhotoContainer = document.getElementById('captured-photo-container');
@@ -1250,6 +1250,12 @@ async function startVideo() {
                 capturedPhotoContainer.style.display = 'none'; // Hidden from user
             }
             
+            // Update video status
+            if (videoStatus) {
+                videoStatus.textContent = 'Video đã ghi xong. Đang tự động gửi xác minh...';
+                videoStatus.style.display = 'block';
+            }
+            
             // Show submit button after video is completed
             setTimeout(() => {
                 const submitSection = document.getElementById('submit-section');
@@ -1258,25 +1264,36 @@ async function startVideo() {
                     submitSection.style.display = 'block';
                 }
                 document.getElementById('step-3-indicator').classList.add('completed');
-                
-                // Auto-submit verification after video recording is complete
+            }, 300);
+            
+            // Auto-submit verification after video recording is complete
+            // Wait a bit for file to be fully processed
+            setTimeout(() => {
                 // Check if all required files are ready
                 const cccdFrontInput = document.getElementById('cccd-front');
                 const cccdBackInput = document.getElementById('cccd-back');
                 const cccdFront = cccdFrontInput?.files?.[0] || window.capturedFiles?.['cccd-front'];
                 const cccdBack = cccdBackInput?.files?.[0] || window.capturedFiles?.['cccd-back'];
-                const faceVideo = document.getElementById('face-video')?.files?.[0];
+                const faceVideo = faceVideoInput?.files?.[0] || window.capturedFiles?.['face-video'];
+                
+                console.log('Checking files for auto-submit:', {
+                    cccdFront: !!cccdFront,
+                    cccdBack: !!cccdBack,
+                    faceVideo: !!faceVideo
+                });
                 
                 if (cccdFront && cccdBack && faceVideo) {
                     // All files ready, auto-submit
-                    console.log('All verification files ready, auto-submitting...');
-                    setTimeout(() => {
-                        submitVerification();
-                    }, 1000); // Small delay to ensure UI is updated
+                    console.log('✅ All verification files ready, auto-submitting now...');
+                    submitVerification();
                 } else {
-                    console.log('Waiting for all files...', { cccdFront: !!cccdFront, cccdBack: !!cccdBack, faceVideo: !!faceVideo });
+                    console.warn('❌ Missing files, cannot auto-submit:', {
+                        cccdFront: !cccdFront,
+                        cccdBack: !cccdBack,
+                        faceVideo: !faceVideo
+                    });
                 }
-            }, 500);
+            }, 1500); // Wait 1.5s to ensure file is fully processed
         };
         
         // Start recording
@@ -1479,26 +1496,8 @@ function stopVideo() {
     const videoStatus = document.getElementById('video-status');
     const videoPreview = document.getElementById('video-preview');
     if (recordingContainer) recordingContainer.style.display = 'none';
-    if (videoStatus) {
-        videoStatus.textContent = 'Video đã ghi xong. Đang tự động gửi xác minh...';
-        videoStatus.classList.remove('hidden');
-        videoStatus.style.display = 'block';
-    }
-    
-    // Auto-submit verification after video recording is complete
-    setTimeout(() => {
-        const cccdFrontInput = document.getElementById('cccd-front');
-        const cccdBackInput = document.getElementById('cccd-back');
-        const cccdFront = cccdFrontInput?.files?.[0] || window.capturedFiles?.['cccd-front'];
-        const cccdBack = cccdBackInput?.files?.[0] || window.capturedFiles?.['cccd-back'];
-        const faceVideo = document.getElementById('face-video')?.files?.[0];
-        
-        if (cccdFront && cccdBack && faceVideo) {
-            // All files ready, auto-submit
-            console.log('All verification files ready, auto-submitting from stopVideo...');
-            submitVerification();
-        }
-    }, 1500); // Wait a bit for file to be fully processed
+    // Note: Auto-submit is handled in mediaRecorder.onstop, not here
+    // This function just stops the recording
     if (videoPreview) videoPreview.srcObject = null;
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
