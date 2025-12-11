@@ -722,10 +722,14 @@ function showSection(section) {
             setTimeout(() => {
                 toggleBankDropdown();
             }, 50);
+            // Check verification status when opening withdraw section
+            loadVerificationStatus();
             break;
         case 'profile':
             document.getElementById('profile-section').style.display = 'block';
             loadProfile();
+            // Start polling for verification status changes
+            startVerificationPolling();
             // Always load referral info immediately when profile is shown
             if (typeof loadReferralInfo === 'function') {
                 loadReferralInfo().catch(err => {
@@ -865,15 +869,25 @@ async function withdraw() {
         if (verificationCheck.ok) {
             const verificationData = await verificationCheck.json();
             
-            // If not approved, show notice and redirect to verification
-            if (!verificationData.verification_status || 
-                verificationData.verification_status === 'not_submitted' ||
-                verificationData.verification_status !== 'approved') {
+            // Check verification status - must be exactly 'approved'
+            const status = verificationData.verification_status;
+            console.log('Verification status check:', status);
+            
+            if (!status || status === 'not_submitted' || status === 'pending' || status === 'rejected' || status !== 'approved') {
                 errorDiv.textContent = '';
-                showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
+                if (status === 'pending') {
+                    showNotification('Xác minh của bạn đang chờ duyệt. Vui lòng đợi admin duyệt trước khi rút tiền.', true);
+                } else if (status === 'rejected') {
+                    showNotification('Xác minh của bạn đã bị từ chối. Vui lòng xác minh lại.', true);
+                } else {
+                    showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
+                }
                 showVerificationForWithdraw();
                 return; // STOP HERE - don't send withdrawal request
             }
+            
+            // Status is approved, continue with withdrawal
+            console.log('Verification approved, proceeding with withdrawal');
         } else {
             // If verification check fails, still try withdrawal (backend will check)
             console.warn('Could not check verification status, proceeding with withdrawal request');
@@ -1069,6 +1083,8 @@ async function loadProfile() {
             
             // Load verification status
             loadVerificationStatus();
+            // Start polling for verification status changes (every 10 seconds)
+            startVerificationPolling();
         }
     } catch (error) {
         console.error('Error loading profile:', error);
@@ -1505,12 +1521,18 @@ function stopVideo() {
     }
 }
 
+// Store last verification status to detect changes
+let lastVerificationStatus = null;
+let verificationPollingInterval = null;
+
 // Load verification status
-async function loadVerificationStatus() {
+async function loadVerificationStatus(showNotificationOnChange = false) {
     try {
-        const response = await fetch('/api/verification/status', {
+        // Add cache busting to ensure fresh data
+        const response = await fetch('/api/verification/status?' + new Date().getTime(), {
             headers: {
-                'Authorization': `Bearer ${currentToken}`
+                'Authorization': `Bearer ${currentToken}`,
+                'Cache-Control': 'no-cache'
             }
         });
         
@@ -1518,6 +1540,13 @@ async function loadVerificationStatus() {
             const data = await response.json();
             const statusBadge = document.getElementById('status-badge');
             const notes = document.getElementById('verification-notes');
+            
+            // Check if status changed from pending to approved
+            const statusChanged = lastVerificationStatus !== data.verification_status;
+            const justApproved = lastVerificationStatus === 'pending' && data.verification_status === 'approved';
+            
+            // Update last status
+            lastVerificationStatus = data.verification_status;
             
             // Update status badge
             const statusMap = {
@@ -1553,8 +1582,10 @@ async function loadVerificationStatus() {
                     notes.style.border = '1px solid #2ed573';
                 }
                 
-                // Show notification
-                showNotification('🎉 Xác minh đã được duyệt! Bạn có thể rút tiền ngay bây giờ.', false);
+                // Show notification only if status just changed to approved
+                if (justApproved || (showNotificationOnChange && statusChanged)) {
+                    showNotification('🎉 Xác minh đã được duyệt! Bạn có thể rút tiền ngay bây giờ.', false);
+                }
             } else {
                 // Show button for other statuses
                 if (continueButton) {
@@ -1571,7 +1602,9 @@ async function loadVerificationStatus() {
                     notes.style.background = 'rgba(255, 71, 87, 0.1)';
                     notes.style.borderRadius = '8px';
                     notes.style.border = '1px solid #ff4757';
-                    showNotification(`Xác minh bị từ chối: ${data.verification_notes}`, true);
+                    if (statusChanged) {
+                        showNotification(`Xác minh bị từ chối: ${data.verification_notes}`, true);
+                    }
                 } else {
                     notes.style.display = 'none';
                 }
@@ -1593,9 +1626,41 @@ async function loadVerificationStatus() {
 
             const statusStep = (data.verification_status === 'approved' || data.verification_status === 'pending') ? 3 : 1;
             updateEkycProgress(statusStep);
+            
+            // Return status for polling
+            return data.verification_status;
         }
     } catch (error) {
         console.error('Error loading verification status:', error);
+    }
+    return null;
+}
+
+// Start polling for verification status changes
+function startVerificationPolling() {
+    // Clear existing interval
+    if (verificationPollingInterval) {
+        clearInterval(verificationPollingInterval);
+    }
+    
+    // Only poll if user is on profile or withdraw section
+    verificationPollingInterval = setInterval(() => {
+        const profileSection = document.getElementById('profile-section');
+        const withdrawSection = document.getElementById('withdraw-section');
+        
+        // Only poll if profile or withdraw section is visible
+        if ((profileSection && profileSection.style.display !== 'none') || 
+            (withdrawSection && withdrawSection.style.display !== 'none')) {
+            loadVerificationStatus(true); // true = show notification on change
+        }
+    }, 10000); // Poll every 10 seconds
+}
+
+// Stop polling when user navigates away
+function stopVerificationPolling() {
+    if (verificationPollingInterval) {
+        clearInterval(verificationPollingInterval);
+        verificationPollingInterval = null;
     }
 }
 
