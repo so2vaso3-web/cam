@@ -43,8 +43,19 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+
+// Static assets caching (improves load and repaint)
+app.use(express.static('public', {
+  maxAge: '7d', // cache CSS/JS/fonts for a week
+  etag: true,
+  lastModified: true
+}));
+// Uploads should be cacheable briefly to avoid stale proofs
+app.use('/uploads', express.static('uploads', {
+  maxAge: '1h',
+  etag: true,
+  lastModified: true
+}));
 app.use(session({
   secret: 'your-session-secret-change-in-production',
   resave: false,
