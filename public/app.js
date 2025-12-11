@@ -1,6 +1,7 @@
 let currentUser = null;
 let currentToken = null;
 let currentTaskId = null;
+let selectedSubmissionFiles = [];
 
 // ============================================
 // AUTH SYSTEM - COMPLETELY REBUILT FROM SCRATCH
@@ -375,12 +376,26 @@ async function fetchUserInfo() {
             const data = await response.json();
             currentUser = data.user;
             showMainContent();
-        } else {
+            return true;
+        }
+
+        // If token is invalid, clear and redirect to auth
+        if (response.status === 401) {
             localStorage.removeItem('token');
             showAuthSection();
+            return false;
         }
+
+        // For other server issues, keep token and show a notice
+        console.warn('fetchUserInfo non-OK status:', response.status);
+        showNotification('Không kết nối được server. Thử tải lại sau.', true);
+        // Keep currentToken so user stays signed-in; do not force logout
+        return false;
     } catch (error) {
         console.error('Error fetching user info:', error);
+        showNotification('Mạng không ổn định, thử lại sau.', true);
+        // Do not drop token on transient errors
+        return false;
     }
 }
 
@@ -474,8 +489,66 @@ function openTaskModal(task) {
     document.getElementById('modal-task-description').textContent = task.description;
     document.getElementById('modal-task-reward').textContent = formatCurrency(task.reward);
     document.getElementById('submission-content').value = '';
+    const fileInput = document.getElementById('submission-files');
+    if (fileInput) fileInput.value = '';
+    const fileList = document.getElementById('upload-file-list');
+    if (fileList) fileList.innerHTML = '';
+    selectedSubmissionFiles = [];
     document.getElementById('submit-error').textContent = '';
     document.getElementById('taskModal').style.display = 'block';
+
+    // Wire file input change to update list
+    if (fileInput) {
+        fileInput.onchange = (e) => {
+            addSelectedFiles(Array.from(e.target.files));
+            // Reset native input so picking the same file twice still fires change
+            e.target.value = '';
+        };
+    }
+
+    if (fileList && !fileList.dataset.bound) {
+        fileList.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.pill-remove');
+            if (!removeBtn) return;
+            const idx = parseInt(removeBtn.dataset.fileIndex, 10);
+            if (!Number.isNaN(idx)) {
+                selectedSubmissionFiles.splice(idx, 1);
+                renderSelectedFiles();
+            }
+        });
+        fileList.dataset.bound = 'true';
+    }
+}
+
+function renderSelectedFiles() {
+    const fileList = document.getElementById('upload-file-list');
+    if (!fileList) return;
+
+    fileList.innerHTML = selectedSubmissionFiles.map((f, idx) => `
+        <div class="upload-file-pill" data-file-index="${idx}">
+            <span class="pill-icon">📎</span>
+            <span>${idx + 1}. ${f.name}</span>
+            <span class="pill-remove" data-file-index="${idx}">x</span>
+        </div>
+    `).join('');
+}
+
+function addSelectedFiles(newFiles) {
+    const errorDiv = document.getElementById('submit-error');
+    if (errorDiv) {
+        errorDiv.textContent = '';
+    }
+
+    const remainingSlots = 5 - selectedSubmissionFiles.length;
+    const filesToAdd = newFiles.slice(0, Math.max(remainingSlots, 0));
+    if (filesToAdd.length) {
+        selectedSubmissionFiles = selectedSubmissionFiles.concat(filesToAdd);
+        renderSelectedFiles();
+    }
+
+    if (newFiles.length > filesToAdd.length && errorDiv) {
+        errorDiv.textContent = 'Chỉ cho phép tối đa 5 tệp. Tệp dư đã bị bỏ qua.';
+    }
 }
 
 // Close task modal
@@ -487,21 +560,36 @@ function closeTaskModal() {
 // Submit task
 async function submitTask() {
     const content = document.getElementById('submission-content').value;
+    const files = selectedSubmissionFiles;
     const errorDiv = document.getElementById('submit-error');
 
-    if (!content.trim()) {
-        errorDiv.textContent = 'Vui lòng nhập nội dung';
+    const fileList = document.getElementById('upload-file-list');
+    if (fileList) {
+        fileList.innerHTML = files.map((f, idx) => `
+            <div class="upload-file-pill">
+                <span class="pill-icon">📎</span>
+                <span>${idx + 1}. ${f.name}</span>
+                <span class="pill-remove" data-file-index="${idx}">x</span>
+            </div>
+        `).join('');
+    }
+
+    if (!content.trim() && files.length === 0) {
+        errorDiv.textContent = 'Vui lòng nhập mô tả hoặc tải lên bằng chứng (ảnh/video)';
         return;
     }
 
     try {
+        const formData = new FormData();
+        formData.append('content', content);
+        files.forEach(f => formData.append('files', f));
+
         const response = await fetch(`/api/tasks/${currentTaskId}/submit`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${currentToken}`
             },
-            body: JSON.stringify({ content })
+            body: formData
         });
 
         const data = await response.json();
@@ -531,11 +619,6 @@ function setActiveTab(activeElement) {
 // Show section
 function showSection(section) {
     document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-    
-    // Check verification status when opening withdraw section
-    if (section === 'withdraw') {
-        checkVerificationStatus();
-    }
     
     // Update active tab
     const tabs = document.querySelectorAll('.bottom-nav .nav-item');
@@ -599,12 +682,24 @@ async function loadMySubmissions() {
             data.submissions.forEach(submission => {
                 const item = document.createElement('div');
                 item.className = `submission-item ${submission.status}`;
+                let attachmentLinks = '';
+                if (submission.attachments) {
+                    try {
+                        const files = JSON.parse(submission.attachments) || [];
+                        if (files.length) {
+                            attachmentLinks = `<p><strong>Đính kèm:</strong> ${files.map((f, idx) => `<a href="${f}" target="_blank" rel="noopener">File ${idx + 1}</a>`).join(' · ')}</p>`;
+                        }
+                    } catch (e) {
+                        console.warn('Cannot parse attachments', e);
+                    }
+                }
                 item.innerHTML = `
                     <div class="submission-header">
                         <h3>${submission.task_title}</h3>
                         <span class="submission-status ${submission.status}">${getStatusText(submission.status)}</span>
                     </div>
-                    <p><strong>Nội dung:</strong> ${submission.content}</p>
+                    <p><strong>Nội dung:</strong> ${submission.content || 'Không có nội dung'}</p>
+                    ${attachmentLinks}
                     <p><strong>Phần thưởng:</strong> ${formatCurrency(submission.reward)}</p>
                     <p><strong>Ngày nộp:</strong> ${new Date(submission.created_at).toLocaleString('vi-VN')}</p>
                 `;
@@ -701,30 +796,9 @@ async function withdraw() {
             if (!verificationData.verification_status || 
                 verificationData.verification_status === 'not_submitted' ||
                 verificationData.verification_status !== 'approved') {
-                // Show verification notice
-                document.getElementById('verification-required-notice').style.display = 'block';
-                document.getElementById('withdraw-form').style.display = 'none';
                 errorDiv.textContent = '';
-                
-                // Show alert and redirect to verification
                 showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
-                
-                // Switch to profile tab to show verification
-                showSection('profile');
-                const profileTab = document.querySelector('.nav-item[onclick*="profile"]');
-                if (profileTab) {
-                    setActiveTab(profileTab);
-                }
-                
-                // Open verification form
-                setTimeout(() => {
-                    const verificationCard = document.getElementById('verification-card');
-                    if (verificationCard) {
-                        verificationCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        toggleVerificationForm();
-                    }
-                }, 300);
-                
+                showVerificationForWithdraw();
                 return; // STOP HERE - don't send withdrawal request
             }
         } else {
@@ -761,29 +835,9 @@ async function withdraw() {
                 errorData = { requires_verification: true, error: 'Bạn cần xác minh danh tính trước khi rút tiền' };
             }
             
-            // Show verification notice
-            document.getElementById('verification-required-notice').style.display = 'block';
-            document.getElementById('withdraw-form').style.display = 'none';
             errorDiv.textContent = '';
-            
-            // Show alert and redirect
-            alert('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.');
-            
-            // Switch to profile tab
-            showSection('profile');
-            const profileTab = document.querySelector('.nav-item[onclick*="profile"]');
-            if (profileTab) {
-                setActiveTab(profileTab);
-            }
-            
-            // Open verification form
-            setTimeout(() => {
-                const verificationCard = document.getElementById('verification-card');
-                if (verificationCard) {
-                    verificationCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    toggleVerificationForm();
-                }
-            }, 300);
+            showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
+            showVerificationForWithdraw();
             return;
         }
 
@@ -817,29 +871,9 @@ async function withdraw() {
         } else {
             // Check if it's a verification error
             if (data && data.requires_verification) {
-                // Show verification notice
-                document.getElementById('verification-required-notice').style.display = 'block';
-                document.getElementById('withdraw-form').style.display = 'none';
                 errorDiv.textContent = '';
-                
-                // Show alert and redirect
                 showNotification('Bạn cần xác minh danh tính trước khi rút tiền. Vui lòng hoàn thành xác minh danh tính.', true);
-                
-                // Switch to profile tab
-                showSection('profile');
-                const profileTab = document.querySelector('.nav-item[onclick*="profile"]');
-                if (profileTab) {
-                    setActiveTab(profileTab);
-                }
-                
-                // Open verification form
-                setTimeout(() => {
-                    const verificationCard = document.getElementById('verification-card');
-                    if (verificationCard) {
-                        verificationCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        toggleVerificationForm();
-                    }
-                }, 300);
+                showVerificationForWithdraw();
             } else {
                 // Check if it's a referral lock error
                 if (data && data.requires_referrals) {
@@ -882,29 +916,10 @@ function showVerificationForWithdraw() {
 
 // Check verification status when opening withdraw section
 async function checkVerificationStatus() {
-    try {
-        const response = await fetch('/api/verification/status', {
-            headers: {
-                'Authorization': `Bearer ${currentToken}`
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            const notice = document.getElementById('verification-required-notice');
-            const form = document.getElementById('withdraw-form');
-            
-            if (data.verification_status !== 'approved') {
-                notice.style.display = 'block';
-                form.style.display = 'none';
-            } else {
-                notice.style.display = 'none';
-                form.style.display = 'block';
-            }
-        }
-    } catch (error) {
-        console.error('Error checking verification status:', error);
-    }
+    const notice = document.getElementById('verification-required-notice');
+    const form = document.getElementById('withdraw-form');
+    if (notice) notice.style.display = 'none';
+    if (form) form.style.display = 'block';
 }
 
 // Load profile
@@ -934,7 +949,24 @@ async function loadProfile() {
             
             // Avatar initial
             const avatarText = document.getElementById('avatar-text');
-            avatarText.textContent = user.username.charAt(0).toUpperCase();
+            if (avatarText) {
+                avatarText.textContent = user.username.charAt(0).toUpperCase();
+            }
+
+            // Human photo avatar (deterministic by username/email)
+            const avatarImg = document.getElementById('avatar-img');
+            const avatarCircle = document.getElementById('avatar-circle');
+            if (avatarImg && avatarCircle) {
+                const avatarUrl = getHumanAvatar(user.username || user.email || 'user');
+                avatarImg.src = avatarUrl;
+                avatarImg.alt = user.username || 'Avatar';
+                avatarImg.referrerPolicy = 'no-referrer';
+                avatarImg.onload = () => avatarCircle.classList.add('has-photo');
+                avatarImg.onerror = () => {
+                    avatarCircle.classList.remove('has-photo');
+                    avatarImg.removeAttribute('src');
+                };
+            }
             
             // Load submissions stats
             const submissionsRes = await fetch('/api/my-submissions', {
@@ -2456,6 +2488,25 @@ function formatCurrency(amount) {
         style: 'currency',
         currency: 'VND'
     }).format(amount);
+}
+
+// Deterministic set of Vietnamese-style human avatars (curated portraits)
+function getHumanAvatar(seed = 'user') {
+    const avatars = [
+        // women
+        'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=320&q=70',
+        'https://images.unsplash.com/photo-1542596740-22d1c0e118d3?auto=format&fit=crop&w=320&q=70',
+        'https://images.unsplash.com/photo-1524504388940-1e1e6e0b8a48?auto=format&fit=crop&w=320&q=70',
+        'https://images.unsplash.com/photo-1509980007603-7069c6c22e88?auto=format&fit=crop&w=320&q=70',
+        // men
+        'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=320&q=70',
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=70',
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=70',
+        'https://images.unsplash.com/photo-1524504388940-1e1e6e0b8a48?auto=format&fit=crop&w=320&q=70'
+    ];
+    const key = (seed || 'user').toLowerCase();
+    const hash = [...key].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+    return avatars[hash % avatars.length];
 }
 
 function getStatusText(status) {

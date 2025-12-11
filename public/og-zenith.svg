@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Zenith5G TaskEarn preview image</title>
+  <desc id="desc">Futuristic coin illustration on a gradient background for social sharing preview</desc>
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f1a4d" />
+      <stop offset="50%" stop-color="#2b2c7a" />
+      <stop offset="100%" stop-color="#792bff" />
+    </linearGradient>
+    <radialGradient id="lightBurst" cx="40%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#8c7bff" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#8c7bff" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="coinEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff4f9f" />
+      <stop offset="100%" stop-color="#ff7f58" />
+    </linearGradient>
+    <linearGradient id="coinFace" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ff3ba7" />
+      <stop offset="100%" stop-color="#b1008c" />
+    </linearGradient>
+    <linearGradient id="coinGlow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffd2f4" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#ff7ad1" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="chip" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f5ff" />
+      <stop offset="100%" stop-color="#66ffe3" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#0a001f" flood-opacity="0.35" />
+    </filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="22" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <style>
+      .bits { fill: #6ce0ff; opacity: 0.6; font-family: 'Consolas', 'Fira Code', monospace; font-size: 16px; }
+      .label { fill: #e7eaff; font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; }
+      .pill { fill: url(#chip); opacity: 0.75; }
+    </style>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGrad)" />
+  <rect x="120" y="60" width="680" height="360" fill="url(#lightBurst)" />
+  <ellipse cx="620" cy="440" rx="260" ry="70" fill="#0d0735" opacity="0.45" filter="url(#shadow)" />
+
+  <g opacity="0.35">
+    <circle cx="260" cy="160" r="90" fill="#6ce0ff" filter="url(#glow)" />
+    <circle cx="970" cy="140" r="110" fill="#ff7ad1" filter="url(#glow)" />
+  </g>
+
+  <g>
+    <text class="bits" x="40" y="120">01010110 01001001 01010000 00110001</text>
+    <text class="bits" x="40" y="150">01100110 01100001 01110011 01110100</text>
+    <text class="bits" x="40" y="180">01110000 01100001 01111001 01101101 01100101 01101110 01110100</text>
+  </g>
+
+  <g>
+    <rect x="950" y="360" width="120" height="120" rx="28" fill="#201e5c" stroke="#5ae3ff" stroke-width="3" opacity="0.8" />
+    <path d="M970 410h80" stroke="#5ae3ff" stroke-width="6" stroke-linecap="round" />
+    <path d="M970 440h42" stroke="#5ae3ff" stroke-width="6" stroke-linecap="round" />
+  </g>
+
+  <g>
+    <rect x="150" y="360" width="140" height="140" rx="22" fill="#261a60" stroke="#ff9beb" stroke-width="4" opacity="0.85" />
+    <circle cx="220" cy="430" r="46" fill="#ff3ba7" opacity="0.75" />
+    <rect x="190" y="395" width="60" height="8" rx="4" fill="#ffe4ff" />
+  </g>
+
+  <path d="M480 190 C550 130 650 110 740 160" stroke="#ff8bd8" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6" />
+  <path d="M520 220 C590 180 690 180 780 230" stroke="#66ffe3" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7" />
+
+  <g transform="translate(600 280)">
+    <circle cx="0" cy="0" r="190" fill="#300a5c" opacity="0.6" />
+    <circle cx="0" cy="0" r="182" fill="#410f82" opacity="0.65" />
+    <circle cx="0" cy="0" r="170" fill="url(#coinEdge)" filter="url(#shadow)" />
+    <circle cx="0" cy="0" r="150" fill="url(#coinFace)" />
+    <circle cx="0" cy="0" r="118" fill="url(#coinGlow)" opacity="0.75" />
+    <circle cx="0" cy="0" r="110" fill="#390060" opacity="0.35" />
+    <text x="0" y="32" text-anchor="middle" font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="130" fill="#fff" letter-spacing="-2">Z</text>
+    <g opacity="0.7">
+      <circle cx="-90" cy="-80" r="16" fill="#ffe4ff" />
+      <circle cx="110" cy="-60" r="14" fill="#ffe4ff" opacity="0.6" />
+      <circle cx="-60" cy="95" r="12" fill="#ffe4ff" opacity="0.4" />
+    </g>
+    <g>
+      <rect x="-152" y="-10" width="24" height="20" rx="6" fill="#ff6db4" />
+      <rect x="128" y="-10" width="24" height="20" rx="6" fill="#ff6db4" />
+      <rect x="-10" y="-152" width="20" height="24" rx="6" fill="#ff6db4" />
+      <rect x="-10" y="128" width="20" height="24" rx="6" fill="#ff6db4" />
+    </g>
+  </g>
+
+  <g>
+    <rect x="830" y="90" width="120" height="36" rx="18" class="pill" />
+    <text x="890" y="116" text-anchor="middle" font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="700" fill="#0b1433">Referral Bonus</text>
+    <rect x="840" y="148" width="150" height="38" rx="19" class="pill" opacity="0.6" />
+    <text x="915" y="174" text-anchor="middle" font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="700" fill="#0b1433">Task Rewards</text>
+  </g>
+
+  <text x="80" y="520" class="label" font-size="38">Zenith5G · TaskEarn</text>
+  <text x="80" y="565" class="label" font-size="22" opacity="0.8">Hoàn thành nhiệm vụ · Nhận thưởng nhanh · Giới thiệu bạn bè</text>
+</svg>

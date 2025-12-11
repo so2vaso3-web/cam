@@ -219,12 +219,20 @@ db.serialize(() => {
     task_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     content TEXT NOT NULL,
+    attachments TEXT,
     status TEXT DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     reviewed_at DATETIME,
     FOREIGN KEY (task_id) REFERENCES tasks(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
+
+  // Add attachments column for existing databases
+  db.run(`ALTER TABLE submissions ADD COLUMN attachments TEXT`, (err) => {
+    if (err && !err.message.includes('duplicate column')) {
+      console.error('Error adding attachments column:', err);
+    }
+  });
 
   // Transactions table
   db.run(`CREATE TABLE IF NOT EXISTS transactions (
@@ -586,12 +594,14 @@ app.post('/api/tasks', authenticateToken, (req, res) => {
 });
 
 // Submit task
-app.post('/api/tasks/:id/submit', authenticateToken, (req, res) => {
-  const { content } = req.body;
+app.post('/api/tasks/:id/submit', authenticateToken, upload.array('files', 5), (req, res) => {
+  const { content = '' } = req.body;
   const taskId = req.params.id;
+  const files = req.files || [];
+  const attachments = files.map(f => `/uploads/${path.basename(f.path)}`);
 
-  if (!content) {
-    return res.status(400).json({ error: 'Content required' });
+  if (!content.trim() && attachments.length === 0) {
+    return res.status(400).json({ error: 'Vui lòng nhập nội dung hoặc tải lên bằng chứng' });
   }
 
   // Check if task exists
@@ -615,8 +625,8 @@ app.post('/api/tasks/:id/submit', authenticateToken, (req, res) => {
 
       // Create submission
       db.run(
-        'INSERT INTO submissions (task_id, user_id, content) VALUES (?, ?, ?)',
-        [taskId, req.user.id, content],
+        'INSERT INTO submissions (task_id, user_id, content, attachments) VALUES (?, ?, ?, ?)',
+        [taskId, req.user.id, content || '', attachments.length ? JSON.stringify(attachments) : null],
         function(err) {
           if (err) {
             return res.status(500).json({ error: 'Database error' });

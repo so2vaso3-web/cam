@@ -168,23 +168,28 @@ function displayReferralInfo() {
             </div>
 
             ${!unlockInfo.unlocked ? `
-                <div class="withdrawal-lock-card">
-                    <div class="lock-title">Rút Tiền Bị Khóa</div>
-                    <div class="lock-message">${unlockInfo.message || 'Mời thêm người để mở khóa rút tiền'}</div>
-                    ${needed > 0 ? `
-                        <div class="lock-progress">
-                            <div class="lock-progress-text">Đã mời: <strong style="color: #2ed573;">${referralInfo.active_referrals || 0}</strong> / ${referralInfo.active_referrals + needed} người</div>
-                            <div class="lock-progress-bar">
-                                <div class="lock-progress-fill" style="width: ${((referralInfo.active_referrals || 0) / (referralInfo.active_referrals + needed) * 100)}%;"></div>
+                <div class="withdrawal-lock-card lock-card-collapsed" id="withdrawal-lock-card">
+                    <div class="lock-title-row">
+                        <div class="lock-title">Rút Tiền Bị Khóa</div>
+                        <button type="button" class="lock-toggle" onclick="toggleLockCard()">Mở</button>
+                    </div>
+                    <div class="lock-card-body" id="lock-card-body">
+                        <div class="lock-message">${unlockInfo.message || 'Mời thêm người để mở khóa rút tiền'}</div>
+                        ${needed > 0 ? `
+                            <div class="lock-progress">
+                                <div class="lock-progress-text">Đã mời: <strong style="color: #2ed573;">${referralInfo.active_referrals || 0}</strong> / ${referralInfo.active_referrals + needed} người</div>
+                                <div class="lock-progress-bar">
+                                    <div class="lock-progress-fill" style="width: ${((referralInfo.active_referrals || 0) / (referralInfo.active_referrals + needed) * 100)}%;"></div>
+                                </div>
                             </div>
-                        </div>
-                    ` : ''}
-                    <div class="lock-requirements">
-                        <div class="lock-requirements-title">Yêu cầu mở khóa:</div>
-                        <div class="lock-requirements-list">
-                            <div>• Mời 10 người → Rút tối đa 100.000 ₫</div>
-                            <div>• Mời 20 người → Rút không giới hạn</div>
-                            <div>• Mời 50 người → VIP, rút 10.000.000 ₫/ngày</div>
+                        ` : ''}
+                        <div class="lock-requirements">
+                            <div class="lock-requirements-title">Yêu cầu mở khóa:</div>
+                            <div class="lock-requirements-list">
+                                <div>• Mời 10 người → Rút tối đa 100.000 ₫</div>
+                                <div>• Mời 20 người → Rút không giới hạn</div>
+                                <div>• Mời 50 người → VIP, rút 10.000.000 ₫/ngày</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -235,6 +240,18 @@ function displayReferralInfo() {
     loadReferralChain();
     loadReferralEarnings();
 }
+
+    function toggleLockCard() {
+        const card = document.getElementById('withdrawal-lock-card');
+        const body = document.getElementById('lock-card-body');
+        if (!card || !body) return;
+        const toggleBtn = card.querySelector('.lock-toggle');
+        const collapsed = card.classList.toggle('lock-card-collapsed');
+        body.style.display = collapsed ? 'none' : '';
+        if (toggleBtn) {
+            toggleBtn.textContent = collapsed ? 'Mở' : 'Thu gọn';
+        }
+    }
 
 // ========== COPY FUNCTIONS ==========
 
