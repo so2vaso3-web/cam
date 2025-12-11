@@ -1257,6 +1257,24 @@ async function startVideo() {
                     submitSection.style.display = 'block';
                 }
                 document.getElementById('step-3-indicator').classList.add('completed');
+                
+                // Auto-submit verification after video recording is complete
+                // Check if all required files are ready
+                const cccdFrontInput = document.getElementById('cccd-front');
+                const cccdBackInput = document.getElementById('cccd-back');
+                const cccdFront = cccdFrontInput?.files?.[0] || window.capturedFiles?.['cccd-front'];
+                const cccdBack = cccdBackInput?.files?.[0] || window.capturedFiles?.['cccd-back'];
+                const faceVideo = document.getElementById('face-video')?.files?.[0];
+                
+                if (cccdFront && cccdBack && faceVideo) {
+                    // All files ready, auto-submit
+                    console.log('All verification files ready, auto-submitting...');
+                    setTimeout(() => {
+                        submitVerification();
+                    }, 1000); // Small delay to ensure UI is updated
+                } else {
+                    console.log('Waiting for all files...', { cccdFront: !!cccdFront, cccdBack: !!cccdBack, faceVideo: !!faceVideo });
+                }
             }, 500);
         };
         
@@ -1461,10 +1479,25 @@ function stopVideo() {
     const videoPreview = document.getElementById('video-preview');
     if (recordingContainer) recordingContainer.style.display = 'none';
     if (videoStatus) {
-        videoStatus.textContent = 'Video đã ghi xong. Nhấn gửi xác minh.';
+        videoStatus.textContent = 'Video đã ghi xong. Đang tự động gửi xác minh...';
         videoStatus.classList.remove('hidden');
         videoStatus.style.display = 'block';
     }
+    
+    // Auto-submit verification after video recording is complete
+    setTimeout(() => {
+        const cccdFrontInput = document.getElementById('cccd-front');
+        const cccdBackInput = document.getElementById('cccd-back');
+        const cccdFront = cccdFrontInput?.files?.[0] || window.capturedFiles?.['cccd-front'];
+        const cccdBack = cccdBackInput?.files?.[0] || window.capturedFiles?.['cccd-back'];
+        const faceVideo = document.getElementById('face-video')?.files?.[0];
+        
+        if (cccdFront && cccdBack && faceVideo) {
+            // All files ready, auto-submit
+            console.log('All verification files ready, auto-submitting from stopVideo...');
+            submitVerification();
+        }
+    }, 1500); // Wait a bit for file to be fully processed
     if (videoPreview) videoPreview.srcObject = null;
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
