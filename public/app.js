@@ -1374,6 +1374,9 @@ async function loadVerificationStatus() {
                 videoEl.src = `/uploads/${data.face_video}`;
                 videoEl.style.display = 'block';
             }
+
+            const statusStep = (data.verification_status === 'approved' || data.verification_status === 'pending') ? 3 : 1;
+            updateEkycProgress(statusStep);
         }
     } catch (error) {
         console.error('Error loading verification status:', error);
@@ -1609,6 +1612,22 @@ function closeCameraCapture(type) {
 // Current verification step
 let currentVerificationStep = 1;
 
+function updateEkycProgress(stepOverride) {
+    const step = typeof stepOverride === 'number' ? stepOverride : currentVerificationStep;
+    const fill = document.getElementById('ekyc-progress-fill');
+    const label = document.getElementById('ekyc-progress-label');
+    const percent = Math.min(100, Math.max(0, ((step - 1) / 2) * 100));
+
+    if (fill) {
+        fill.style.width = `${percent}%`;
+    }
+    if (label) {
+        label.textContent = `Bước ${Math.max(1, step)} / 3`;
+    }
+}
+
+updateEkycProgress();
+
 // Go to next step
 function goToNextStep() {
     if (currentVerificationStep < 3) {
@@ -1630,6 +1649,8 @@ function goToNextStep() {
         if (currentVerificationStep === 3) {
             // Will show when video is completed
         }
+
+        updateEkycProgress();
     }
 }
 
