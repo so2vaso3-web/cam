@@ -1,9 +1,30 @@
 // Show/hide bank dropdown based on method
 function toggleBankDropdown() {
-    const method = document.getElementById('withdraw-method').value;
-    const bankDropdown = document.getElementById('withdraw-bank');
-    if (!bankDropdown) return;
-    bankDropdown.style.display = method === 'bank' ? 'block' : 'none';
+    try {
+        const methodSelect = document.getElementById('withdraw-method');
+        const bankDropdown = document.getElementById('withdraw-bank');
+        
+        if (!methodSelect || !bankDropdown) {
+            console.warn('Withdraw form elements not found');
+            return;
+        }
+        
+        const method = methodSelect.value;
+        
+        if (method === 'bank') {
+            bankDropdown.style.display = 'block';
+            bankDropdown.style.visibility = 'visible';
+            bankDropdown.removeAttribute('hidden');
+            // Force reflow to ensure display
+            bankDropdown.offsetHeight;
+        } else {
+            bankDropdown.style.display = 'none';
+            bankDropdown.style.visibility = 'hidden';
+            bankDropdown.setAttribute('hidden', '');
+        }
+    } catch (error) {
+        console.error('Error in toggleBankDropdown:', error);
+    }
 }
 let currentUser = null;
 let currentToken = null;
@@ -695,6 +716,12 @@ function showSection(section) {
             break;
         case 'withdraw':
             document.getElementById('withdraw-section').style.display = 'block';
+            // Initialize withdraw form if not already done
+            initWithdrawForm();
+            // Reset bank dropdown visibility when showing withdraw section
+            setTimeout(() => {
+                toggleBankDropdown();
+            }, 50);
             break;
         case 'profile':
             document.getElementById('profile-section').style.display = 'block';
@@ -2604,7 +2631,23 @@ function initApp() {
         initAuthSystem();
         // Then check auth status
         checkAuth();
+        // Initialize withdraw form event listeners
+        initWithdrawForm();
     }, 100);
+}
+
+// Initialize withdraw form event listeners
+function initWithdrawForm() {
+    const withdrawMethod = document.getElementById('withdraw-method');
+    if (withdrawMethod) {
+        // Remove any existing listeners and add new one
+        withdrawMethod.removeEventListener('change', toggleBankDropdown);
+        withdrawMethod.addEventListener('change', toggleBankDropdown);
+        // Also trigger on input for better compatibility
+        withdrawMethod.addEventListener('input', toggleBankDropdown);
+        // Initialize state on load
+        toggleBankDropdown();
+    }
 }
 
 if (document.readyState === 'loading') {

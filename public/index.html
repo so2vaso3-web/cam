@@ -390,7 +390,7 @@
                 
                 <div class="withdraw-form" id="withdraw-form">
                     <input type="number" id="withdraw-amount" placeholder="Số tiền muốn rút">
-                    <select id="withdraw-method" onchange="toggleBankDropdown()">
+                    <select id="withdraw-method">
                         <option value="">Chọn phương thức</option>
                         <option value="bank">Chuyển khoản ngân hàng</option>
                         <option value="momo">Ví MoMo</option>
@@ -428,7 +428,6 @@
                         <option value="VietBank">VietBank</option>
                         <option value="VRB">VRB</option>
                         <option value="Other">Khác...</option>
-                    </select>
                     </select>
                     <input type="text" id="withdraw-account" placeholder="Số tài khoản / Số điện thoại">
                     <button class="btn-primary" onclick="withdraw()">
