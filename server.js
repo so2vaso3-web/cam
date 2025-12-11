@@ -8,6 +8,7 @@ const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const compression = require('compression');
 const sampleTasks = require('./tasks-data');
 const referralSystem = require('./referral-system');
 const referralAPI = require('./referral-api');
@@ -43,6 +44,8 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// Compress responses (HTML/CSS/JS/JSON)
+app.use(compression({ threshold: 1024 }));
 
 // Static assets caching (improves load and repaint)
 app.use(express.static('public', {
