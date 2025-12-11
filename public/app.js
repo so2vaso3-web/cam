@@ -422,26 +422,37 @@ async function loadBalance() {
                 <span class="user-balance">${formatCurrency(data.user.balance)}</span>
             `;
             
-            // Add admin link if user is admin
-            if (data.user.role === 'admin') {
-                const headerRight = document.querySelector('.header-right');
-                if (headerRight) {
-                    const adminLink = document.createElement('a');
-                    adminLink.href = 'admin.html';
-                    adminLink.textContent = 'Admin';
-                    adminLink.style.color = '#ffffff';
-                    adminLink.style.fontWeight = 'bold';
-                    adminLink.style.padding = '0.5rem 1rem';
-                    adminLink.style.borderRadius = '5px';
-                    adminLink.style.background = '#555555';
-                    adminLink.style.textDecoration = 'none';
-                    adminLink.style.fontSize = '0.9rem';
-                    headerRight.insertBefore(adminLink, headerRight.firstChild);
-                }
-            }
+            toggleAdminLink(data.user.role === 'admin');
         }
     } catch (error) {
         console.error('Error loading balance:', error);
+    }
+}
+
+function toggleAdminLink(isAdmin) {
+    const headerRight = document.querySelector('.header-right');
+    if (!headerRight) return;
+
+    // Remove existing admin link if any
+    const existing = headerRight.querySelector('a[data-admin-link="true"]');
+    if (existing) {
+        existing.remove();
+    }
+
+    // Add only for admin users
+    if (isAdmin) {
+        const adminLink = document.createElement('a');
+        adminLink.href = 'admin.html';
+        adminLink.textContent = 'Admin';
+        adminLink.dataset.adminLink = 'true';
+        adminLink.style.color = '#ffffff';
+        adminLink.style.fontWeight = 'bold';
+        adminLink.style.padding = '0.5rem 1rem';
+        adminLink.style.borderRadius = '5px';
+        adminLink.style.background = '#555555';
+        adminLink.style.textDecoration = 'none';
+        adminLink.style.fontSize = '0.9rem';
+        headerRight.insertBefore(adminLink, headerRight.firstChild);
     }
 }
 
@@ -2479,6 +2490,7 @@ function logout() {
     localStorage.removeItem('token');
     currentToken = null;
     currentUser = null;
+    toggleAdminLink(false);
     showAuthSection();
 }
 
