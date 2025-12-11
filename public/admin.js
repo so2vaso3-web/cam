@@ -346,28 +346,29 @@ function displaySubmissions(submissions) {
         return;
     }
 
-    submissions.forEach(submission => {
-        const item = document.createElement('div');
-        item.className = `submission-item ${submission.status}`;
-        item.innerHTML = `
-            <div class="submission-header">
-                <div>
-                    <h3>${submission.task_title}</h3>
-                    <p style="color: #666; margin-top: 0.25rem;">
-                        Người nộp: <strong>${submission.user_name}</strong> | 
-                        Phần thưởng: <strong>${formatCurrency(submission.reward)}</strong>
-                    </p>
+    submissions
+        .filter(submission => submission.status === 'pending')
+        .forEach(submission => {
+            const item = document.createElement('div');
+            item.className = `submission-item ${submission.status}`;
+            item.innerHTML = `
+                <div class="submission-header">
+                    <div>
+                        <h3>${submission.task_title}</h3>
+                        <p style="color: #666; margin-top: 0.25rem;">
+                            Người nộp: <strong>${submission.user_name}</strong> | 
+                            Phần thưởng: <strong>${formatCurrency(submission.reward)}</strong>
+                        </p>
+                    </div>
+                    <span class="submission-status ${submission.status}">${getStatusText(submission.status)}</span>
                 </div>
-                <span class="submission-status ${submission.status}">${getStatusText(submission.status)}</span>
-            </div>
-            <p><strong>Nội dung:</strong></p>
-            <p style="background: #404040; padding: 1rem; border-radius: 5px; margin-top: 0.5rem; white-space: pre-line; color: #e0e0e0;">
-                ${submission.content}
-            </p>
-            <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
-                Ngày nộp: ${new Date(submission.created_at).toLocaleString('vi-VN')}
-            </p>
-            ${submission.status === 'pending' ? `
+                <p><strong>Nội dung:</strong></p>
+                <p style="background: #404040; padding: 1rem; border-radius: 5px; margin-top: 0.5rem; white-space: pre-line; color: #e0e0e0;">
+                    ${submission.content}
+                </p>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                    Ngày nộp: ${new Date(submission.created_at).toLocaleString('vi-VN')}
+                </p>
                 <div class="submission-actions">
                     <button class="btn-approve" onclick="reviewSubmission(${submission.id}, 'approved')">
                         <span style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
@@ -389,10 +390,9 @@ function displaySubmissions(submissions) {
                         Từ Chối
                     </button>
                 </div>
-            ` : ''}
-        `;
-        submissionsList.appendChild(item);
-    });
+            `;
+            submissionsList.appendChild(item);
+        });
 }
 
 function filterSubmissions() {
@@ -429,7 +429,9 @@ async function reviewSubmission(submissionId, status) {
 
         if (response.ok) {
             alert(status === 'approved' ? 'Đã duyệt bài nộp và cộng tiền thưởng!' : 'Đã từ chối bài nộp');
-            loadSubmissions();
+            // Xóa bài nộp khỏi danh sách hiển thị ngay
+            allSubmissions = allSubmissions.filter(sub => sub.id !== submissionId);
+            displaySubmissions(allSubmissions);
             loadStats();
         } else {
             alert(data.error || 'Có lỗi xảy ra');

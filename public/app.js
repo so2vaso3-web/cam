@@ -1,3 +1,10 @@
+// Show/hide bank dropdown based on method
+function toggleBankDropdown() {
+    const method = document.getElementById('withdraw-method').value;
+    const bankDropdown = document.getElementById('withdraw-bank');
+    if (!bankDropdown) return;
+    bankDropdown.style.display = method === 'bank' ? 'block' : 'none';
+}
 let currentUser = null;
 let currentToken = null;
 let currentTaskId = null;
@@ -430,30 +437,18 @@ async function loadBalance() {
 }
 
 function toggleAdminLink(isAdmin) {
+    const badge = document.getElementById('adminBadge');
     const headerRight = document.querySelector('.header-right');
-    if (!headerRight) return;
 
-    // Remove existing admin link if any
-    const existing = headerRight.querySelector('a[data-admin-link="true"]');
-    if (existing) {
-        existing.remove();
+    // Clean up any legacy header admin link
+    const legacyLink = headerRight?.querySelector('a[data-admin-link="true"]');
+    if (legacyLink) {
+        legacyLink.remove();
     }
 
-    // Add only for admin users
-    if (isAdmin) {
-        const adminLink = document.createElement('a');
-        adminLink.href = 'admin.html';
-        adminLink.textContent = 'Admin';
-        adminLink.dataset.adminLink = 'true';
-        adminLink.style.color = '#ffffff';
-        adminLink.style.fontWeight = 'bold';
-        adminLink.style.padding = '0.5rem 1rem';
-        adminLink.style.borderRadius = '5px';
-        adminLink.style.background = '#555555';
-        adminLink.style.textDecoration = 'none';
-        adminLink.style.fontSize = '0.9rem';
-        headerRight.insertBefore(adminLink, headerRight.firstChild);
-    }
+    if (!badge) return;
+
+    badge.style.display = isAdmin ? 'inline-flex' : 'none';
 }
 
 // Load tasks
@@ -466,7 +461,34 @@ async function loadTasks() {
         tasksList.innerHTML = '';
 
         if (data.tasks && data.tasks.length > 0) {
+            // Lấy danh sách nhiệm vụ đã nộp
+            let submittedTasks = [];
+            if (window.localStorage.getItem('submittedTasks')) {
+                try {
+                    submittedTasks = JSON.parse(window.localStorage.getItem('submittedTasks'));
+                } catch(e) { submittedTasks = []; }
+            }
+
             data.tasks.forEach(task => {
+                // Kiểm tra nếu đã nộp nhiệm vụ này
+                const subInfo = submittedTasks.find(t => t.id === task.id);
+                if (subInfo && subInfo.time) {
+                    const now = Date.now();
+                    const elapsed = now - subInfo.time;
+                    const cooldown = 30 * 60 * 1000; // 30 phút
+                    if (elapsed < cooldown) {
+                        // Ẩn nhiệm vụ, hiển thị thời gian còn lại
+                        const remain = Math.ceil((cooldown - elapsed) / 1000);
+                        const minutes = Math.floor(remain / 60);
+                        const seconds = remain % 60;
+                        const waitDiv = document.createElement('div');
+                        waitDiv.className = 'task-card task-wait';
+                        waitDiv.innerHTML = `<h3>${task.title}</h3><div style='color:#e67e22;font-weight:600;'>Bạn đã nộp nhiệm vụ này.<br>Chờ ${minutes} phút ${seconds < 10 ? '0' : ''}${seconds} giây để làm lại.</div>`;
+                        tasksList.appendChild(waitDiv);
+                        return;
+                    }
+                }
+                // Nếu chưa nộp hoặc hết thời gian chờ thì hiển thị nhiệm vụ
                 const taskCard = document.createElement('div');
                 taskCard.className = 'task-card';
                 taskCard.innerHTML = `
@@ -606,6 +628,18 @@ async function submitTask() {
         const data = await response.json();
 
         if (response.ok) {
+            // Lưu lại nhiệm vụ đã nộp và thời gian
+            let submittedTasks = [];
+            if (window.localStorage.getItem('submittedTasks')) {
+                try {
+                    submittedTasks = JSON.parse(window.localStorage.getItem('submittedTasks'));
+                } catch(e) { submittedTasks = []; }
+            }
+            // Xóa nhiệm vụ cũ nếu có
+            submittedTasks = submittedTasks.filter(t => t.id !== currentTaskId);
+            submittedTasks.push({id: currentTaskId, time: Date.now()});
+            window.localStorage.setItem('submittedTasks', JSON.stringify(submittedTasks));
+
             closeTaskModal();
             showNotification('Nộp nhiệm vụ thành công! Vui lòng chờ admin duyệt.', false);
             loadTasks();

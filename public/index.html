@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0a0e27">
+    <meta name="theme-color" content="#0b1020">
     <meta name="format-detection" content="telephone=no">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="shortcut icon" href="/favicon.svg">
@@ -24,14 +24,14 @@
     <meta name="twitter:description" content="Hoàn thành nhiệm vụ, rút tiền nhanh. Mời bạn bè qua link ref của bạn để nhận thưởng đôi.">
     <meta name="twitter:image" content="https://zenith5g.com/og-zenith.svg">
     <title>Nền Tảng Làm Nhiệm Vụ Kiếm Tiền</title>
-    <link rel="preload" href="modern-style.css" as="style">
-    <link rel="preload" href="bottom-nav.css" as="style">
-    <link rel="preload" href="icons.css" as="style">
-    <link rel="preload" href="mobile-optimizations.css" as="style">
-    <link rel="stylesheet" href="modern-style.css">
-    <link rel="stylesheet" href="bottom-nav.css">
-    <link rel="stylesheet" href="icons.css">
-    <link rel="stylesheet" href="mobile-optimizations.css">
+    <link rel="preload" href="modern-style.css?v=basalt2" as="style">
+    <link rel="preload" href="bottom-nav.css?v=basalt2" as="style">
+    <link rel="preload" href="icons.css?v=basalt2" as="style">
+    <link rel="preload" href="mobile-optimizations.css?v=basalt2" as="style">
+    <link rel="stylesheet" href="modern-style.css?v=basalt2">
+    <link rel="stylesheet" href="bottom-nav.css?v=basalt2">
+    <link rel="stylesheet" href="icons.css?v=basalt2">
+    <link rel="stylesheet" href="mobile-optimizations.css?v=basalt2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -179,7 +179,12 @@
     <!-- Auth Section - Redesigned -->
     <section id="auth-section" class="auth-page">
         <div class="auth-wrapper">
+            <!-- Promo Banner moved back inside register form -->
             <div class="auth-box">
+                <!-- Promo Banner on top of logo -->
+                <div style="background: linear-gradient(90deg, #ffb347, #ffcc80); color: #222; border-radius: 8px; padding: 1rem; margin-bottom: 1.2rem; text-align: center; font-weight: 700; font-size: 1.15rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    🎉 Đăng ký ngay nhận <span style="color:#e67e22; font-size:1.2em;">10.000₫</span> vào tài khoản!
+                </div>
                 <div class="auth-header">
                     <div class="auth-logo">
                         <h1 class="auth-logo-text">TaskEarn</h1>
@@ -234,6 +239,10 @@
 
                 <!-- Register Form -->
                 <div id="register-form" class="auth-form-new">
+                    <!-- Promo Banner on top -->
+                    <div style="background: linear-gradient(90deg, #ffb347, #ffcc80); color: #222; border-radius: 8px; padding: 1rem; margin-bottom: 1.2rem; text-align: center; font-weight: 700; font-size: 1.15rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        🎉 Đăng ký ngay nhận <span style="color:#e67e22; font-size:1.2em;">10.000₫</span> vào tài khoản!
+                    </div>
                     <h2 class="auth-form-title">Tạo tài khoản mới</h2>
                     <p class="auth-form-subtitle">Đăng ký ngay để nhận phần thưởng</p>
                     
@@ -291,7 +300,10 @@
                         </span>
                         Số Dư Của Bạn
                     </h2>
-                    <div class="balance-amount" id="balanceAmount">0 ₫</div>
+                    <div class="balance-meta">
+                        <div class="balance-amount" id="balanceAmount">0 ₫</div>
+                        <a id="adminBadge" class="admin-pill" href="admin.html">Admin</a>
+                    </div>
                 </div>
             </section>
 
@@ -378,11 +390,45 @@
                 
                 <div class="withdraw-form" id="withdraw-form">
                     <input type="number" id="withdraw-amount" placeholder="Số tiền muốn rút">
-                    <select id="withdraw-method">
+                    <select id="withdraw-method" onchange="toggleBankDropdown()">
                         <option value="">Chọn phương thức</option>
                         <option value="bank">Chuyển khoản ngân hàng</option>
                         <option value="momo">Ví MoMo</option>
                         <option value="zalo">Ví ZaloPay</option>
+                    </select>
+                    <select id="withdraw-bank" class="withdraw-bank-select" style="display:none; margin-top: 0.75rem;">
+                        <option value="">Chọn ngân hàng</option>
+                        <option value="VCB">Vietcombank</option>
+                        <option value="TCB">Techcombank</option>
+                        <option value="MB">MB Bank</option>
+                        <option value="VPB">VPBank</option>
+                        <option value="ACB">ACB</option>
+                        <option value="STB">Sacombank</option>
+                        <option value="VIB">VIB</option>
+                        <option value="BIDV">BIDV</option>
+                        <option value="TPB">TPBank</option>
+                        <option value="HDB">HDBank</option>
+                        <option value="SHB">SHB</option>
+                        <option value="OCB">OCB</option>
+                        <option value="SCB">SCB</option>
+                        <option value="EIB">Eximbank</option>
+                        <option value="ABB">ABBANK</option>
+                        <option value="MSB">MSB</option>
+                        <option value="LPB">LienVietPostBank</option>
+                        <option value="PG Bank">PG Bank</option>
+                        <option value="SeABank">SeABank</option>
+                        <option value="BVB">BaoVietBank</option>
+                        <option value="CBB">CBBank</option>
+                        <option value="GPB">GPBank</option>
+                        <option value="KLB">KienlongBank</option>
+                        <option value="NCB">NCB</option>
+                        <option value="PGB">PG Bank</option>
+                        <option value="SGB">SaigonBank</option>
+                        <option value="VAB">VietABank</option>
+                        <option value="VietBank">VietBank</option>
+                        <option value="VRB">VRB</option>
+                        <option value="Other">Khác...</option>
+                    </select>
                     </select>
                     <input type="text" id="withdraw-account" placeholder="Số tài khoản / Số điện thoại">
                     <button class="btn-primary" onclick="withdraw()">

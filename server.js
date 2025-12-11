@@ -227,6 +227,16 @@ db.serialize(() => {
     FOREIGN KEY (created_by) REFERENCES users(id)
   )`);
 
+  // Cleanup any historical duplicates before enforcing uniqueness
+  db.run(`DELETE FROM tasks WHERE id NOT IN (
+    SELECT MIN(id) FROM tasks GROUP BY title, created_by
+  ) AND title IN (
+    SELECT title FROM tasks GROUP BY title, created_by HAVING COUNT(*) > 1
+  )`);
+
+  // Prevent duplicate task seeds across restarts (after cleanup)
+  db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_title_creator ON tasks(title, created_by)`);
+
   // Submissions table
   db.run(`CREATE TABLE IF NOT EXISTS submissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -294,14 +304,28 @@ db.serialize(() => {
   // Get admin user ID and create sample tasks
   db.get(`SELECT id FROM users WHERE username = 'admin'`, (err, admin) => {
     if (err || !admin) return;
-    
+
     const adminId = admin.id;
-    
-    // Insert sample tasks (only if they don't exist)
-    sampleTasks.forEach(task => {
-      db.run(`INSERT OR IGNORE INTO tasks (title, description, reward, created_by, status) 
-        VALUES (?, ?, ?, ?, 'active')`, 
-        [task.title, task.description, task.reward, adminId]);
+
+    db.serialize(() => {
+      // Ensure no duplicates remain before seeding
+      db.run(`DELETE FROM tasks WHERE id NOT IN (
+        SELECT MIN(id) FROM tasks GROUP BY title, created_by
+      ) AND title IN (
+        SELECT title FROM tasks GROUP BY title, created_by HAVING COUNT(*) > 1
+      )`);
+
+      // Seed only if below desired count
+      db.get(`SELECT COUNT(*) as count FROM tasks`, (countErr, row) => {
+        if (countErr) return;
+        if (row && row.count >= sampleTasks.length) return; // already seeded enough
+
+        sampleTasks.forEach(task => {
+          db.run(`INSERT OR IGNORE INTO tasks (title, description, reward, created_by, status) 
+            VALUES (?, ?, ?, ?, 'active')`, 
+            [task.title, task.description, task.reward, adminId]);
+        });
+      });
     });
   });
 });
