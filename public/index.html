@@ -455,6 +455,9 @@
                     </div>
 
                     <div class="verify-form" id="verification-form-container" style="display:none;">
+                        <div class="verify-form-actions">
+                            <button type="button" class="ekyc-ghost-btn" onclick="toggleVerificationForm(event)">Thu gọn</button>
+                        </div>
                         <div class="ekyc-steps-grid">
                             <!-- Step 1: CCCD Front -->
                             <div class="verify-step ekyc-step active" id="step-1">
@@ -514,7 +517,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <video id="recorded-video" controls style="display:none;"></video>
+                                    <video id="recorded-video" controls class="hidden"></video>
+                                    <div id="video-status" class="verify-info hidden">Video đã ghi xong. Nhấn gửi xác minh.</div>
                                     <div class="captured-photo-container" id="captured-photo-container" style="display:none;">
                                         <p class="captured-label">Ảnh đã chụp</p>
                                         <img id="captured-photo" src="" alt="Captured Photo">
@@ -523,15 +527,16 @@
                             </div>
 
                             <!-- Submit -->
-                            <div class="verify-submit" id="submit-section" style="display:none;">
+                            <div class="verify-submit hidden" id="submit-section">
                                 <button class="verify-btn-submit" onclick="submitVerification()" id="submit-verification-btn">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                     <span>Gửi Xác Minh</span>
                                 </button>
+                                <div id="upload-wait" class="verify-info hidden">Đang tải lên... 10s</div>
                                 <div id="verification-error" class="verify-error-msg"></div>
-                                <div id="verification-success" class="verify-success-msg" style="display:none;"></div>
+                                <div id="verification-success" class="verify-success-msg hidden"></div>
                             </div>
                         </div>
                     </div>

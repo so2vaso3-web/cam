@@ -992,6 +992,7 @@ let instructionInterval = null;
 let recordingTimer = null;
 let currentTime = 8;
 let currentInstruction = 0;
+let uploadWaitInterval = null;
 
 // Instructions for face verification - MUST COMPLETE ALL STEPS
 const instructions = [
@@ -1052,6 +1053,7 @@ async function startVideo() {
         const recordingContainer = document.getElementById('video-recording-container');
         const startBtn = document.getElementById('start-video-btn');
         const recordedVideo = document.getElementById('recorded-video');
+        const videoStatus = document.getElementById('video-status');
         
         videoPreview.srcObject = stream;
         // Mirror video preview (flip horizontally) so it's not reversed
@@ -1064,6 +1066,10 @@ async function startVideo() {
         recordingContainer.style.display = 'block';
         startBtn.style.display = 'none';
         recordedVideo.style.display = 'none';
+        if (videoStatus) {
+            videoStatus.style.display = 'none';
+            videoStatus.classList.remove('hidden');
+        }
         
         recordedChunks = [];
         
@@ -1102,7 +1108,23 @@ async function startVideo() {
             recordedVideo.src = url;
             // Don't mirror recorded video (keep original orientation)
             recordedVideo.style.transform = '';
-            recordedVideo.style.display = 'block';
+            // Hide playback and camera UI after recording to reduce clutter
+            recordedVideo.style.display = 'none';
+            if (recordingContainer) recordingContainer.style.display = 'none';
+            videoPreview.srcObject = null;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            const videoOverlay = document.getElementById('video-recording-container');
+            if (videoOverlay) {
+                const overlayChild = videoOverlay.querySelector('.video-overlay');
+                if (overlayChild) overlayChild.style.display = 'none';
+            }
+            if (videoStatus) {
+                videoStatus.textContent = 'Video đã ghi xong. Nhấn gửi xác minh.';
+                videoStatus.style.display = 'block';
+            }
             
             // Create file from blob
             const file = new File([blob], 'face-video.webm', { type: 'video/webm' });
@@ -1125,7 +1147,11 @@ async function startVideo() {
             
             // Show submit button after video is completed
             setTimeout(() => {
-                document.getElementById('submit-section').style.display = 'block';
+                const submitSection = document.getElementById('submit-section');
+                if (submitSection) {
+                    submitSection.classList.remove('hidden');
+                    submitSection.style.display = 'block';
+                }
                 document.getElementById('step-3-indicator').classList.add('completed');
             }, 500);
         };
@@ -1324,6 +1350,22 @@ function stopVideo() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
     }
+
+    // Hide camera UI
+    const recordingContainer = document.getElementById('video-recording-container');
+    const videoStatus = document.getElementById('video-status');
+    const videoPreview = document.getElementById('video-preview');
+    if (recordingContainer) recordingContainer.style.display = 'none';
+    if (videoStatus) {
+        videoStatus.textContent = 'Video đã ghi xong. Nhấn gửi xác minh.';
+        videoStatus.classList.remove('hidden');
+        videoStatus.style.display = 'block';
+    }
+    if (videoPreview) videoPreview.srcObject = null;
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
 }
 
 // Load verification status
@@ -1358,6 +1400,7 @@ async function loadVerificationStatus() {
             if (data.verification_status === 'rejected' && data.verification_notes) {
                 notes.textContent = `Lý do: ${data.verification_notes}`;
                 notes.style.display = 'block';
+                showNotification(`Xác minh bị từ chối: ${data.verification_notes}`, true);
             } else {
                 notes.style.display = 'none';
             }
@@ -1372,6 +1415,7 @@ async function loadVerificationStatus() {
             if (data.face_video) {
                 const videoEl = document.getElementById('recorded-video');
                 videoEl.src = `/uploads/${data.face_video}`;
+                videoEl.classList.remove('hidden');
                 videoEl.style.display = 'block';
             }
 
@@ -2195,6 +2239,7 @@ function toggleVerificationForm(event) {
         if (container.style.display === 'none' || !container.style.display) {
             container.style.display = 'block';
             card.classList.add('expanded');
+            card.style.display = 'none';
             // Scroll to form
             setTimeout(() => {
                 container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2202,6 +2247,7 @@ function toggleVerificationForm(event) {
         } else {
             container.style.display = 'none';
             card.classList.remove('expanded');
+            card.style.display = '';
         }
     }
 }
@@ -2222,6 +2268,7 @@ async function submitVerification() {
     const errorDiv = document.getElementById('verification-error');
     const successDiv = document.getElementById('verification-success');
     const submitBtn = document.getElementById('submit-verification-btn') || document.querySelector('#submit-section button');
+    const uploadWait = document.getElementById('upload-wait');
     
     errorDiv.textContent = '';
     successDiv.style.display = 'none';
@@ -2234,7 +2281,16 @@ async function submitVerification() {
     // Disable submit button to prevent double submission
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Đang gửi...';
+        submitBtn.classList.add('is-loading');
+        const span = submitBtn.querySelector('span');
+        if (span) {
+            span.textContent = 'Đang gửi...';
+        } else {
+            submitBtn.textContent = 'Đang gửi...';
+        }
+    }
+    if (uploadWait) {
+        startUploadWait(10);
     }
     
     // Retry logic with timeout
@@ -2276,6 +2332,7 @@ async function submitVerification() {
                 // Re-enable button
                 if (submitBtn) {
                     submitBtn.disabled = false;
+                    submitBtn.classList.remove('is-loading');
                     const span = submitBtn.querySelector('span');
                     if (span) {
                         span.textContent = 'Gửi Xác Minh';
@@ -2283,12 +2340,14 @@ async function submitVerification() {
                         submitBtn.textContent = 'Gửi Xác Minh';
                     }
                 }
+                if (uploadWait) hideUploadWait();
                 return; // Success, exit retry loop
             } else {
                 // Server error - don't retry
                 errorDiv.textContent = data.error || 'Gửi xác minh thất bại';
                 if (submitBtn) {
                     submitBtn.disabled = false;
+                    submitBtn.classList.remove('is-loading');
                     const span = submitBtn.querySelector('span');
                     if (span) {
                         span.textContent = 'Gửi Xác Minh';
@@ -2296,6 +2355,7 @@ async function submitVerification() {
                         submitBtn.textContent = 'Gửi Xác Minh';
                     }
                 }
+                if (uploadWait) hideUploadWait();
                 return;
             }
         } catch (error) {
@@ -2315,6 +2375,7 @@ async function submitVerification() {
                 // All retries failed
                 if (submitBtn) {
                     submitBtn.disabled = false;
+                    submitBtn.classList.remove('is-loading');
                     const span = submitBtn.querySelector('span');
                     if (span) {
                         span.textContent = 'Gửi Xác Minh';
@@ -2322,8 +2383,39 @@ async function submitVerification() {
                         submitBtn.textContent = 'Gửi Xác Minh';
                     }
                 }
+                if (uploadWait) hideUploadWait();
             }
         }
+    }
+}
+
+function startUploadWait(seconds = 10) {
+    const uploadWait = document.getElementById('upload-wait');
+    if (!uploadWait) return;
+    let remaining = seconds;
+    uploadWait.classList.remove('hidden');
+    uploadWait.style.display = 'block';
+    uploadWait.textContent = `Đang tải lên... ${remaining}s`;
+    if (uploadWaitInterval) clearInterval(uploadWaitInterval);
+    uploadWaitInterval = setInterval(() => {
+        remaining -= 1;
+        uploadWait.textContent = `Đang tải lên... ${Math.max(0, remaining)}s`;
+        if (remaining <= 0) {
+            clearInterval(uploadWaitInterval);
+            uploadWaitInterval = null;
+        }
+    }, 1000);
+}
+
+function hideUploadWait() {
+    const uploadWait = document.getElementById('upload-wait');
+    if (uploadWait) {
+        uploadWait.style.display = 'none';
+        uploadWait.classList.add('hidden');
+    }
+    if (uploadWaitInterval) {
+        clearInterval(uploadWaitInterval);
+        uploadWaitInterval = null;
     }
 }
 

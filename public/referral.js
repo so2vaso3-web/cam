@@ -132,38 +132,38 @@ function displayReferralInfo() {
     const referralLink = `${currentUrl}?ref=${referralInfo.referral_code || ''}`;
 
     referralSection.innerHTML = `
-        <div class="referral-card" style="background: #1a1a1a; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #333;">
-            <h3 style="color: #e0e0e0; margin-bottom: 1rem;">Mã Giới Thiệu Của Bạn</h3>
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <div class="referral-card" style="background: #1a1a1a; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; border: 1px solid #333;">
+            <h3 style="color: #e0e0e0; margin-bottom: 0.75rem; font-size: 1rem; line-height: 1.25;">Mã Giới Thiệu Của Bạn</h3>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <input type="text" id="referral-code-display" value="${referralInfo.referral_code || 'N/A'}" 
-                       readonly style="flex: 1; padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; font-size: 1.1rem; font-weight: 600; text-align: center;">
-                <button type="button" onclick="copyReferralCode()" style="padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                       readonly style="flex: 1; padding: 0.6rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; font-size: 1rem; font-weight: 600; text-align: center;">
+                <button type="button" onclick="copyReferralCode()" style="padding: 0.6rem 1.1rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">
                     Sao Chép
                 </button>
             </div>
             
-            <div style="margin-top: 1.5rem;">
-                <label style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Link Giới Thiệu:</label>
-                <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="margin-top: 1rem;">
+                <label style="color: #999; font-size: 0.9rem; margin-bottom: 0.35rem; display: block;">Link Giới Thiệu:</label>
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
                     <input type="text" id="referral-link-display" value="${referralLink}" 
-                           readonly style="flex: 1; padding: 0.75rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; font-size: 0.9rem; word-break: break-all;">
-                    <button type="button" onclick="copyReferralLink()" style="padding: 0.75rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                           readonly style="flex: 1; padding: 0.6rem; background: #2d2d2d; border: 1px solid #404040; border-radius: 8px; color: #e0e0e0; font-size: 0.82rem; word-break: break-all;">
+                    <button type="button" onclick="copyReferralLink()" style="padding: 0.6rem 1rem; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; white-space: nowrap;">
                         Sao Chép Link
                     </button>
                 </div>
-                <p style="color: #999; font-size: 0.8rem; margin-top: 0.5rem;">
+                <p style="color: #999; font-size: 0.78rem; margin-top: 0.35rem; line-height: 1.3;">
                     Gửi link này cho bạn bè. Khi họ đăng ký, cả 2 bạn đều nhận phần thưởng!
                 </p>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
-                <div style="text-align: center; padding: 1rem; background: #2d2d2d; border-radius: 8px;">
-                    <div style="color: #999; font-size: 0.85rem; margin-bottom: 0.5rem;">Đã Mời</div>
-                    <div style="color: #2ed573; font-size: 1.5rem; font-weight: 600;">${referralInfo.active_referrals || 0}</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                <div style="text-align: center; padding: 0.75rem; background: #2d2d2d; border-radius: 8px;">
+                    <div style="color: #999; font-size: 0.8rem; margin-bottom: 0.4rem;">Đã Mời</div>
+                    <div style="color: #2ed573; font-size: 1.25rem; font-weight: 600;">${referralInfo.active_referrals || 0}</div>
                 </div>
-                <div style="text-align: center; padding: 1rem; background: #2d2d2d; border-radius: 8px;">
-                    <div style="color: #999; font-size: 0.85rem; margin-bottom: 0.5rem;">Hoa Hồng</div>
-                    <div style="color: #ffaa00; font-size: 1.5rem; font-weight: 600;">${formatCurrency(referralInfo.referral_earnings || 0)}</div>
+                <div style="text-align: center; padding: 0.75rem; background: #2d2d2d; border-radius: 8px;">
+                    <div style="color: #999; font-size: 0.8rem; margin-bottom: 0.4rem;">Hoa Hồng</div>
+                    <div style="color: #ffaa00; font-size: 1.25rem; font-weight: 600;">${formatCurrency(referralInfo.referral_earnings || 0)}</div>
                 </div>
             </div>
 
