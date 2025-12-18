@@ -144,6 +144,10 @@
                     localStorage.setItem('gmailLogoType', logoType);
                     showLogoMessage('Logo uploaded successfully! Logo will appear in main page.', 'success');
                     logoInput.value = '';
+                    // Update favicon if needed
+                    if (savedFavicon) {
+                        updateFavicon(savedFavicon);
+                    }
                 };
                 reader.readAsDataURL(file);
             });
@@ -179,11 +183,12 @@
                 reader.onload = function(e) {
                     const faviconData = e.target.result;
                     const faviconType = file.type;
-                    localStorage.setItem('favicon', faviconData);
-                    localStorage.setItem('faviconType', faviconType);
-                    showFaviconMessage('Favicon uploaded successfully!', 'success');
-                    loadAdminHeaderAssets();
-                    faviconInput.value = '';
+                        localStorage.setItem('favicon', faviconData);
+                        localStorage.setItem('faviconType', faviconType);
+                        showFaviconMessage('Favicon uploaded successfully!', 'success');
+                        // Update favicon
+                        updateFavicon(faviconData);
+                        faviconInput.value = '';
                 };
                 reader.readAsDataURL(file);
             });
