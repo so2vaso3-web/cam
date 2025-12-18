@@ -558,7 +558,7 @@
         // Danh sách tài khoản Gmail/Moitasec từ user (sẽ được load từ localStorage hoặc import)
         let predefinedAccounts = [];
         
-        // Load danh sách accounts từ localStorage nếu có
+        // Load danh sách accounts từ localStorage nếu có, nếu không thì dùng danh sách mặc định
         function loadPredefinedAccounts() {
             const savedAccounts = localStorage.getItem('predefinedAccounts');
             if (savedAccounts) {
@@ -569,8 +569,34 @@
                     console.error('❌ Lỗi khi parse predefinedAccounts:', e);
                     predefinedAccounts = [];
                 }
-            } else {
-                console.log('⚠️ Chưa có danh sách tài khoản. Vui lòng import danh sách.');
+            }
+            
+            // Nếu chưa có trong localStorage, dùng danh sách mặc định
+            if (predefinedAccounts.length === 0) {
+                console.log('⚠️ Chưa có danh sách trong localStorage, load danh sách mặc định...');
+                const defaultAccountList = `PerryMontgomeryPuh64627@moitasec.com|Pob45516
+AllanSierraXon35421Map97871@moitasec.com|Fuw22561
+MarshallAguirreXav18436Cuy15340@moitasec.com|Jan10568
+BillyPollardPax81080Puw53579@moitasec.com|Yal01029
+LarryHoustonKoj97931Zob18470@moitasec.com|Cub78920
+JacobPersonPul70973Vas73297@moitasec.com|Ton07643
+MichaelPruittVah26288Bab57863@moitasec.com|Noj45409
+EarlDuffyWug16843Duz59427@moitasec.com|Nas20474
+TylerDodsonQun61090Lur35065@moitasec.com|Has21335
+ScottPinedaHur10700Sal43681@moitasec.com|Gap88771
+LewisRobbinsHow21627Kaf78266@moitasec.com|Joy25116
+EugeneDeleonJuq29125Dac08557@moitasec.com|Suq96229
+VincentHancockXaq43615Jof07469@moitasec.com|Kag62608
+KarlMunozVaz36370Kav94308@moitasec.com|Tuk42491
+ApolinarioValentineRad49385Daf07596@moitasec.com|Rom19630
+JackRiversBat02097Nut37587@moitasec.com|Dun05183
+MartinFieldsGus33787Jab90093@moitasec.com|Qop13079
+AbordoLyndaGaq91817Xan53250@moitasec.com|Sah06600
+MiltonLealNow01126Fum26548@moitasec.com|Poy74768
+RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
+                
+                const count = importAccounts(defaultAccountList);
+                console.log('✅ Đã load', count, 'tài khoản mặc định');
             }
         }
         
