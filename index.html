@@ -771,8 +771,32 @@
             
             // Kiểm tra có thể tạo thêm tài khoản không (kiểm tra whitelist)
             const whitelistedIPs = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
-            const currentIP = getSavedIP() || 'unknown';
+            let currentIP = getSavedIP() || 'unknown';
+            
+            // Nếu chưa có IP, thử lấy từ VPN check hoặc fetch
+            if (currentIP === 'unknown') {
+                try {
+                    const ipResponse = await fetch('https://api.ipify.org?format=json');
+                    if (ipResponse.ok) {
+                        const ipData = await ipResponse.json();
+                        if (ipData.ip) {
+                            currentIP = ipData.ip;
+                            localStorage.setItem('userIP', currentIP);
+                        }
+                    }
+                } catch (err) {
+                    console.log('Không thể lấy IP:', err);
+                }
+            }
+            
             const isIPWhitelisted = whitelistedIPs.includes(currentIP);
+            
+            console.log('Kiểm tra quyền tạo tài khoản:', { 
+                totalAccountCount, 
+                currentIP, 
+                whitelistedIPs, 
+                isIPWhitelisted 
+            });
             
             // NẾU ĐÃ CÓ TÀI KHOẢN RỒI VÀ IP KHÔNG TRONG WHITELIST → CHẶN NGAY, KHÔNG CHO TẠO THÊM
             if (totalAccountCount >= 1 && !isIPWhitelisted) {
@@ -789,6 +813,11 @@
                     alert('Each IP can only create 1 account. Please contact Telegram: @guishanghaii to purchase a license.');
                 }
                 return;
+            }
+            
+            // Nếu IP trong whitelist, cho phép tiếp tục
+            if (isIPWhitelisted) {
+                console.log('✅ IP trong whitelist, cho phép tạo thêm tài khoản');
             }
             
             const submitBtn = event.target.querySelector('.btn-start-automation');
@@ -838,8 +867,12 @@
             // KIỂM TRA LẠI TỔNG SỐ TÀI KHOẢN (đảm bảo chắc chắn)
             const existingAccountsRecheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
             const totalAccountCountRecheck = existingAccountsRecheck.length;
+            const currentIPRecheck = getSavedIP() || 'unknown';
+            const whitelistedIPsRecheck = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
+            const isIPWhitelistedRecheck = whitelistedIPsRecheck.includes(currentIPRecheck);
             
-            if (totalAccountCountRecheck >= 1) {
+            // Nếu đã có tài khoản VÀ IP không trong whitelist → CHẶN
+            if (totalAccountCountRecheck >= 1 && !isIPWhitelistedRecheck) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 showLicenseCard();
