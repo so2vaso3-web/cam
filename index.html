@@ -430,6 +430,20 @@
                     </form>
                     <div id="passwordMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
                     
+                    <!-- Import Accounts Section -->
+                    <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
+                    <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Import Gmail/Moitasec Accounts</h2>
+                    <div style="margin-bottom: 16px;">
+                        <label class="form-label">Paste account list (format: email|password|firstName|lastName, mỗi dòng 1 account)</label>
+                        <textarea id="accountListInput" class="form-input" rows="10" placeholder="email1@gmail.com|password1|FirstName1|LastName1&#10;email2@moitasec.com|password2|FirstName2|LastName2&#10;..."></textarea>
+                    </div>
+                    <div class="setup-actions">
+                        <button type="button" class="btn-start-automation" onclick="importAccountList()">
+                            <span>Import Accounts</span>
+                        </button>
+                    </div>
+                    <div id="importMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+                    
                     <!-- IP Management Section -->
                     <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
                     <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">IP Management</h2>
@@ -541,68 +555,98 @@
         }
         
         // Danh sách tài khoản có sẵn để random
-        const predefinedAccounts = [
-            { email: 'PerryMontgomeryPuh64627@moitasec.com', password: 'Pob45516', firstName: 'Perry', lastName: 'Montgomery' },
-            { email: 'AllanSierraXon35421Map97871@moitasec.com', password: 'Fuw22561', firstName: 'Allan', lastName: 'Sierra' },
-            { email: 'MarshallAguirreXav18436Cuy15340@moitasec.com', password: 'Jan10568', firstName: 'Marshall', lastName: 'Aguirre' },
-            { email: 'BillyPollardPax81080Puw53579@moitasec.com', password: 'Yal01029', firstName: 'Billy', lastName: 'Pollard' },
-            { email: 'LarryHoustonKoj97931Zob18470@moitasec.com', password: 'Cub78920', firstName: 'Larry', lastName: 'Houston' },
-            { email: 'JacobPersonPul70973Vas73297@moitasec.com', password: 'Ton07643', firstName: 'Jacob', lastName: 'Person' },
-            { email: 'MichaelPruittVah26288Bab57863@moitasec.com', password: 'Noj45409', firstName: 'Michael', lastName: 'Pruitt' },
-            { email: 'EarlDuffyWug16843Duz59427@moitasec.com', password: 'Nas20474', firstName: 'Earl', lastName: 'Duffy' },
-            { email: 'TylerDodsonQun61090Lur35065@moitasec.com', password: 'Has21335', firstName: 'Tyler', lastName: 'Dodson' },
-            { email: 'ScottPinedaHur10700Sal43681@moitasec.com', password: 'Gap88771', firstName: 'Scott', lastName: 'Pineda' },
-            { email: 'LewisRobbinsHow21627Kaf78266@moitasec.com', password: 'Joy25116', firstName: 'Lewis', lastName: 'Robbins' },
-            { email: 'EugeneDeleonJuq29125Dac08557@moitasec.com', password: 'Suq96229', firstName: 'Eugene', lastName: 'Deleon' },
-            { email: 'VincentHancockXaq43615Jof07469@moitasec.com', password: 'Kag62608', firstName: 'Vincent', lastName: 'Hancock' },
-            { email: 'KarlMunozVaz36370Kav94308@moitasec.com', password: 'Tuk42491', firstName: 'Karl', lastName: 'Munoz' },
-            { email: 'ApolinarioValentineRad49385Daf07596@moitasec.com', password: 'Rom19630', firstName: 'Apolinario', lastName: 'Valentine' },
-            { email: 'JackRiversBat02097Nut37587@moitasec.com', password: 'Dun05183', firstName: 'Jack', lastName: 'Rivers' },
-            { email: 'MartinFieldsGus33787Jab90093@moitasec.com', password: 'Qop13079', firstName: 'Martin', lastName: 'Fields' },
-            { email: 'AbordoLyndaGaq91817Xan53250@moitasec.com', password: 'Sah06600', firstName: 'Abordo', lastName: 'Lynda' },
-            { email: 'MiltonLealNow01126Fum26548@moitasec.com', password: 'Poy74768', firstName: 'Milton', lastName: 'Leal' },
-            { email: 'RossPalaciosZof59279Fad73077@moitasec.com', password: 'Sup39973', firstName: 'Ross', lastName: 'Palacios' }
-        ];
+        // Danh sách tài khoản Gmail/Moitasec từ user (sẽ được load từ localStorage hoặc import)
+        let predefinedAccounts = [];
+        
+        // Load danh sách accounts từ localStorage nếu có
+        function loadPredefinedAccounts() {
+            const savedAccounts = localStorage.getItem('predefinedAccounts');
+            if (savedAccounts) {
+                try {
+                    predefinedAccounts = JSON.parse(savedAccounts);
+                    console.log('✅ Đã load', predefinedAccounts.length, 'tài khoản từ localStorage');
+                } catch (e) {
+                    console.error('❌ Lỗi khi parse predefinedAccounts:', e);
+                    predefinedAccounts = [];
+                }
+            } else {
+                console.log('⚠️ Chưa có danh sách tài khoản. Vui lòng import danh sách.');
+            }
+        }
+        
+        // Import danh sách accounts từ text (format: email|password|firstName|lastName, mỗi dòng 1 account)
+        function importAccounts(accountText) {
+            const lines = accountText.split('\n').filter(line => line.trim());
+            predefinedAccounts = [];
+            
+            lines.forEach((line, index) => {
+                const parts = line.trim().split('|');
+                if (parts.length >= 2) {
+                    const email = parts[0].trim();
+                    const password = parts[1].trim();
+                    const firstName = parts[2] ? parts[2].trim() : email.split('@')[0].split('.')[0];
+                    const lastName = parts[3] ? parts[3].trim() : '';
+                    
+                    predefinedAccounts.push({
+                        email: email,
+                        password: password,
+                        firstName: firstName,
+                        lastName: lastName
+                    });
+                } else {
+                    console.warn('⚠️ Dòng', index + 1, 'không đúng format:', line);
+                }
+            });
+            
+            // Lưu vào localStorage
+            localStorage.setItem('predefinedAccounts', JSON.stringify(predefinedAccounts));
+            localStorage.removeItem('usedMoitasecAccounts'); // Reset danh sách đã dùng
+            
+            console.log('✅ Đã import', predefinedAccounts.length, 'tài khoản');
+            return predefinedAccounts.length;
+        }
+        
+        // Load accounts khi trang load
+        loadPredefinedAccounts();
 
         function generateMoitasecAccount() {
-            // Luôn dùng tài khoản có sẵn từ danh sách, random chọn
-            if (predefinedAccounts.length > 0) {
-                // Lấy danh sách accounts đã sử dụng từ localStorage
-                const usedAccounts = JSON.parse(localStorage.getItem('usedMoitasecAccounts') || '[]');
-                
-                // Lọc ra các accounts chưa được sử dụng
-                const availableAccounts = predefinedAccounts.filter(acc => !usedAccounts.includes(acc.email));
-                
-                // Nếu còn accounts chưa dùng, chọn random từ đó
-                let selectedAccount;
-                if (availableAccounts.length > 0) {
-                    selectedAccount = availableAccounts[Math.floor(Math.random() * availableAccounts.length)];
-                } else {
-                    // Nếu đã dùng hết, reset và chọn random từ toàn bộ danh sách
-                    localStorage.removeItem('usedMoitasecAccounts');
-                    selectedAccount = predefinedAccounts[Math.floor(Math.random() * predefinedAccounts.length)];
-                }
-                
-                // Đánh dấu account đã được sử dụng
-                usedAccounts.push(selectedAccount.email);
-                localStorage.setItem('usedMoitasecAccounts', JSON.stringify(usedAccounts));
-                
-                return {
-                    firstName: selectedAccount.firstName,
-                    lastName: selectedAccount.lastName,
-                    email: selectedAccount.email,
-                    password: selectedAccount.password
-                };
+            // CHỈ dùng tài khoản từ danh sách user cung cấp, KHÔNG random tạo mới
+            if (predefinedAccounts.length === 0) {
+                console.error('❌ Chưa có danh sách tài khoản! Vui lòng import danh sách trước.');
+                alert('Chưa có danh sách tài khoản! Vui lòng import danh sách trong Admin Panel.');
+                return null;
             }
             
-            // Fallback: Tạo mới nếu không có predefined accounts
-            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-            const middlePart = middleParts[Math.floor(Math.random() * middleParts.length)];
-            const number = randomNumber(10000, 99999);
-            const email = `${firstName}${lastName}${middlePart}${number}@moitasec.com`;
-            const password = randomString(3, 'letters') + randomNumber(10000, 99999);
-            return { firstName, lastName, email, password };
+            // Lấy danh sách accounts đã sử dụng từ localStorage
+            const usedAccounts = JSON.parse(localStorage.getItem('usedMoitasecAccounts') || '[]');
+            
+            // Lọc ra các accounts chưa được sử dụng
+            const availableAccounts = predefinedAccounts.filter(acc => !usedAccounts.includes(acc.email));
+            
+            // Nếu còn accounts chưa dùng, chọn random từ đó
+            let selectedAccount;
+            if (availableAccounts.length > 0) {
+                selectedAccount = availableAccounts[Math.floor(Math.random() * availableAccounts.length)];
+            } else {
+                // Nếu đã dùng hết, reset và chọn random từ toàn bộ danh sách
+                console.log('⚠️ Đã dùng hết accounts, reset danh sách đã dùng');
+                localStorage.removeItem('usedMoitasecAccounts');
+                selectedAccount = predefinedAccounts[Math.floor(Math.random() * predefinedAccounts.length)];
+            }
+            
+            // Đánh dấu account đã được sử dụng
+            const newUsedAccounts = JSON.parse(localStorage.getItem('usedMoitasecAccounts') || '[]');
+            newUsedAccounts.push(selectedAccount.email);
+            localStorage.setItem('usedMoitasecAccounts', JSON.stringify(newUsedAccounts));
+            
+            console.log('✅ Đã chọn account:', selectedAccount.email);
+            
+            return {
+                firstName: selectedAccount.firstName || '',
+                lastName: selectedAccount.lastName || '',
+                email: selectedAccount.email,
+                password: selectedAccount.password
+            };
         }
         
         function generateGmailAccount() {
@@ -1508,11 +1552,11 @@
                 }
             }
             
-            // Favicon upload handler
+            // Favicon upload handler (old form - có thể không tồn tại)
             const faviconFileInput = document.getElementById('faviconFile');
             const faviconPreview = document.getElementById('faviconPreview');
             const uploadFaviconForm = document.getElementById('uploadFaviconForm');
-            const faviconMessage = document.getElementById('faviconMessage');
+            // faviconMessage sẽ được lấy trong tab admin, không khai báo ở đây
             
             // Load saved favicon preview
             const savedFavicon = localStorage.getItem('favicon');
