@@ -185,17 +185,44 @@
                     return;
                 }
                 
+                console.log('📤 Đang upload favicon...', file.name, file.type);
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const faviconData = e.target.result;
                     const faviconType = file.type;
-                        localStorage.setItem('favicon', faviconData);
-                        localStorage.setItem('faviconType', faviconType);
-                        showFaviconMessage('Favicon uploaded successfully!', 'success');
-                        // Update favicon
+                    
+                    console.log('💾 Đang lưu favicon vào localStorage...');
+                    localStorage.setItem('favicon', faviconData);
+                    localStorage.setItem('faviconType', faviconType);
+                    
+                    console.log('✅ Favicon đã được lưu, đang cập nhật...');
+                    showFaviconMessage('Favicon uploaded successfully! Updating...', 'success');
+                    
+                    // Cập nhật favicon ngay lập tức
+                    if (typeof updateFavicon === 'function') {
                         updateFavicon(faviconData);
-                        faviconInput.value = '';
+                        // Cập nhật lại sau vài lần để đảm bảo browser nhận diện
+                        setTimeout(() => updateFavicon(faviconData), 100);
+                        setTimeout(() => updateFavicon(faviconData), 300);
+                        setTimeout(() => updateFavicon(faviconData), 500);
+                    } else {
+                        console.error('❌ updateFavicon function không tồn tại!');
+                    }
+                    
+                    faviconInput.value = '';
+                    
+                    // Thông báo user refresh trang nếu cần
+                    setTimeout(() => {
+                        showFaviconMessage('Favicon saved! If not showing, please refresh the page (Ctrl+F5).', 'success');
+                    }, 2000);
                 };
+                
+                reader.onerror = function(error) {
+                    console.error('❌ Lỗi khi đọc file favicon:', error);
+                    showFaviconMessage('Error reading favicon file!', 'error');
+                };
+                
                 reader.readAsDataURL(file);
             });
         }
