@@ -23,6 +23,63 @@
             display: none;
         }
         
+        /* Mobile layout fixes */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #121212;
+        }
+        .main-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+        .setup-card,
+        .card {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .setup-content {
+            padding: 12px;
+        }
+        .setup-logo {
+            margin: 8px auto 16px auto;
+            text-align: center;
+        }
+        .setup-logo img {
+            display: block;
+            margin: 0 auto;
+        }
+        .setup-form .form-input,
+        .setup-form .form-select,
+        .setup-form select,
+        .setup-form input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .setup-actions button {
+            width: 100%;
+        }
+        .accounts-container,
+        .accounts-list,
+        .accounts-container .account-item,
+        #accountsContainer,
+        #accountsList {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 640px) {
+            .main-container {
+                padding: 8px;
+            }
+            .setup-content {
+                padding: 10px;
+            }
+            .setup-heading {
+                text-align: center;
+            }
+        }
+        
         /* Hide Footer only on Setup Task page */
         #tab-setup .btn-logout {
             display: none !important;
@@ -1547,6 +1604,7 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                     img.style.display = 'block';
                     img.style.marginLeft = 'auto';
                     img.style.marginRight = 'auto';
+                    img.onerror = () => { img.src = 'gmail.ico'; };
                     logoContainer.appendChild(img);
                     console.log('✅ Logo đã được load vào Setup Task (gmailLogoContainer) - 64px');
                 } else {

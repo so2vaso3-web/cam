@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
         mainLogoImg.style.display = 'block';
         mainLogoImg.style.marginLeft = 'auto';
         mainLogoImg.style.marginRight = 'auto';
+        // Fallback nếu ảnh lỗi
+        mainLogoImg.onerror = () => {
+            mainLogoImg.src = 'gmail.ico';
+        };
         gmailLogoContainer.appendChild(mainLogoImg);
     }
 
