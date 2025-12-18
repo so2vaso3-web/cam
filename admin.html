@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Upload Logo</title>
+    <title>Admin Panel</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
 </head>
@@ -11,236 +11,295 @@
     <div class="main-container">
         <div class="card setup-card">
             <div class="setup-content">
-                <h1 class="setup-heading">Admin - Upload Logo</h1>
+                <h1 class="setup-heading">Admin Panel</h1>
                 
-                <form class="setup-form" id="uploadForm">
+                <!-- Admin Password Section -->
+                <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px; margin-top: 0;">Change Admin Password</h2>
+                <form class="setup-form" id="changePasswordForm" onsubmit="return false;">
                     <div class="form-group">
-                        <label class="form-label">Select logo file (PNG, JPG, ICO, SVG)</label>
-                        <input type="file" id="logoFile" name="logoFile" accept="image/png,image/jpeg,image/x-icon,.ico,.svg" class="form-input" required>
+                        <label class="form-label">Current Password</label>
+                        <input type="password" id="currentPassword" name="currentPassword" class="form-input" placeholder="Enter current password" required>
                     </div>
-                    
                     <div class="form-group">
-                        <label class="form-label">Preview:</label>
-                        <div id="preview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
-                            <p style="color: #9AA0A6;">Chưa có ảnh preview</p>
-                        </div>
+                        <label class="form-label">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" class="form-input" placeholder="Enter new password" required minlength="6">
                     </div>
-                    
+                    <div class="form-group">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="form-input" placeholder="Confirm new password" required minlength="6">
+                    </div>
                     <div class="setup-actions">
                         <button type="submit" class="btn-start-automation">
-                            <span>Upload Logo</span>
-                        </button>
-                        <button type="button" class="btn-logout" onclick="window.location.href='setup.html'">
-                            <span>Back to Setup</span>
+                            <span>Change Password</span>
                         </button>
                     </div>
                 </form>
+                <div id="passwordMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
                 
-                <div id="message" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
-                
-                <!-- Favicon Upload Form -->
+                <!-- IP Management Section -->
                 <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
-                <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Upload Favicon</h2>
-                <form class="setup-form" id="uploadFaviconForm" onsubmit="return false;">
-                    <div class="form-group">
-                        <label class="form-label">Select favicon file (ICO, PNG, SVG)</label>
-                        <input type="file" id="faviconFile" name="faviconFile" accept="image/x-icon,.ico,image/png,image/svg+xml,.svg" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Preview:</label>
-                        <div id="faviconPreview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
-                            <p style="color: #9AA0A6;">Chưa có ảnh preview</p>
+                <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">IP Management</h2>
+                <div id="ipManagementSection">
+                    <div style="margin-bottom: 20px;">
+                        <label class="form-label">Add IP to whitelist (grant permission to create more accounts):</label>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <input type="text" id="ipToWhitelist" placeholder="Enter IP (e.g., 192.168.1.1)" class="form-input" style="flex: 1;">
+                            <button type="button" class="btn-start-automation" onclick="addIPToWhitelist()" style="width: auto; padding: 0 24px;">
+                                <span>Add IP</span>
+                            </button>
                         </div>
                     </div>
-                    <div class="setup-actions">
-                        <button type="submit" class="btn-start-automation">
-                            <span>Upload Favicon</span>
-                        </button>
+                    
+                    <div id="ipListContainer" style="margin-top: 24px;">
+                        <h3 style="font-size: 16px; color: #FFFFFF; margin-bottom: 12px;">IP and Accounts List:</h3>
+                        <div id="ipList" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- IP list will be loaded here -->
+                        </div>
                     </div>
-                </form>
-                <div id="faviconMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+                </div>
+                
+                <div style="margin-top: 32px;">
+                    <button type="button" class="btn-logout" onclick="window.location.href='index.html'">
+                        <span>Back to Main</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const logoFileInput = document.getElementById('logoFile');
-        const preview = document.getElementById('preview');
-        const uploadForm = document.getElementById('uploadForm');
-        const message = document.getElementById('message');
-
-        // Preview ảnh khi chọn file
-        logoFileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Xử lý upload
-        uploadForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const file = logoFileInput.files[0];
-            
-                if (!file) {
-                    showMessage('Please select a file!', 'error');
-                    return;
-                }
-
-                // Đọc file và lưu vào localStorage dưới dạng base64
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64 = e.target.result;
-                    const fileExtension = file.name.split('.').pop().toLowerCase();
-                    
-                    // Lưu vào localStorage
-                    localStorage.setItem('gmailLogo', base64);
-                    localStorage.setItem('gmailLogoType', file.type);
-                    localStorage.setItem('gmailLogoExtension', fileExtension);
-                    
-                    showMessage('Upload successful! Logo has been saved.', 'success');
-                
-                // Cập nhật preview
-                preview.innerHTML = `<img src="${base64}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Load logo đã lưu nếu có
-        window.addEventListener('DOMContentLoaded', function() {
-            const savedLogo = localStorage.getItem('gmailLogo');
-            if (savedLogo) {
-                preview.innerHTML = `<img src="${savedLogo}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
-            }
-        });
-
-        function showMessage(text, type) {
-            message.textContent = text;
-            message.style.display = 'block';
-            message.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
-            message.style.color = '#FFFFFF';
-            
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3000);
-        }
-        
-        // Favicon upload handler
-        const faviconFileInput = document.getElementById('faviconFile');
-        const faviconPreview = document.getElementById('faviconPreview');
-        const uploadFaviconForm = document.getElementById('uploadFaviconForm');
-        const faviconMessage = document.getElementById('faviconMessage');
-        
-        // Load saved favicon preview
+        // Load favicon if exists
         const savedFavicon = localStorage.getItem('favicon');
-        if (savedFavicon && faviconPreview) {
-            faviconPreview.innerHTML = `<img src="${savedFavicon}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
+        if (savedFavicon) {
+            function updateFavicon(faviconData) {
+                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+                existingLinks.forEach(link => link.remove());
+                const faviconLink = document.createElement('link');
+                faviconLink.id = 'faviconLink';
+                faviconLink.rel = 'icon';
+                faviconLink.type = localStorage.getItem('faviconType') || 'image/x-icon';
+                faviconLink.href = faviconData;
+                document.head.appendChild(faviconLink);
+                const timestamp = new Date().getTime();
+                const faviconLink2 = document.createElement('link');
+                faviconLink2.rel = 'icon';
+                faviconLink2.type = localStorage.getItem('faviconType') || 'image/x-icon';
+                faviconLink2.href = faviconData + '?t=' + timestamp;
+                document.head.appendChild(faviconLink2);
+            }
+            updateFavicon(savedFavicon);
         }
         
-        if (faviconFileInput && faviconPreview) {
-            faviconFileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        faviconPreview.innerHTML = `<img src="${e.target.result}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+        // Admin Password Management
+        const changePasswordForm = document.getElementById('changePasswordForm');
+        const passwordMessage = document.getElementById('passwordMessage');
+        
+        // Initialize admin password if not exists
+        if (!localStorage.getItem('adminPassword')) {
+            localStorage.setItem('adminPassword', 'admin123'); // Default password
         }
         
-        if (uploadFaviconForm) {
-            uploadFaviconForm.addEventListener('submit', function(e) {
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const file = faviconFileInput?.files[0];
-                if (!file) {
-                    showFaviconMessage('Vui lòng chọn file!', 'error');
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                const savedPassword = localStorage.getItem('adminPassword');
+                
+                if (!currentPassword || !newPassword || !confirmNewPassword) {
+                    showPasswordMessage('Please fill in all fields!', 'error');
                     return;
                 }
                 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const base64 = e.target.result;
-                        console.log('Favicon file read, saving to localStorage...');
-                        
-                        // Lưu vào localStorage
-                        localStorage.setItem('favicon', base64);
-                        localStorage.setItem('faviconType', file.type);
-                        console.log('✅ Favicon đã được lưu vào localStorage');
-                        
-                        // Cập nhật favicon ngay lập tức
-                        updateFavicon(base64);
-                        
-                        // Cập nhật preview
-                        if (faviconPreview) {
-                            faviconPreview.innerHTML = `<img src="${base64}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
-                        }
-                        
-                        showFaviconMessage('Upload thành công! Favicon đã được lưu.', 'success');
-                    } catch (error) {
-                        console.error('Error saving favicon:', error);
-                        showFaviconMessage('Lỗi khi lưu favicon: ' + error.message, 'error');
-                    }
-                };
-                reader.onerror = function(error) {
-                    console.error('Error reading favicon file:', error);
-                    showFaviconMessage('Lỗi khi đọc file favicon!', 'error');
-                };
-                reader.readAsDataURL(file);
+                if (currentPassword !== savedPassword) {
+                    showPasswordMessage('Current password is incorrect!', 'error');
+                    return;
+                }
+                
+                if (newPassword.length < 6) {
+                    showPasswordMessage('New password must be at least 6 characters!', 'error');
+                    return;
+                }
+                
+                if (newPassword !== confirmNewPassword) {
+                    showPasswordMessage('New passwords do not match!', 'error');
+                    return;
+                }
+                
+                localStorage.setItem('adminPassword', newPassword);
+                showPasswordMessage('Password changed successfully!', 'success');
+                changePasswordForm.reset();
             });
         }
         
-        function showFaviconMessage(text, type) {
-            if (faviconMessage) {
-                faviconMessage.textContent = text;
-                faviconMessage.style.display = 'block';
-                faviconMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
-                faviconMessage.style.color = '#FFFFFF';
+        function showPasswordMessage(text, type) {
+            if (passwordMessage) {
+                passwordMessage.textContent = text;
+                passwordMessage.style.display = 'block';
+                passwordMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                passwordMessage.style.color = '#FFFFFF';
                 setTimeout(() => {
-                    faviconMessage.style.display = 'none';
+                    passwordMessage.style.display = 'none';
                 }, 3000);
             }
         }
         
-        // Function để cập nhật favicon
-        function updateFavicon(faviconData) {
-            console.log('Updating favicon with data:', faviconData ? 'Data exists' : 'No data');
-            
-            // Xóa tất cả favicon links cũ
-            const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-            existingLinks.forEach(link => link.remove());
-            
-            // Tạo favicon link mới
-            const faviconLink = document.createElement('link');
-            faviconLink.id = 'faviconLink';
-            faviconLink.rel = 'icon';
-            faviconLink.type = localStorage.getItem('faviconType') || 'image/x-icon';
-            faviconLink.href = faviconData;
-            
-            // Thêm vào head
-            document.head.appendChild(faviconLink);
-            
-            // Force reload favicon bằng cách thêm timestamp
-            const timestamp = new Date().getTime();
-            const faviconLink2 = document.createElement('link');
-            faviconLink2.rel = 'icon';
-            faviconLink2.type = localStorage.getItem('faviconType') || 'image/x-icon';
-            faviconLink2.href = faviconData + '?t=' + timestamp;
-            document.head.appendChild(faviconLink2);
-            
-            console.log('✅ Favicon đã được cập nhật');
+        // IP Management Functions
+        function getWhitelistedIPs() {
+            const whitelist = localStorage.getItem('ipWhitelist');
+            return whitelist ? JSON.parse(whitelist) : [];
         }
         
-        // Load favicon từ localStorage khi trang load
-        if (savedFavicon) {
-            updateFavicon(savedFavicon);
+        function saveWhitelistedIPs(whitelist) {
+            localStorage.setItem('ipWhitelist', JSON.stringify(whitelist));
         }
+        
+        function addIPToWhitelist() {
+            const ipInput = document.getElementById('ipToWhitelist');
+            if (!ipInput) return;
+            
+            const ip = ipInput.value.trim();
+            if (!ip) {
+                showIPMessage('Please enter an IP address!', 'error');
+                return;
+            }
+            
+            const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (!ipRegex.test(ip)) {
+                showIPMessage('Invalid IP! Please enter a valid IP format (e.g., 192.168.1.1)', 'error');
+                return;
+            }
+            
+            const whitelist = getWhitelistedIPs();
+            if (whitelist.includes(ip)) {
+                showIPMessage('This IP is already in the whitelist!', 'error');
+                return;
+            }
+            
+            whitelist.push(ip);
+            saveWhitelistedIPs(whitelist);
+            ipInput.value = '';
+            loadIPList();
+            showIPMessage('IP added to whitelist!', 'success');
+        }
+        
+        function removeIPFromWhitelist(ip) {
+            if (!confirm(`Are you sure you want to remove IP ${ip} from the whitelist?`)) {
+                return;
+            }
+            
+            const whitelist = getWhitelistedIPs();
+            const index = whitelist.indexOf(ip);
+            if (index > -1) {
+                whitelist.splice(index, 1);
+                saveWhitelistedIPs(whitelist);
+                loadIPList();
+                showIPMessage('IP removed from whitelist!', 'success');
+            }
+        }
+        
+        function addIPToWhitelistManual(ip) {
+            const whitelist = getWhitelistedIPs();
+            if (whitelist.includes(ip)) {
+                showIPMessage('This IP is already in the whitelist!', 'error');
+                return;
+            }
+            
+            whitelist.push(ip);
+            saveWhitelistedIPs(whitelist);
+            loadIPList();
+            showIPMessage('Permission granted to IP!', 'success');
+        }
+        
+        function loadIPList() {
+            const ipListContainer = document.getElementById('ipList');
+            if (!ipListContainer) return;
+            
+            const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+            const whitelistedIPs = getWhitelistedIPs();
+            
+            // Group accounts by IP
+            const ipMap = {};
+            accounts.forEach(account => {
+                if (account.ip) {
+                    if (!ipMap[account.ip]) {
+                        ipMap[account.ip] = [];
+                    }
+                    ipMap[account.ip].push(account);
+                }
+            });
+            
+            const ips = Object.keys(ipMap);
+            let html = '';
+            
+            if (ips.length === 0) {
+                html = '<p style="color: #9AA0A6; text-align: center; padding: 20px;">No IPs have created accounts yet</p>';
+            } else {
+                ips.forEach(ip => {
+                    const accountsForIP = ipMap[ip];
+                    const accountCount = accountsForIP.length;
+                    const isWhitelisted = whitelistedIPs.includes(ip);
+                    
+                    html += `
+                        <div style="background-color: #2a2a2a; border: 1px solid #5F6368; border-radius: 8px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <strong style="color: #FFFFFF; font-size: 16px;">${ip}</strong>
+                                        ${isWhitelisted ? '<span style="background-color: #34A853; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Whitelisted</span>' : ''}
+                                    </div>
+                                    <div style="color: #9AA0A6; font-size: 14px;">
+                                        Account count: <strong style="color: #FFFFFF;">${accountCount}</strong>
+                                    </div>
+                                    <div style="color: #9AA0A6; font-size: 12px; margin-top: 4px; word-break: break-all;">
+                                        ${accountsForIP.map(acc => acc.email).join(', ')}
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    ${!isWhitelisted ? 
+                                        `<button type="button" class="btn-start-automation" onclick="addIPToWhitelistManual('${ip}')" style="width: auto; padding: 0 16px; font-size: 13px;">
+                                            <span>Grant Permission</span>
+                                        </button>` :
+                                        `<button type="button" class="btn-logout" onclick="removeIPFromWhitelist('${ip}')" style="width: auto; padding: 0 16px; font-size: 13px;">
+                                            <span>Revoke Permission</span>
+                                        </button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            ipListContainer.innerHTML = html;
+        }
+        
+        function showIPMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = 'margin-top: 16px; padding: 12px; border-radius: 4px; display: block;';
+            messageDiv.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+            messageDiv.style.color = '#FFFFFF';
+            messageDiv.textContent = text;
+            
+            const ipManagementSection = document.getElementById('ipManagementSection');
+            if (ipManagementSection) {
+                const existingMessage = ipManagementSection.querySelector('.ip-message');
+                if (existingMessage) existingMessage.remove();
+                messageDiv.className = 'ip-message';
+                ipManagementSection.appendChild(messageDiv);
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 3000);
+            }
+        }
+        
+        // Load IP list on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                loadIPList();
+            }, 100);
+        });
     </script>
 </body>
 </html>

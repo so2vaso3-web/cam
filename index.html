@@ -373,54 +373,34 @@
         <div id="tab-admin" class="tab-content" style="display: none;">
             <div class="card setup-card">
                 <div class="setup-content">
-                    <h1 class="setup-heading">Admin - Upload Logo</h1>
-                    <form class="setup-form" id="uploadForm" onsubmit="return false;">
-                        <div class="form-group">
-                            <label class="form-label">Select logo file (PNG, JPG, ICO, SVG)</label>
-                            <input type="file" id="logoFile" name="logoFile" accept="image/png,image/jpeg,image/x-icon,.ico,.svg" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Preview:</label>
-                            <div id="preview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
-                                <p style="color: #9AA0A6;">No preview available</p>
-                            </div>
-                        </div>
-                        <div class="setup-actions">
-                            <button type="submit" class="btn-start-automation">
-                                <span>Upload Logo</span>
-                            </button>
-                            <button type="button" class="btn-logout" onclick="document.getElementById('tab-admin').style.display='none'; document.getElementById('tab-setup').style.display='block'; updateFooterVisibility();">
-                                <span>Back to Setup</span>
-                            </button>
-                        </div>
-                    </form>
-                    <div id="message" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+                    <h1 class="setup-heading">Admin Panel</h1>
                     
-                    <!-- Favicon Upload Form -->
-                    <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
-                    <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Upload Favicon</h2>
-                    <form class="setup-form" id="uploadFaviconForm" onsubmit="return false;">
+                    <!-- Admin Password Section -->
+                    <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px; margin-top: 0;">Change Admin Password</h2>
+                    <form class="setup-form" id="changePasswordForm" onsubmit="return false;">
                         <div class="form-group">
-                            <label class="form-label">Select favicon file (ICO, PNG, SVG)</label>
-                            <input type="file" id="faviconFile" name="faviconFile" accept="image/x-icon,.ico,image/png,image/svg+xml,.svg" class="form-input">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" id="currentPassword" name="currentPassword" class="form-input" placeholder="Enter current password" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Preview:</label>
-                            <div id="faviconPreview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
-                                <p style="color: #9AA0A6;">No preview available</p>
-                            </div>
+                            <label class="form-label">New Password</label>
+                            <input type="password" id="newPassword" name="newPassword" class="form-input" placeholder="Enter new password" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="form-input" placeholder="Confirm new password" required minlength="6">
                         </div>
                         <div class="setup-actions">
                             <button type="submit" class="btn-start-automation">
-                                <span>Upload Favicon</span>
+                                <span>Change Password</span>
                             </button>
                         </div>
                     </form>
-                    <div id="faviconMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+                    <div id="passwordMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
                     
                     <!-- IP Management Section -->
                     <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
-                    <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Quản lý IP</h2>
+                    <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">IP Management</h2>
                     <div id="ipManagementSection">
                         <div style="margin-bottom: 20px;">
                             <label class="form-label">Add IP to whitelist (grant permission to create more accounts):</label>
@@ -438,6 +418,12 @@
                                 <!-- IP list will be loaded here -->
                             </div>
                         </div>
+                    </div>
+                    
+                    <div style="margin-top: 32px;">
+                        <button type="button" class="btn-logout" onclick="document.getElementById('tab-admin').style.display='none'; document.getElementById('tab-setup').style.display='block'; updateFooterVisibility();">
+                            <span>Back to Setup</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1399,6 +1385,60 @@
             // Load favicon từ localStorage khi trang load (đã load ở trên)
             if (savedFavicon) {
                 updateFavicon(savedFavicon);
+            }
+            
+            // Admin Password Management
+            if (!localStorage.getItem('adminPassword')) {
+                localStorage.setItem('adminPassword', 'admin123'); // Default password
+            }
+            
+            const changePasswordForm = document.getElementById('changePasswordForm');
+            const passwordMessage = document.getElementById('passwordMessage');
+            
+            if (changePasswordForm) {
+                changePasswordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                    const savedPassword = localStorage.getItem('adminPassword');
+                    
+                    if (!currentPassword || !newPassword || !confirmNewPassword) {
+                        showPasswordMessage('Please fill in all fields!', 'error');
+                        return;
+                    }
+                    
+                    if (currentPassword !== savedPassword) {
+                        showPasswordMessage('Current password is incorrect!', 'error');
+                        return;
+                    }
+                    
+                    if (newPassword.length < 6) {
+                        showPasswordMessage('New password must be at least 6 characters!', 'error');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmNewPassword) {
+                        showPasswordMessage('New passwords do not match!', 'error');
+                        return;
+                    }
+                    
+                    localStorage.setItem('adminPassword', newPassword);
+                    showPasswordMessage('Password changed successfully!', 'success');
+                    changePasswordForm.reset();
+                });
+            }
+            
+            function showPasswordMessage(text, type) {
+                if (passwordMessage) {
+                    passwordMessage.textContent = text;
+                    passwordMessage.style.display = 'block';
+                    passwordMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                    passwordMessage.style.color = '#FFFFFF';
+                    setTimeout(() => {
+                        passwordMessage.style.display = 'none';
+                    }, 3000);
+                }
             }
             
             // IP Management Functions
