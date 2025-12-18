@@ -37,9 +37,8 @@
         <div id="tab-setup" class="tab-content" style="display: block;">
             <div class="card setup-card">
                 <div class="setup-content">
-                    <div id="mainLogoContainer" style="width:100%;text-align:center;margin-bottom:0;"></div>
                     <div class="setup-logo" id="gmailLogoContainer">
-                        <!-- Logo mặc định đã bị xóa - chỉ hiển thị logo custom nếu có upload -->
+                        <!-- Logo sẽ được load vào đây -->
                     </div>
                     <h1 class="setup-heading">Setup Task</h1>
                     <form class="setup-form" id="setupForm" onsubmit="handleSetup(event); return false;">
@@ -1498,7 +1497,7 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 
                 console.log('🔄 Đang load logo vào trang chính...');
                 
-                // Load vào Setup Task
+                // Load vào Setup Task - logo lớn (64px)
                 const logoContainer = document.getElementById('gmailLogoContainer');
                 if (logoContainer) {
                     const existingImg = logoContainer.querySelector('img');
@@ -1507,13 +1506,15 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                     }
                     const img = document.createElement('img');
                     img.src = logoData;
-                    img.style.width = '40px';
-                    img.style.height = '40px';
-                    img.style.marginRight = '12px';
+                    img.style.width = '64px';
+                    img.style.height = '64px';
                     img.style.objectFit = 'contain';
                     img.alt = 'Logo';
+                    img.style.display = 'block';
+                    img.style.marginLeft = 'auto';
+                    img.style.marginRight = 'auto';
                     logoContainer.appendChild(img);
-                    console.log('✅ Logo đã được load vào Setup Task (gmailLogoContainer)');
+                    console.log('✅ Logo đã được load vào Setup Task (gmailLogoContainer) - 64px');
                 } else {
                     console.error('❌ Không tìm thấy gmailLogoContainer');
                 }

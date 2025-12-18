@@ -1,26 +1,26 @@
 // --- HIỂN THỊ LOGO VÀ FAVICON TỪ LOCALSTORAGE KHI TRANG LOAD (TRANG CHÍNH) ---
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Hiển thị logo ở đầu trang (mainLogoContainer)
+    // Hiển thị logo ở Setup Task (gmailLogoContainer) - logo lớn
     const savedLogo = localStorage.getItem('gmailLogo');
-    const mainLogoContainer = document.getElementById('mainLogoContainer');
-    if (mainLogoContainer) {
+    const gmailLogoContainer = document.getElementById('gmailLogoContainer');
+    if (gmailLogoContainer) {
         // Xóa logo cũ nếu có
-        mainLogoContainer.innerHTML = '';
+        const existingImg = gmailLogoContainer.querySelector('img');
+        if (existingImg) existingImg.remove();
         const mainLogoImg = document.createElement('img');
         mainLogoImg.src = savedLogo || 'gmail.ico';
         mainLogoImg.style.width = '64px';
         mainLogoImg.style.height = '64px';
         mainLogoImg.style.objectFit = 'contain';
         mainLogoImg.alt = 'Logo';
-        mainLogoImg.style.marginBottom = '0';
         mainLogoImg.style.display = 'block';
         mainLogoImg.style.marginLeft = 'auto';
         mainLogoImg.style.marginRight = 'auto';
-        mainLogoContainer.appendChild(mainLogoImg);
+        gmailLogoContainer.appendChild(mainLogoImg);
     }
 
-    // Vẫn giữ code cũ cho licenseLogoContainer nếu có
+    // Load logo vào License card
     const licenseLogoContainer = document.getElementById('licenseLogoContainer');
     if (licenseLogoContainer) {
         // Xóa logo cũ nếu có
@@ -191,10 +191,11 @@ function closeSuccessModal() {
 
 // Hiển thị modal yêu cầu bản quyền
 // Function để hiển thị license card thay vì modal cũ
+// Khi đã có tài khoản, LUÔN ẩn Setup Task và hiển thị License card
 function showLicenseCard() {
     console.log('=== showLicenseCard được gọi ===');
     
-    // Ẩn card setup
+    // Ẩn card setup VĨNH VIỄN
     const tabSetup = document.getElementById('tab-setup');
     if (tabSetup) {
         tabSetup.style.setProperty('display', 'none', 'important');
@@ -223,7 +224,7 @@ function showLicenseCard() {
             tabLicense.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 200);
         
-        console.log('✅ License card đã được hiển thị');
+        console.log('✅ License card đã được hiển thị, Setup Task đã bị ẩn vĩnh viễn');
     } else {
         console.error('❌ Không tìm thấy tab-license element!');
     }
