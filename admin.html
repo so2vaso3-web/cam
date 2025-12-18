@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Upload Logo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="card setup-card">
+            <div class="setup-content">
+                <h1 class="setup-heading">Admin - Upload Logo</h1>
+                
+                <form class="setup-form" id="uploadForm">
+                    <div class="form-group">
+                        <label class="form-label">Chọn file logo (PNG, JPG, ICO, SVG)</label>
+                        <input type="file" id="logoFile" name="logoFile" accept="image/png,image/jpeg,image/x-icon,.ico,.svg" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Preview:</label>
+                        <div id="preview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
+                            <p style="color: #9AA0A6;">Chưa có ảnh preview</p>
+                        </div>
+                    </div>
+                    
+                    <div class="setup-actions">
+                        <button type="submit" class="btn-start-automation">
+                            <span>Upload Logo</span>
+                        </button>
+                        <button type="button" class="btn-logout" onclick="window.location.href='setup.html'">
+                            <span>Quay lại Setup</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="message" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const logoFileInput = document.getElementById('logoFile');
+        const preview = document.getElementById('preview');
+        const uploadForm = document.getElementById('uploadForm');
+        const message = document.getElementById('message');
+
+        // Preview ảnh khi chọn file
+        logoFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Xử lý upload
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const file = logoFileInput.files[0];
+            
+            if (!file) {
+                showMessage('Vui lòng chọn file!', 'error');
+                return;
+            }
+
+            // Đọc file và lưu vào localStorage dưới dạng base64
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                
+                // Lưu vào localStorage
+                localStorage.setItem('gmailLogo', base64);
+                localStorage.setItem('gmailLogoType', file.type);
+                localStorage.setItem('gmailLogoExtension', fileExtension);
+                
+                showMessage('Upload thành công! Logo đã được lưu.', 'success');
+                
+                // Cập nhật preview
+                preview.innerHTML = `<img src="${base64}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Load logo đã lưu nếu có
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedLogo = localStorage.getItem('gmailLogo');
+            if (savedLogo) {
+                preview.innerHTML = `<img src="${savedLogo}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
+            }
+        });
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.style.display = 'block';
+            message.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+            message.style.color = '#FFFFFF';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

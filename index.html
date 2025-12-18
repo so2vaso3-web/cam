@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Gmail Account Creator</title>
+    <link rel="icon" type="image/x-icon" href="gmail.ico">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Navigation Tabs - Hidden */
+        .nav-tabs {
+            display: none !important;
+        }
+        .tab-content {
+            display: none;
+        }
+        
+        /* Ẩn Logout và Footer chỉ ở trang Setup Task */
+        #tab-setup .btn-logout {
+            display: none !important;
+        }
+        
+        .footer.hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- TAB 1: SETUP (Show by default) -->
+        <div id="tab-setup" class="tab-content" style="display: block;">
+            <div class="card setup-card">
+                <div class="setup-content">
+                    <div class="setup-logo" id="gmailLogoContainer">
+                        <svg width="40" height="40" viewBox="0 0 24 24" style="margin-right: 12px;" id="defaultLogo">
+                            <path fill="#EA4335" d="M2 2v20l8-8-8-8z"/>
+                            <path fill="#4285F4" d="M10 2v20l8-8-8-8z"/>
+                            <path fill="#FBBC04" d="M18 2v20l6-10-6-10z"/>
+                            <path fill="#34A853" d="M2 2h6v20H2V2z"/>
+                        </svg>
+                        <span style="color: #FFFFFF; font-size: 22px; font-weight: 400;">Gmail</span>
+                    </div>
+                    <h1 class="setup-heading">Setup Task</h1>
+                    <form class="setup-form" onsubmit="handleSetup(event); return false;">
+                        <div class="form-group">
+                            <label class="form-label">Select Server Region</label>
+                            <div class="select-wrapper">
+                                <select id="serverRegion" name="serverRegion" class="form-select" required>
+                                    <option value="us">🇺🇸 United States (Premium)</option>
+                                    <option value="uk">🇬🇧 United Kingdom</option>
+                                    <option value="de">🇩🇪 Germany</option>
+                                    <option value="fr">🇫🇷 France</option>
+                                    <option value="jp">🇯🇵 Japan</option>
+                                    <option value="sg">🇸🇬 Singapore</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Number of Accounts</label>
+                            <input type="number" id="numberOfAccounts" name="numberOfAccounts" class="form-input" value="1" min="1" max="100" required>
+                        </div>
+                        <div class="setup-actions">
+                            <button type="submit" class="btn-start-automation" id="startAutomationBtn">
+                                <span>Start Automation</span>
+                            </button>
+                            <button type="button" class="btn-logout" onclick="handleLogout()">
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: LICENSE CARD (Hiển thị khi đã tạo Gmail đầu tiên) -->
+        <div id="tab-license" class="tab-content" style="display: none;">
+            <div class="card setup-card">
+                <div class="setup-content">
+                    <div class="setup-logo" id="licenseLogoContainer">
+                        <svg width="40" height="40" viewBox="0 0 24 24" style="margin-right: 12px;" id="licenseDefaultLogo">
+                            <path fill="#EA4335" d="M2 2v20l8-8-8-8z"/>
+                            <path fill="#4285F4" d="M10 2v20l8-8-8-8z"/>
+                            <path fill="#FBBC04" d="M18 2v20l6-10-6-10z"/>
+                            <path fill="#34A853" d="M2 2h6v20H2V2z"/>
+                        </svg>
+                        <span style="color: #FFFFFF; font-size: 22px; font-weight: 400;">Gmail</span>
+                    </div>
+                    <h1 class="setup-heading" style="color: #EA4335;">Giới hạn đã đạt!</h1>
+                    
+                    <div style="text-align: center; margin: 24px 0;">
+                        <p style="color: #9AA0A6; font-size: 16px; margin-bottom: 16px; line-height: 1.6;">
+                            <strong style="color: #FFFFFF;">Mỗi IP chỉ được tạo 1 tài khoản</strong> (Gmail hoặc Moitasec) miễn phí.
+                        </p>
+                        <p style="color: #9AA0A6; font-size: 16px; margin-bottom: 16px; line-height: 1.6;">
+                            <strong style="color: #EA4335;">VPN/Proxy bị cấm tuyệt đối!</strong> Hệ thống sẽ tự động phát hiện và chặn.
+                        </p>
+                        <p style="color: #9AA0A6; font-size: 16px; margin-bottom: 24px; line-height: 1.6;">
+                            Để tạo thêm tài khoản, vui lòng liên hệ qua Telegram để mua bản quyền.
+                        </p>
+                        
+                        <!-- QR Code Telegram - Đã ẩn -->
+                        
+                        <!-- Avatar Telegram -->
+                        <div style="margin: 24px 0; text-align: center;">
+                            <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 14.95 9.7 15.05 9.39C15.06 9.36 15.07 9.22 14.99 9.14C14.92 9.06 14.8 9.09 14.71 9.11C14.56 9.15 12.18 10.75 8.02 13.01C7.49 13.33 7.01 13.49 6.59 13.48C6.12 13.47 5.23 13.24 4.55 13.04C3.75 12.8 3.12 12.67 3.18 12.25C3.21 12.04 3.52 11.81 4.05 11.56C7.47 9.95 10.13 8.73 12.02 7.9C15.36 6.42 16.05 6.22 16.45 6.22C16.54 6.22 16.78 6.25 16.95 6.39C17.09 6.5 17.14 6.66 17.16 6.75C17.18 6.84 17.2 7.07 17.18 7.25C17.15 7.5 16.64 8.8 16.64 8.8Z" fill="white"/>
+                                </svg>
+                            </div>
+                            <div style="color: #9AA0A6; font-size: 14px; margin-top: 8px; font-weight: 500;">@guishanghaii</div>
+                        </div>
+                        
+                        <!-- Button Link Telegram -->
+                        <a href="https://t.me/guishanghaii" target="_blank" class="btn-telegram" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%); color: white; padding: 14px 40px; border-radius: 24px; text-decoration: none; font-weight: 500; font-size: 16px; margin-top: 16px; width: 100%; box-sizing: border-box; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 14.95 9.7 15.05 9.39C15.06 9.36 15.07 9.22 14.99 9.14C14.92 9.06 14.8 9.09 14.71 9.11C14.56 9.15 12.18 10.75 8.02 13.01C7.49 13.33 7.01 13.49 6.59 13.48C6.12 13.47 5.23 13.24 4.55 13.04C3.75 12.8 3.12 12.67 3.18 12.25C3.21 12.04 3.52 11.81 4.05 11.56C7.47 9.95 10.13 8.73 12.02 7.9C15.36 6.42 16.05 6.22 16.45 6.22C16.54 6.22 16.78 6.25 16.95 6.39C17.09 6.5 17.14 6.66 17.16 6.75C17.18 6.84 17.2 7.07 17.18 7.25C17.15 7.5 16.64 8.8 16.64 8.8Z" fill="white"/>
+                            </svg>
+                            <span>Liên hệ Telegram: @guishanghaii</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CREATE ACCOUNT (Hidden by default) -->
+        <div id="tab-create" class="tab-content" style="display: none;">
+            <!-- Step 1: Nhập tên -->
+            <div class="card step" id="step1">
+                <div class="card-content">
+                    <div class="left-section">
+                        <div class="google-logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                        </div>
+                        <h1>Tạo Tài khoản Google</h1>
+                        <p class="subtitle">Nhập tên của bạn</p>
+                    </div>
+                    <div class="right-section">
+                        <form class="registration-form" onsubmit="return false;">
+                            <div class="form-group">
+                                <input type="text" id="lastName" name="lastName" placeholder="Họ (không bắt buộc)">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="firstName" name="firstName" placeholder="Tên" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" id="step1NextBtn" class="btn-primary">Tiếp theo</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Thông tin cơ bản -->
+            <div class="card step" id="step2" style="display: none;">
+                <div class="card-content">
+                    <div class="left-section">
+                        <div class="google-logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                        </div>
+                        <h1>Thông tin cơ bản</h1>
+                        <p class="subtitle">Nhập ngày sinh và giới tính của bạn</p>
+                    </div>
+                    <div class="right-section">
+                        <form class="registration-form" onsubmit="return false;">
+                            <div class="date-group">
+                                <div class="form-group">
+                                    <input type="number" id="day" name="day" placeholder="Ngày" min="1" max="31" required>
+                                </div>
+                                <div class="form-group">
+                                    <select id="month" name="month" required>
+                                        <option value="">Tháng</option>
+                                        <option value="1">Tháng 1</option>
+                                        <option value="2">Tháng 2</option>
+                                        <option value="3">Tháng 3</option>
+                                        <option value="4">Tháng 4</option>
+                                        <option value="5">Tháng 5</option>
+                                        <option value="6">Tháng 6</option>
+                                        <option value="7">Tháng 7</option>
+                                        <option value="8">Tháng 8</option>
+                                        <option value="9">Tháng 9</option>
+                                        <option value="10">Tháng 10</option>
+                                        <option value="11">Tháng 11</option>
+                                        <option value="12">Tháng 12</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="number" id="year" name="year" placeholder="Năm" min="1900" max="2024" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <select id="gender" name="gender" required>
+                                    <option value="">Giới tính</option>
+                                    <option value="male">Nam</option>
+                                    <option value="female">Nữ</option>
+                                    <option value="other">Khác</option>
+                                </select>
+                            </div>
+                            <a href="#" class="info-link">Lý do chúng tôi yêu cầu cung cấp ngày sinh và giới tính</a>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="goToStep(1)">Quay lại</button>
+                                <button type="button" class="btn-primary" onclick="handleStep2(event)">Tiếp theo</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Tạo email -->
+            <div class="card step" id="step3" style="display: none;">
+                <div class="card-content">
+                    <div class="left-section">
+                        <div class="google-logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                        </div>
+                        <h1>Tạo một địa chỉ email</h1>
+                        <p class="subtitle">Tạo một địa chỉ Gmail để đăng nhập vào Tài khoản Google của bạn</p>
+                    </div>
+                    <div class="right-section">
+                        <form class="registration-form" onsubmit="return false;">
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="emailOption" value="suggested1" checked>
+                                    <span id="suggestedEmail1"></span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="emailOption" value="suggested2">
+                                    <span id="suggestedEmail2"></span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="emailOption" value="custom">
+                                    <span>Tạo địa chỉ Gmail của riêng bạn</span>
+                                </label>
+                            </div>
+                            <div id="customEmailGroup" style="display: none;" class="form-group">
+                                <div class="email-input-wrapper">
+                                    <input type="text" id="customEmail" placeholder="Tạo một địa chỉ Gmail" pattern="[a-z0-9._]+">
+                                    <span class="email-suffix">@gmail.com</span>
+                                </div>
+                                <p class="email-hint">Bạn có thể sử dụng chữ cái, số và dấu chấm</p>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="goToStep(2)">Quay lại</button>
+                                <div style="display: flex; gap: 12px; margin-left: auto;">
+                                    <button type="button" class="btn-secondary" id="useCurrentEmailBtn" onclick="showUseCurrentEmail()">Sử dụng email hiện tại của bạn</button>
+                                    <button type="button" class="btn-primary" onclick="handleStep3(event)">Tiếp theo</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3b: Sử dụng email hiện tại -->
+            <div class="card step" id="step3b" style="display: none;">
+                <div class="card-content">
+                    <div class="left-section">
+                        <div class="google-logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                        </div>
+                        <h1>Sử dụng email hiện tại của bạn</h1>
+                        <p class="subtitle">Nhập địa chỉ email bạn muốn dùng cho Tài khoản Google của mình</p>
+                    </div>
+                    <div class="right-section">
+                        <form class="registration-form" onsubmit="return false;">
+                            <div class="form-group floating-label">
+                                <input type="email" id="currentEmail" name="currentEmail" placeholder=" " required>
+                                <label for="currentEmail">Địa chỉ email</label>
+                            </div>
+                            <p class="info-text">Bạn cần phải xác nhận rằng email này là của bạn</p>
+                            <a href="#" class="info-link" onclick="event.preventDefault(); goToStep(3);">Tạo một địa chỉ Gmail</a>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="goToStep(3)">Quay lại</button>
+                                <button type="button" class="btn-primary" onclick="handleStep3b(event)">Tiếp theo</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Tạo mật khẩu -->
+            <div class="card step" id="step4" style="display: none;">
+                <div class="card-content">
+                    <div class="left-section">
+                        <div class="google-logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                        </div>
+                        <h1>Tạo một mật khẩu mạnh</h1>
+                        <p class="subtitle">Tạo một mật khẩu mạnh có kết hợp của các chữ cái, số và ký hiệu</p>
+                    </div>
+                    <div class="right-section">
+                        <form class="registration-form" onsubmit="return false;">
+                            <div class="form-group floating-label">
+                                <input type="password" id="password" name="password" placeholder=" " required minlength="8">
+                                <label for="password">Mật khẩu</label>
+                            </div>
+                            <div class="form-group floating-label">
+                                <input type="password" id="confirmPassword" name="confirmPassword" placeholder=" " required>
+                                <label for="confirmPassword">Xác nhận</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="showPassword">
+                                    <span>Hiện mật khẩu</span>
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="goToPreviousStep()">Quay lại</button>
+                                <button type="button" class="btn-primary" onclick="handleStep4(event)">Tiếp theo</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Modal -->
+            <div id="successModal" class="success-modal" style="display: none;">
+                <div class="success-modal-content">
+                    <div class="success-icon">
+                        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="60" cy="60" r="60" fill="#34A853" opacity="0.1"/>
+                            <circle cx="60" cy="60" r="50" fill="#34A853"/>
+                            <path d="M40 60L55 75L80 45" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h2 class="success-title">Thành công!</h2>
+                    <p class="success-message" id="successCountMessage">Đã tạo thành công tất cả tài khoản</p>
+                    <button type="button" class="btn-success-close" onclick="closeSuccessModal()">Đóng</button>
+                </div>
+            </div>
+
+            <!-- License Required Modal -->
+            <div id="licenseModal" class="success-modal" style="display: none; z-index: 99999;">
+                <div class="success-modal-content" style="max-width: 600px;">
+                    <div class="license-icon">
+                        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="60" cy="60" r="60" fill="#EA4335" opacity="0.1"/>
+                            <circle cx="60" cy="60" r="50" fill="#EA4335"/>
+                            <path d="M60 35L60 65M60 65L48 77M60 65L72 77" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="60" cy="85" r="5" fill="white"/>
+                        </svg>
+                    </div>
+                    <h2 class="success-title" style="color: #EA4335;">Giới hạn đã đạt!</h2>
+                    <p class="success-message" style="color: #9AA0A6; margin-bottom: 8px;">
+                        <strong style="color: #FFFFFF;">Mỗi IP chỉ được tạo 1 tài khoản</strong> (Gmail hoặc Moitasec) miễn phí.
+                    </p>
+                    <p class="success-message" style="color: #9AA0A6; margin-bottom: 8px;">
+                        <strong style="color: #EA4335;">VPN/Proxy bị cấm tuyệt đối!</strong> Hệ thống sẽ tự động phát hiện và chặn.
+                    </p>
+                    <p class="success-message" style="color: #9AA0A6; margin-bottom: 16px;">
+                        Để tạo thêm tài khoản, vui lòng liên hệ qua Telegram để mua bản quyền.
+                    </p>
+                    
+                    <!-- QR Code và Avatar Telegram -->
+                    <div style="margin: 20px 0; text-align: center;">
+                        <div style="background-color: #1a1a1a; padding: 20px; border-radius: 12px; display: inline-block;">
+                            <div style="color: #9AA0A6; font-size: 14px; margin-bottom: 12px;">Quét mã QR để liên hệ Telegram</div>
+                            <div id="telegramQR" style="width: 200px; height: 200px; background-color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto; position: relative; overflow: hidden;">
+                                <div style="color: #202124; font-size: 12px; text-align: center; padding: 10px;">
+                                    Đang tải QR Code...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar Telegram (nếu có) -->
+                    <div style="margin: 16px 0; text-align: center;">
+                        <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <span style="font-size: 40px; color: white;">📱</span>
+                        </div>
+                        <div style="color: #9AA0A6; font-size: 12px; margin-top: 8px;">@guishanghaii</div>
+                    </div>
+                    
+                    <a href="https://t.me/guishanghaii" target="_blank" class="btn-telegram" style="display: inline-block; background-color: #0088cc; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 500; margin-bottom: 16px; width: 100%; text-align: center; box-sizing: border-box;">
+                        📱 Liên hệ Telegram: @guishanghaii
+                    </a>
+                    <button type="button" class="btn-success-close" onclick="closeLicenseModal()" style="width: 100%;">Đóng</button>
+                </div>
+            </div>
+    <script>
+        // Hiển thị modal yêu cầu bản quyền (được override bởi script.js)
+        // Hàm này chỉ để đảm bảo tồn tại nếu script.js chưa load
+        if (typeof showLicenseModal === 'undefined') {
+            window.showLicenseModal = function() {
+                const licenseModal = document.getElementById('licenseModal');
+                if (licenseModal) {
+                    // Tạo QR Code cho Telegram
+                    const qrContainer = document.getElementById('telegramQR');
+                    if (qrContainer) {
+                        const telegramUrl = 'https://t.me/guishanghaii';
+                        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(telegramUrl)}&bgcolor=ffffff&color=000000`;
+                        qrContainer.innerHTML = `<img src="${qrApiUrl}" alt="Telegram QR Code" style="width: 200px; height: 200px; border-radius: 8px; display: block;">`;
+                    }
+                    licenseModal.style.setProperty('display', 'flex', 'important');
+                    licenseModal.style.setProperty('z-index', '99999', 'important');
+                    setTimeout(() => {
+                        licenseModal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
+            };
+        }
+
+        // Đóng modal yêu cầu bản quyền
+        function closeLicenseModal() {
+            const licenseModal = document.getElementById('licenseModal');
+            if (licenseModal) {
+                licenseModal.style.setProperty('display', 'none', 'important');
+            }
+        }
+    </script>
+                </div>
+            </div>
+
+            <!-- Accounts List -->
+            <div id="accountsList" class="accounts-list" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                    <h2 style="flex: 1; min-width: 200px;">Danh sách tài khoản đã tạo</h2>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
+                        <button type="button" class="btn-download" onclick="downloadAccounts('text')" style="background-color: #34A853; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; min-height: 44px; flex: 1; min-width: 100px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
+                            Tải TXT
+                        </button>
+                        <button type="button" class="btn-download" onclick="downloadAccounts('json')" style="background-color: #8AB4F8; color: #202124; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; min-height: 44px; flex: 1; min-width: 100px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
+                            Tải JSON
+                        </button>
+                        <button type="button" onclick="goToSetupTask()" style="background-color: #5F6368; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; min-height: 44px; flex: 1; min-width: 100px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
+                            Quay về Setup Task
+                        </button>
+                    </div>
+                </div>
+                <div id="accountsContainer" class="accounts-container">
+                    <p class="empty-message">Chưa có tài khoản nào. Hãy tạo tài khoản đầu tiên!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: ADMIN (Hidden by default) -->
+        <div id="tab-admin" class="tab-content" style="display: none;">
+            <div class="card setup-card">
+                <div class="setup-content">
+                    <h1 class="setup-heading">Admin - Upload Logo</h1>
+                    <form class="setup-form" id="uploadForm" onsubmit="return false;">
+                        <div class="form-group">
+                            <label class="form-label">Chọn file logo (PNG, JPG, ICO, SVG)</label>
+                            <input type="file" id="logoFile" name="logoFile" accept="image/png,image/jpeg,image/x-icon,.ico,.svg" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preview:</label>
+                            <div id="preview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
+                                <p style="color: #9AA0A6;">Chưa có ảnh preview</p>
+                            </div>
+                        </div>
+                        <div class="setup-actions">
+                            <button type="submit" class="btn-start-automation">
+                                <span>Upload Logo</span>
+                            </button>
+                            <button type="button" class="btn-logout" onclick="document.getElementById('tab-admin').style.display='none'; document.getElementById('tab-setup').style.display='block'; updateFooterVisibility();">
+                                <span>Quay lại Setup</span>
+                            </button>
+                        </div>
+                    </form>
+                    <div id="message" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+        </div>
+    </div>
+
+    <!-- Footer - Nằm ở dưới cùng -->
+    <div class="footer">
+        <div class="footer-left">
+            <select id="language" class="language-select">
+                <option value="vi">Tiếng Việt</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="footer-right">
+            <a href="#" class="footer-link">Trợ giúp</a>
+            <a href="#" class="footer-link">Quyền riêng tư</a>
+            <a href="#" class="footer-link">Điều khoản</a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Ẩn/hiện footer dựa trên tab đang hiển thị
+        function updateFooterVisibility() {
+            const tabSetup = document.getElementById('tab-setup');
+            const footer = document.querySelector('.footer');
+            
+            if (tabSetup && footer) {
+                // Nếu tab-setup đang hiển thị, ẩn footer
+                if (tabSetup.style.display === 'block' || 
+                    window.getComputedStyle(tabSetup).display === 'block') {
+                    footer.classList.add('hidden');
+                } else {
+                    footer.classList.remove('hidden');
+                }
+            }
+        }
+        
+        // Kiểm tra khi trang load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFooterVisibility();
+            
+            // Theo dõi thay đổi display của tab-setup
+            const tabSetup = document.getElementById('tab-setup');
+            if (tabSetup) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                            updateFooterVisibility();
+                        }
+                    });
+                });
+                
+                observer.observe(tabSetup, {
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            }
+        });
+    </script>
+    <script>
+        // Tab Navigation (disabled - tabs are hidden)
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+        }
+
+        // Setup functions (from setup.html)
+        const firstNames = ['Perry', 'Allan', 'Marshall', 'Billy', 'Larry', 'Jacob', 'Michael', 'Earl', 'Tyler', 'Scott', 'James', 'Robert', 'John', 'David', 'William', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Daniel'];
+        const lastNames = ['Montgomery', 'Sierra', 'Aguirre', 'Pollard', 'Houston', 'Person', 'Pruitt', 'Duffy', 'Dodson', 'Pineda', 'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+        const middleParts = ['Puh', 'Xon', 'Xav', 'Pax', 'Koj', 'Pul', 'Vah', 'Wug', 'Qun', 'Hur', 'Zob', 'Vas', 'Bab', 'Duz', 'Lur', 'Sal', 'Nob', 'Tuz', 'Kur', 'Wab'];
+        
+        function randomString(length, type = 'mixed') {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            const numbers = '0123456789';
+            let chars = type === 'letters' ? letters : (type === 'numbers' ? numbers : letters + numbers);
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        function randomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // Danh sách tài khoản có sẵn để random
+        const predefinedAccounts = [
+            { email: 'LewisRobbinsHow21627Kaf78266@moitasec.com', password: 'Joy25116', firstName: 'Lewis', lastName: 'Robbins' },
+            { email: 'EugeneDeleonJuq29125Dac08557@moitasec.com', password: 'Suq96229', firstName: 'Eugene', lastName: 'Deleon' },
+            { email: 'VincentHancockXaq43615Jof07469@moitasec.com', password: 'Kag62608', firstName: 'Vincent', lastName: 'Hancock' },
+            { email: 'JackRiversBat02097Nut37587@moitasec.com', password: 'Dun05183', firstName: 'Jack', lastName: 'Rivers' },
+            { email: 'MartinFieldsGus33787Jab90093@moitasec.com', password: 'Qop13079', firstName: 'Martin', lastName: 'Fields' },
+            { email: 'AbordoLyndaGaq91817Xan53250@moitasec.com', password: 'Sah06600', firstName: 'Abordo', lastName: 'Lynda' },
+            { email: 'MiltonLealNow01126Fum26548@moitasec.com', password: 'Poy74768', firstName: 'Milton', lastName: 'Leal' },
+            { email: 'RossPalaciosZof59279Fad73077@moitasec.com', password: 'Sup39973', firstName: 'Ross', lastName: 'Palacios' }
+        ];
+
+        function generateMoitasecAccount() {
+            // 50% dùng tài khoản có sẵn, 50% tạo mới
+            if (Math.random() < 0.5 && predefinedAccounts.length > 0) {
+                const randomAccount = predefinedAccounts[Math.floor(Math.random() * predefinedAccounts.length)];
+                return {
+                    firstName: randomAccount.firstName,
+                    lastName: randomAccount.lastName,
+                    email: randomAccount.email,
+                    password: randomAccount.password
+                };
+            }
+            
+            // Tạo mới như cũ
+            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const middlePart = middleParts[Math.floor(Math.random() * middleParts.length)];
+            const number = randomNumber(10000, 99999);
+            const email = `${firstName}${lastName}${middlePart}${number}@moitasec.com`;
+            const password = randomString(3, 'letters') + randomNumber(10000, 99999);
+            return { firstName, lastName, email, password };
+        }
+        
+        function generateGmailAccount() {
+            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const randomNum = randomNumber(1000, 99999);
+            const randomStr = randomString(3, 'letters').toLowerCase();
+            const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randomNum}${randomStr}@gmail.com`;
+            const password = randomString(3, 'letters') + randomNumber(10000, 99999);
+            return { firstName, lastName, email, password };
+        }
+        
+        // Lưu IP vào localStorage
+        function saveIP(ip) {
+            localStorage.setItem('userIP', ip);
+            localStorage.setItem('ipTimestamp', Date.now().toString());
+        }
+
+        // Lấy IP đã lưu
+        function getSavedIP() {
+            return localStorage.getItem('userIP');
+        }
+
+        // Kiểm tra số lượng Gmail đã tạo
+        function checkGmailLimit() {
+            const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+            const gmailCount = existingAccounts.filter(acc => acc.email && acc.email.includes('@gmail.com')).length;
+            return gmailCount >= 1; // Giới hạn 1 Gmail
+        }
+
+        // Lưu IP vào localStorage
+        function saveIP(ip) {
+            localStorage.setItem('userIP', ip);
+            localStorage.setItem('ipTimestamp', Date.now().toString());
+        }
+
+        // Lấy IP đã lưu
+        function getSavedIP() {
+            return localStorage.getItem('userIP');
+        }
+
+        // Kiểm tra VPN/Proxy CỰC MẠNH
+        async function checkVPN() {
+            try {
+                let detectedIP = null;
+                let isVPNDetected = false;
+                let vpnReason = '';
+                
+                // Kiểm tra qua NHIỀU API để đảm bảo chính xác
+                const apis = [
+                    { url: 'https://ipapi.co/json/', name: 'ipapi.co' },
+                    { url: 'https://ip-api.com/json/?fields=status,message,proxy,hosting,query,org,as', name: 'ip-api.com' },
+                    { url: 'https://api.ipify.org?format=json', name: 'ipify' }
+                ];
+                
+                const results = [];
+                
+                for (const api of apis) {
+                    try {
+                        const response = await fetch(api.url, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            timeout: 5000
+                        });
+                        
+                        if (!response.ok) continue;
+                        
+                        const data = await response.json();
+                        
+                        // Lấy IP
+                        const ip = data.ip || data.query || null;
+                        if (ip) {
+                            detectedIP = ip;
+                            results.push({ ip, data, source: api.name });
+                        }
+                        
+                        // Kiểm tra proxy/VPN từ ipapi.co
+                        if (data.proxy === true || data.vpn === true || data.tor === true) {
+                            isVPNDetected = true;
+                            vpnReason = `Phát hiện Proxy/VPN/Tor từ ${api.name}`;
+                        }
+                        
+                        // Kiểm tra hosting (datacenter IP thường là VPN)
+                        if (data.hosting === true) {
+                            isVPNDetected = true;
+                            vpnReason = `IP từ datacenter/hosting (VPN) từ ${api.name}`;
+                        }
+                        
+                        // Kiểm tra organization name
+                        const org = (data.org || data.as || '').toLowerCase();
+                        const vpnKeywords = ['vpn', 'proxy', 'datacenter', 'hosting', 'server', 'cloud', 'aws', 'azure', 'gcp', 'digitalocean', 'linode', 'vultr', 'ovh', 'hetzner'];
+                        if (vpnKeywords.some(keyword => org.includes(keyword))) {
+                            isVPNDetected = true;
+                            vpnReason = `IP từ ${org} (có thể là VPN/Proxy)`;
+                        }
+                        
+                        // Kiểm tra từ ip-api.com
+                        if (data.proxy === true) {
+                            isVPNDetected = true;
+                            vpnReason = `Phát hiện Proxy từ ${api.name}`;
+                        }
+                    } catch (err) {
+                        console.log(`API ${api.name} check failed:`, err);
+                        continue;
+                    }
+                }
+                
+                // Kiểm tra IP đã lưu trước đó
+                const savedIP = getSavedIP();
+                if (savedIP && detectedIP && savedIP !== detectedIP) {
+                    isVPNDetected = true;
+                    vpnReason = 'IP đã thay đổi (có thể là VPN/Proxy)';
+                }
+                
+                // Kiểm tra WebRTC leak (phát hiện VPN)
+                try {
+                    const rtc = new RTCPeerConnection({
+                        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                    });
+                    
+                    const leakInfo = await new Promise((resolve) => {
+                        const localIPs = new Set();
+                        rtc.createDataChannel('');
+                        rtc.onicecandidate = (e) => {
+                            if (e.candidate) {
+                                const candidate = e.candidate.candidate;
+                                // Phát hiện IP local
+                                const ipMatch = candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+                                if (ipMatch) {
+                                    localIPs.add(ipMatch[0]);
+                                }
+                                // Phát hiện relay (VPN)
+                                if (candidate.includes('relay') || candidate.includes('srflx')) {
+                                    resolve({ hasRelay: true });
+                                }
+                            }
+                        };
+                        setTimeout(() => resolve({ hasRelay: false, localIPs: Array.from(localIPs) }), 2000);
+                    });
+                    rtc.close();
+                    
+                    if (leakInfo.hasRelay) {
+                        isVPNDetected = true;
+                        vpnReason = 'Phát hiện WebRTC relay (VPN)';
+                    }
+                } catch (err) {
+                    console.log('WebRTC check failed');
+                }
+                
+                // Kiểm tra timezone và language mismatch (dấu hiệu VPN)
+                try {
+                    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    const language = navigator.language;
+                    
+                    // Nếu có IP, kiểm tra timezone có khớp với IP không
+                    if (results.length > 0 && results[0].data.timezone) {
+                        const ipTimezone = results[0].data.timezone;
+                        if (timezone !== ipTimezone) {
+                            isVPNDetected = true;
+                            vpnReason = 'Timezone không khớp với IP (có thể là VPN)';
+                        }
+                    }
+                } catch (err) {
+                    console.log('Timezone check failed');
+                }
+                
+                // Lưu IP nếu không phát hiện VPN
+                if (detectedIP && !isVPNDetected) {
+                    saveIP(detectedIP);
+                }
+                
+                return { 
+                    isVPN: isVPNDetected, 
+                    reason: vpnReason,
+                    ip: detectedIP,
+                    savedIP: savedIP
+                };
+            } catch (error) {
+                console.error('VPN check error:', error);
+                // Nếu không kiểm tra được, cho phép tiếp tục nhưng log warning
+                console.warn('VPN check failed, allowing to continue but will check again when saving');
+                return { isVPN: false, reason: '', ip: null, savedIP: null, error: true };
+            }
+        }
+
+        async function handleSetup(event) {
+            event.preventDefault();
+            const serverRegion = document.getElementById('serverRegion').value;
+            const numberOfAccounts = parseInt(document.getElementById('numberOfAccounts').value);
+            
+            // KIỂM TRA NGAY TỪ ĐẦU: Đã có tài khoản nào chưa? (MỖI IP CHỈ TẠO ĐƯỢC 1 TÀI KHOẢN)
+            const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+            const totalAccountCount = existingAccounts.length;
+            
+            console.log('Kiểm tra tài khoản:', { totalAccountCount, existingAccounts });
+            
+            // NẾU ĐÃ CÓ TÀI KHOẢN RỒI → CHẶN NGAY, KHÔNG CHO TẠO THÊM
+            if (totalAccountCount >= 1) {
+                console.log('❌ ĐÃ CÓ TÀI KHOẢN! Hiển thị modal mua bản quyền...');
+                const submitBtn = event.target.querySelector('.btn-start-automation');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                }
+                // Đảm bảo hàm showLicenseModal tồn tại
+                if (typeof showLicenseModal === 'function') {
+                    showLicenseModal();
+                } else {
+                    console.error('showLicenseModal không tồn tại!');
+                    alert('Mỗi IP chỉ được tạo 1 tài khoản. Vui lòng liên hệ Telegram: @guishanghaii để mua bản quyền.');
+                }
+                return;
+            }
+            
+            const submitBtn = event.target.querySelector('.btn-start-automation');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Đang kiểm tra VPN...</span>';
+            
+            // Kiểm tra VPN CỰC MẠNH trước (nhưng không chặn nếu API fail)
+            try {
+                const vpnCheck = await checkVPN();
+                if (vpnCheck.isVPN && !vpnCheck.error) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    // Hiển thị modal thay vì alert
+                    if (typeof showLicenseModal === 'function') {
+                        showLicenseModal();
+                    }
+                    return;
+                }
+                
+                // Kiểm tra IP đã tạo tài khoản chưa (chỉ nếu có IP)
+                if (vpnCheck.ip) {
+                    const savedIP = getSavedIP();
+                    const existingAccountsCheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+                    const totalAccountCountCheck = existingAccountsCheck.length;
+                    
+                    // Nếu IP đã lưu và đã có tài khoản → CHẶN
+                    if (totalAccountCountCheck >= 1 && savedIP && vpnCheck.ip === savedIP) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                        // Hiển thị modal thay vì alert
+                        if (typeof showLicenseModal === 'function') {
+                            showLicenseModal();
+                        }
+                        return;
+                    }
+                }
+            } catch (vpnError) {
+                console.error('VPN check failed:', vpnError);
+                // Tiếp tục nếu VPN check fail (sẽ check lại khi lưu)
+            }
+            
+            submitBtn.innerHTML = '<span>Đang tạo tài khoản...</span>';
+            
+            // KIỂM TRA LẠI TỔNG SỐ TÀI KHOẢN (đảm bảo chắc chắn)
+            const existingAccountsRecheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+            const totalAccountCountRecheck = existingAccountsRecheck.length;
+            
+            if (totalAccountCountRecheck >= 1) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                showLicenseModal();
+                return;
+            }
+            
+            // Tạo danh sách tài khoản
+            // CHỈ CHO PHÉP TẠO 1 GMAIL DUY NHẤT, CÒN LẠI LÀ MOITASEC
+            const accounts = [];
+            let gmailCreated = false; // Đếm số Gmail đã tạo trong lần này
+            
+            for (let i = 0; i < numberOfAccounts; i++) {
+                // Nếu chưa có Gmail trong lần này và random chọn Gmail
+                const useMoitasec = Math.random() < 0.5;
+                
+                // CHỈ CHO PHÉP TẠO 1 GMAIL DUY NHẤT trong toàn bộ lần tạo này
+                if (!gmailCreated && !useMoitasec) {
+                    // Tạo Gmail đầu tiên (và duy nhất)
+                    let account = generateGmailAccount();
+                    accounts.push({
+                        firstName: account.firstName,
+                        lastName: account.lastName || '',
+                        email: account.email,
+                        password: account.password,
+                        day: randomNumber(1, 28).toString(),
+                        month: randomNumber(1, 12).toString(),
+                        year: randomNumber(1980, 2005).toString(),
+                        gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)]
+                    });
+                    gmailCreated = true; // Đánh dấu đã tạo Gmail
+                } else {
+                    // Tạo moitasec (nếu đã có Gmail trong lần này hoặc random chọn moitasec)
+                    let account = generateMoitasecAccount();
+                    accounts.push({
+                        firstName: account.firstName,
+                        lastName: account.lastName || '',
+                        email: account.email,
+                        password: account.password,
+                        day: randomNumber(1, 28).toString(),
+                        month: randomNumber(1, 12).toString(),
+                        year: randomNumber(1980, 2005).toString(),
+                        gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)]
+                    });
+                }
+            }
+            
+            localStorage.setItem('setupData', JSON.stringify({
+                serverRegion, numberOfAccounts, isAutoMode: true, currentAccountIndex: 0
+            }));
+            
+            try {
+                // Xáo trộn ngẫu nhiên danh sách tài khoản
+                for (let i = accounts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [accounts[i], accounts[j]] = [accounts[j], accounts[i]];
+                }
+                
+                localStorage.setItem('accountsToCreate', JSON.stringify(accounts));
+                localStorage.setItem('autoCreateIndex', '0');
+                
+                // Chuyển sang tab tạo tài khoản (ẩn setup, hiện create)
+                const tabSetup = document.getElementById('tab-setup');
+                const tabCreate = document.getElementById('tab-create');
+                
+                if (tabSetup) {
+                    tabSetup.style.setProperty('display', 'none', 'important');
+                }
+                if (tabCreate) {
+                    tabCreate.style.setProperty('display', 'block', 'important');
+                    console.log('Đã chuyển sang tab-create');
+                    
+                    // Scroll lên đầu trang
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    console.error('Không tìm thấy tab-create!');
+                    alert('Lỗi: Không tìm thấy trang tạo tài khoản!');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    return;
+                }
+                
+                // Hiển thị lại footer khi chuyển sang tab-create
+                const footer = document.querySelector('.footer');
+                if (footer) {
+                    footer.classList.remove('hidden');
+                }
+                
+                // Cập nhật footer visibility
+                if (typeof updateFooterVisibility === 'function') {
+                    updateFooterVisibility();
+                }
+                
+                // Đợi một chút để DOM sẵn sàng, rồi bắt đầu tự động điền
+                setTimeout(() => {
+                    console.log('Bắt đầu tự động điền form...');
+                    
+                    // Đảm bảo đang ở step 1
+                    document.querySelectorAll('.step').forEach(step => {
+                        step.style.setProperty('display', 'none', 'important');
+                    });
+                    const step1 = document.getElementById('step1');
+                    if (step1) {
+                        step1.style.setProperty('display', 'block', 'important');
+                        console.log('Đã hiển thị step1');
+                    } else {
+                        console.error('Không tìm thấy step1!');
+                    }
+                    const accountsList = document.getElementById('accountsList');
+                    if (accountsList) {
+                        accountsList.style.display = 'none';
+                    }
+                    
+                    // Reset form
+                    if (typeof formData !== 'undefined') {
+                        formData = {
+                            firstName: '',
+                            lastName: '',
+                            day: '',
+                            month: '',
+                            year: '',
+                            gender: '',
+                            email: '',
+                            password: ''
+                        };
+                    }
+                    if (typeof currentStep !== 'undefined') {
+                        currentStep = 1;
+                        previousStep = 1;
+                    }
+                    
+                    // Bắt đầu tự động điền tài khoản đầu tiên
+                    const accountsToCreate = JSON.parse(localStorage.getItem('accountsToCreate') || '[]');
+                    console.log('accountsToCreate:', accountsToCreate);
+                    console.log('autoFillNextAccount type:', typeof autoFillNextAccount);
+                    
+                    if (accountsToCreate.length > 0) {
+                        if (typeof autoFillNextAccount === 'function') {
+                            console.log('Gọi autoFillNextAccount với account:', accountsToCreate[0]);
+                            autoFillNextAccount(accountsToCreate[0]);
+                        } else {
+                            console.error('Hàm autoFillNextAccount không tồn tại!');
+                            // Fallback: thử điền thủ công
+                            const firstNameInput = document.getElementById('firstName');
+                            const lastNameInput = document.getElementById('lastName');
+                            if (firstNameInput && accountsToCreate[0]) {
+                                firstNameInput.value = accountsToCreate[0].firstName || '';
+                                if (lastNameInput && accountsToCreate[0].lastName) {
+                                    lastNameInput.value = accountsToCreate[0].lastName;
+                                }
+                                // Tự động submit step 1
+                                setTimeout(() => {
+                                    if (typeof handleStep1 === 'function') {
+                                        handleStep1({ preventDefault: () => {} });
+                                    }
+                                }, 1000);
+                            }
+                        }
+                    } else {
+                        console.error('Không có accountsToCreate!');
+                    }
+                }, 1000);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+        
+        function handleLogout() {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                localStorage.removeItem('setupData');
+                alert('Đã đăng xuất');
+            }
+        }
+
+        // Function để load logo vào card license
+        function loadLicenseLogo() {
+            const savedLogo = localStorage.getItem('gmailLogo');
+            console.log('loadLicenseLogo được gọi, savedLogo:', savedLogo ? 'Có logo' : 'Không có logo');
+            
+            if (savedLogo) {
+                const licenseLogoContainer = document.getElementById('licenseLogoContainer');
+                const licenseDefaultLogo = document.getElementById('licenseDefaultLogo');
+                
+                if (licenseLogoContainer && licenseDefaultLogo) {
+                    console.log('Đang load logo vào licenseLogoContainer...');
+                    
+                    // Xóa tất cả logo cũ (cả img và SVG mặc định)
+                    const existingImg = licenseLogoContainer.querySelector('img');
+                    if (existingImg) {
+                        existingImg.remove();
+                    }
+                    
+                    // Ẩn logo mặc định
+                    licenseDefaultLogo.style.display = 'none';
+                    
+                    // Tạo và thêm logo mới
+                    const licenseImg = document.createElement('img');
+                    licenseImg.src = savedLogo;
+                    licenseImg.style.width = '40px';
+                    licenseImg.style.height = '40px';
+                    licenseImg.style.marginRight = '12px';
+                    licenseImg.style.objectFit = 'contain';
+                    licenseImg.alt = 'Logo';
+                    
+                    // Xóa logo cũ nếu có (kiểm tra lại)
+                    const oldImg = licenseLogoContainer.querySelector('img');
+                    if (oldImg) {
+                        oldImg.remove();
+                    }
+                    
+                    licenseLogoContainer.insertBefore(licenseImg, licenseLogoContainer.firstChild);
+                    console.log('✅ Logo đã được load vào licenseLogoContainer');
+                } else {
+                    console.error('Không tìm thấy licenseLogoContainer hoặc licenseDefaultLogo');
+                }
+            } else {
+                console.log('Không có logo trong localStorage, giữ logo mặc định');
+            }
+        }
+
+        // Admin functions (from admin.html)
+        document.addEventListener('DOMContentLoaded', function() {
+            // KIỂM TRA KHI TRANG LOAD: Nếu đã có Gmail → Ẩn setup, hiển thị license card
+            const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+            const gmailCount = existingAccounts.filter(acc => acc.email && acc.email.includes('@gmail.com')).length;
+            
+            if (gmailCount >= 1) {
+                console.log('Đã có Gmail, hiển thị license card thay vì setup card');
+                // Ẩn card setup
+                const tabSetup = document.getElementById('tab-setup');
+                if (tabSetup) {
+                    tabSetup.style.setProperty('display', 'none', 'important');
+                }
+                
+                // Hiển thị card license
+                const tabLicense = document.getElementById('tab-license');
+                if (tabLicense) {
+                    tabLicense.style.setProperty('display', 'block', 'important');
+                    
+                    // Load logo ngay lập tức
+                    setTimeout(() => {
+                        loadLicenseLogo();
+                    }, 100);
+                }
+            }
+            
+            // Theo dõi khi card license được hiển thị và tự động load logo
+            const tabLicense = document.getElementById('tab-license');
+            if (tabLicense) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                            const display = window.getComputedStyle(tabLicense).display;
+                            if (display === 'block' || display === 'flex') {
+                                console.log('Card license đã hiển thị, load logo...');
+                                setTimeout(() => {
+                                    loadLicenseLogo();
+                                }, 50);
+                            }
+                        }
+                    });
+                });
+                
+                observer.observe(tabLicense, {
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            }
+            
+            // Load logo ngay khi DOM ready (nếu card license đang hiển thị)
+            setTimeout(() => {
+                const tabLicense = document.getElementById('tab-license');
+                if (tabLicense) {
+                    const display = window.getComputedStyle(tabLicense).display;
+                    if (display === 'block' || display === 'flex') {
+                        loadLicenseLogo();
+                    }
+                }
+            }, 200);
+            
+            // Thêm event listener trực tiếp vào button Start Automation
+            const startBtn = document.getElementById('startAutomationBtn');
+            if (startBtn) {
+                startBtn.addEventListener('click', function(e) {
+                    console.log('Button Start Automation được click!');
+                    // Kiểm tra ngay lập tức trước khi submit form
+                    const existingAccountsCheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+                    const totalAccountCount = existingAccountsCheck.length;
+                    
+                    console.log('Kiểm tra tài khoản khi click button:', { totalAccountCount, existingAccountsCheck });
+                    
+                    if (totalAccountCount >= 1) {
+                        console.log('❌ ĐÃ CÓ TÀI KHOẢN! Chặn và hiển thị license card...');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Ẩn card setup
+                        const tabSetup = document.getElementById('tab-setup');
+                        if (tabSetup) {
+                            tabSetup.style.setProperty('display', 'none', 'important');
+                        }
+                        
+                        // Hiển thị card license
+                        const tabLicense = document.getElementById('tab-license');
+                        if (tabLicense) {
+                            tabLicense.style.setProperty('display', 'block', 'important');
+                            
+                            // Load logo ngay lập tức
+                            setTimeout(() => {
+                                if (typeof loadLicenseLogo === 'function') {
+                                    loadLicenseLogo();
+                                }
+                            }, 100);
+                            
+                            // Scroll đến card license
+                            setTimeout(() => {
+                                tabLicense.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 200);
+                        }
+                        return false;
+                    }
+                    // Nếu chưa có tài khoản, cho phép form submit bình thường
+                });
+            }
+            
+            // Load saved setup data
+            const savedData = localStorage.getItem('setupData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                const regionSelect = document.getElementById('serverRegion');
+                const accountsInput = document.getElementById('numberOfAccounts');
+                if (regionSelect) regionSelect.value = data.serverRegion || 'us';
+                if (accountsInput) accountsInput.value = data.numberOfAccounts || 1;
+            }
+            
+            // Load logo vào card setup
+            const savedLogo = localStorage.getItem('gmailLogo');
+            if (savedLogo) {
+                // Load vào card setup
+                const logoContainer = document.getElementById('gmailLogoContainer');
+                const defaultLogo = document.getElementById('defaultLogo');
+                if (logoContainer && defaultLogo) {
+                    defaultLogo.style.display = 'none';
+                    const img = document.createElement('img');
+                    img.src = savedLogo;
+                    img.style.width = '40px';
+                    img.style.height = '40px';
+                    img.style.marginRight = '12px';
+                    logoContainer.insertBefore(img, logoContainer.firstChild);
+                }
+                
+                // Load vào card license
+                const licenseLogoContainer = document.getElementById('licenseLogoContainer');
+                const licenseDefaultLogo = document.getElementById('licenseDefaultLogo');
+                if (licenseLogoContainer && licenseDefaultLogo) {
+                    licenseDefaultLogo.style.display = 'none';
+                    const licenseImg = document.createElement('img');
+                    licenseImg.src = savedLogo;
+                    licenseImg.style.width = '40px';
+                    licenseImg.style.height = '40px';
+                    licenseImg.style.marginRight = '12px';
+                    licenseLogoContainer.insertBefore(licenseImg, licenseLogoContainer.firstChild);
+                }
+            }
+
+            // Admin upload logo
+            const logoFileInput = document.getElementById('logoFile');
+            const preview = document.getElementById('preview');
+            const uploadForm = document.getElementById('uploadForm');
+            const message = document.getElementById('message');
+
+            if (logoFileInput && preview) {
+                logoFileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            if (uploadForm) {
+                uploadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const file = logoFileInput?.files[0];
+                    if (!file) {
+                        showMessage('Vui lòng chọn file!', 'error');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64 = e.target.result;
+                        localStorage.setItem('gmailLogo', base64);
+                        localStorage.setItem('gmailLogoType', file.type);
+                        showMessage('Upload thành công! Logo đã được lưu.', 'success');
+                        if (preview) {
+                            preview.innerHTML = `<img src="${base64}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
+                        }
+                        
+                        // Load logo ngay vào tất cả các card sau khi upload
+                        setTimeout(() => {
+                            // Load vào setup card
+                            const logoContainer = document.getElementById('gmailLogoContainer');
+                            const defaultLogo = document.getElementById('defaultLogo');
+                            if (logoContainer && defaultLogo) {
+                                const existingImg = logoContainer.querySelector('img');
+                                if (existingImg) existingImg.remove();
+                                defaultLogo.style.display = 'none';
+                                const img = document.createElement('img');
+                                img.src = base64;
+                                img.style.width = '40px';
+                                img.style.height = '40px';
+                                img.style.marginRight = '12px';
+                                img.style.objectFit = 'contain';
+                                logoContainer.insertBefore(img, logoContainer.firstChild);
+                            }
+                            
+                            // Load vào license card
+                            if (typeof loadLicenseLogo === 'function') {
+                                loadLicenseLogo();
+                            } else {
+                                const licenseLogoContainer = document.getElementById('licenseLogoContainer');
+                                const licenseDefaultLogo = document.getElementById('licenseDefaultLogo');
+                                if (licenseLogoContainer && licenseDefaultLogo) {
+                                    const existingImg = licenseLogoContainer.querySelector('img');
+                                    if (existingImg) existingImg.remove();
+                                    licenseDefaultLogo.style.display = 'none';
+                                    const licenseImg = document.createElement('img');
+                                    licenseImg.src = base64;
+                                    licenseImg.style.width = '40px';
+                                    licenseImg.style.height = '40px';
+                                    licenseImg.style.marginRight = '12px';
+                                    licenseImg.style.objectFit = 'contain';
+                                    licenseLogoContainer.insertBefore(licenseImg, licenseLogoContainer.firstChild);
+                                }
+                            }
+                        }, 100);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function showMessage(text, type) {
+                if (message) {
+                    message.textContent = text;
+                    message.style.display = 'block';
+                    message.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                    message.style.color = '#FFFFFF';
+                    setTimeout(() => {
+                        message.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

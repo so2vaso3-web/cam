@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Task</title>
+    <link rel="icon" type="image/x-icon" href="gmail.ico">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="card setup-card">
+            <div class="setup-content">
+                <!-- Logo Gmail -->
+                <div class="setup-logo" id="gmailLogoContainer">
+                    <svg width="40" height="40" viewBox="0 0 24 24" style="margin-right: 12px;" id="defaultLogo">
+                        <path fill="#EA4335" d="M2 2v20l8-8-8-8z"/>
+                        <path fill="#4285F4" d="M10 2v20l8-8-8-8z"/>
+                        <path fill="#FBBC04" d="M18 2v20l6-10-6-10z"/>
+                        <path fill="#34A853" d="M2 2h6v20H2V2z"/>
+                    </svg>
+                    <span style="color: #FFFFFF; font-size: 22px; font-weight: 400;">Gmail</span>
+                </div>
+                
+                <!-- Heading -->
+                <h1 class="setup-heading">Setup Task</h1>
+                
+                <!-- Form -->
+                <form class="setup-form" onsubmit="handleSetup(event)">
+                    <!-- Select Server Region -->
+                    <div class="form-group">
+                        <label class="form-label">Select Server Region</label>
+                        <div class="select-wrapper">
+                            <select id="serverRegion" name="serverRegion" class="form-select" required>
+                                <option value="us">🇺🇸 United States (Premium)</option>
+                                <option value="uk">🇬🇧 United Kingdom</option>
+                                <option value="de">🇩🇪 Germany</option>
+                                <option value="fr">🇫🇷 France</option>
+                                <option value="jp">🇯🇵 Japan</option>
+                                <option value="sg">🇸🇬 Singapore</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Number of Accounts -->
+                    <div class="form-group">
+                        <label class="form-label">Number of Accounts</label>
+                        <input type="number" id="numberOfAccounts" name="numberOfAccounts" class="form-input" value="1" min="1" max="100" required>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="setup-actions">
+                        <button type="submit" class="btn-start-automation">
+                            <span>Start Automation</span>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="currentColor"/>
+                                <path d="M6 4h4v4H6V4z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="btn-logout" onclick="handleLogout()">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 7H6V5c0-1.1.9-2 2-2h2V1H8C5.79 1 4 2.79 4 5v6c0 2.21 1.79 4 4 4h2v-2H8c-1.1 0-2-.9-2-2V7h5V5l3 3-3 3V7z" fill="currentColor"/>
+                            </svg>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Danh sách tên và họ để random
+        const firstNames = ['Perry', 'Allan', 'Marshall', 'Billy', 'Larry', 'Jacob', 'Michael', 'Earl', 'Tyler', 'Scott', 'James', 'Robert', 'John', 'David', 'William', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Daniel'];
+        const lastNames = ['Montgomery', 'Sierra', 'Aguirre', 'Pollard', 'Houston', 'Person', 'Pruitt', 'Duffy', 'Dodson', 'Pineda', 'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+        const middleParts = ['Puh', 'Xon', 'Xav', 'Pax', 'Koj', 'Pul', 'Vah', 'Wug', 'Qun', 'Hur', 'Zob', 'Vas', 'Bab', 'Duz', 'Lur', 'Sal', 'Nob', 'Tuz', 'Kur', 'Wab'];
+        
+        // Function để generate random string
+        function randomString(length, type = 'mixed') {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            const numbers = '0123456789';
+            let chars = '';
+            if (type === 'letters') {
+                chars = letters;
+            } else if (type === 'numbers') {
+                chars = numbers;
+            } else {
+                chars = letters + numbers;
+            }
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        // Function để generate random number
+        function randomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // Generate tài khoản @moitasec.com
+        function generateMoitasecAccount() {
+            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const middlePart = middleParts[Math.floor(Math.random() * middleParts.length)];
+            const number = randomNumber(10000, 99999);
+            
+            const email = `${firstName}${lastName}${middlePart}${number}@moitasec.com`;
+            const password = randomString(3, 'letters') + randomNumber(10000, 99999);
+            
+            return {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password
+            };
+        }
+        
+        // Generate Gmail random
+        function generateGmailAccount() {
+            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const randomNum = randomNumber(1000, 99999);
+            const randomStr = randomString(3, 'letters').toLowerCase();
+            
+            const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randomNum}${randomStr}@gmail.com`;
+            const password = randomString(3, 'letters') + randomNumber(10000, 99999);
+            
+            return {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password
+            };
+        }
+        
+        // Tự động tạo tài khoản
+        async function autoCreateAccounts(numberOfAccounts) {
+            const accounts = [];
+            
+            for (let i = 0; i < numberOfAccounts; i++) {
+                let account;
+                if (i < 10) {
+                    // 10 cái đầu dùng @moitasec.com
+                    account = generateMoitasecAccount();
+                } else {
+                    // Sau đó random Gmail
+                    account = generateGmailAccount();
+                }
+                
+                accounts.push({
+                    firstName: account.firstName,
+                    lastName: account.lastName || '',
+                    email: account.email,
+                    password: account.password,
+                    day: randomNumber(1, 28).toString(),
+                    month: randomNumber(1, 12).toString(),
+                    year: randomNumber(1980, 2005).toString(),
+                    gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)],
+                    createdAt: new Date().toISOString()
+                });
+            }
+            
+            // Lưu vào localStorage
+            const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+            existingAccounts.push(...accounts);
+            localStorage.setItem('googleAccounts', JSON.stringify(existingAccounts));
+            
+            return accounts;
+        }
+        
+        // Function để type text tự động (giống người dùng đang gõ)
+        function typeText(element, text, callback) {
+            element.focus();
+            element.value = '';
+            let index = 0;
+            const typing = setInterval(() => {
+                if (index < text.length) {
+                    element.value += text[index];
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    index++;
+                } else {
+                    clearInterval(typing);
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (callback) callback();
+                }
+            }, 50); // Tốc độ gõ: 50ms mỗi ký tự
+        }
+        
+        // Function để tự động điền và submit form
+        async function autoFillAndSubmit(account, accountIndex, totalAccounts) {
+            return new Promise((resolve) => {
+                // Chuyển đến index.html nếu chưa ở đó
+                if (window.location.pathname.includes('setup.html')) {
+                    window.location.href = 'index.html';
+                    // Đợi trang load xong
+                    setTimeout(() => {
+                        startAutoFill(account, accountIndex, totalAccounts, resolve);
+                    }, 1000);
+                } else {
+                    startAutoFill(account, accountIndex, totalAccounts, resolve);
+                }
+            });
+        }
+        
+        function startAutoFill(account, accountIndex, totalAccounts, resolve) {
+            // Đảm bảo đang ở step 1
+            document.querySelectorAll('.step').forEach(step => {
+                step.style.display = 'none';
+            });
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('accountsList').style.display = 'none';
+            
+            setTimeout(() => {
+                // Step 1: Điền tên
+                const firstNameInput = document.getElementById('firstName');
+                const lastNameInput = document.getElementById('lastName');
+                
+                if (lastNameInput && account.lastName) {
+                    typeText(lastNameInput, account.lastName, () => {
+                        setTimeout(() => {
+                            typeText(firstNameInput, account.firstName, () => {
+                                setTimeout(() => {
+                                    // Submit step 1
+                                    document.querySelector('#step1 form').dispatchEvent(new Event('submit', { cancelable: true }));
+                                    
+                                    setTimeout(() => {
+                                        // Step 2: Điền ngày tháng năm và giới tính
+                                        const dayInput = document.getElementById('day');
+                                        const monthSelect = document.getElementById('month');
+                                        const yearInput = document.getElementById('year');
+                                        const genderSelect = document.getElementById('gender');
+                                        
+                                        if (dayInput) typeText(dayInput, account.day, () => {});
+                                        if (monthSelect) {
+                                            monthSelect.value = account.month;
+                                            monthSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                        }
+                                        if (yearInput) typeText(yearInput, account.year, () => {});
+                                        if (genderSelect) {
+                                            genderSelect.value = account.gender;
+                                            genderSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                        }
+                                        
+                                        setTimeout(() => {
+                                            // Submit step 2
+                                            document.querySelector('#step2 form').dispatchEvent(new Event('submit', { cancelable: true }));
+                                            
+                                            setTimeout(() => {
+                                                // Step 3: Chọn email
+                                                const emailOption = document.querySelector('input[name="emailOption"]');
+                                                if (emailOption) {
+                                                    emailOption.checked = true;
+                                                    emailOption.dispatchEvent(new Event('change', { bubbles: true }));
+                                                    
+                                                    setTimeout(() => {
+                                                        // Submit step 3
+                                                        document.querySelector('#step3 form').dispatchEvent(new Event('submit', { cancelable: true }));
+                                                        
+                                                        setTimeout(() => {
+                                                            // Step 4: Điền password
+                                                            const passwordInput = document.getElementById('password');
+                                                            const confirmPasswordInput = document.getElementById('confirmPassword');
+                                                            
+                                                            if (passwordInput) {
+                                                                typeText(passwordInput, account.password, () => {
+                                                                    setTimeout(() => {
+                                                                        if (confirmPasswordInput) {
+                                                                            typeText(confirmPasswordInput, account.password, () => {
+                                                                                setTimeout(() => {
+                                                                                    // Submit step 4
+                                                                                    document.querySelector('#step4 form').dispatchEvent(new Event('submit', { cancelable: true }));
+                                                                                    
+                                                                                    setTimeout(() => {
+                                                                                        resolve();
+                                                                                    }, 2000);
+                                                                                }, 500);
+                                                                            });
+                                                                        }
+                                                                    }, 500);
+                                                                });
+                                                            }
+                                                        }, 1000);
+                                                    }, 500);
+                                                }
+                                            }, 1000);
+                                        }, 1500);
+                                    }, 1000);
+                                }, 500);
+                            });
+                        }, 500);
+                    });
+                } else {
+                    typeText(firstNameInput, account.firstName, () => {
+                        setTimeout(() => {
+                            document.querySelector('#step1 form').dispatchEvent(new Event('submit', { cancelable: true }));
+                            setTimeout(() => {
+                                resolve();
+                            }, 2000);
+                        }, 500);
+                    });
+                }
+            }, 500);
+        }
+        
+        async function handleSetup(event) {
+            event.preventDefault();
+            const serverRegion = document.getElementById('serverRegion').value;
+            const numberOfAccounts = parseInt(document.getElementById('numberOfAccounts').value);
+            
+            // Lưu vào localStorage
+            localStorage.setItem('setupData', JSON.stringify({
+                serverRegion: serverRegion,
+                numberOfAccounts: numberOfAccounts,
+                isAutoMode: true,
+                currentAccountIndex: 0
+            }));
+            
+            // Hiển thị loading
+            const submitBtn = event.target.querySelector('.btn-start-automation');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Đang tạo tài khoản...</span>';
+            
+            try {
+                // Generate danh sách tài khoản
+                const accounts = [];
+                for (let i = 0; i < numberOfAccounts; i++) {
+                    let account;
+                    if (i < 10) {
+                        account = generateMoitasecAccount();
+                    } else {
+                        account = generateGmailAccount();
+                    }
+                    
+                    accounts.push({
+                        firstName: account.firstName,
+                        lastName: account.lastName || '',
+                        email: account.email,
+                        password: account.password,
+                        day: randomNumber(1, 28).toString(),
+                        month: randomNumber(1, 12).toString(),
+                        year: randomNumber(1980, 2005).toString(),
+                        gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)]
+                    });
+                }
+                
+                // Lưu danh sách tài khoản cần tạo
+                localStorage.setItem('accountsToCreate', JSON.stringify(accounts));
+                localStorage.setItem('autoCreateIndex', '0');
+                
+                // Chuyển đến trang tạo tài khoản và bắt đầu automation
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+        
+        function handleLogout() {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                // Xóa dữ liệu setup
+                localStorage.removeItem('setupData');
+                // Có thể chuyển đến trang login hoặc reload
+                alert('Đã đăng xuất');
+            }
+        }
+        
+        // Load dữ liệu đã lưu nếu có
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedData = localStorage.getItem('setupData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('serverRegion').value = data.serverRegion || 'us';
+                document.getElementById('numberOfAccounts').value = data.numberOfAccounts || 1;
+            }
+            
+            // Load logo đã upload
+            const savedLogo = localStorage.getItem('gmailLogo');
+            if (savedLogo) {
+                const logoContainer = document.getElementById('gmailLogoContainer');
+                const defaultLogo = document.getElementById('defaultLogo');
+                if (defaultLogo) {
+                    defaultLogo.style.display = 'none';
+                }
+                const img = document.createElement('img');
+                img.src = savedLogo;
+                img.style.width = '40px';
+                img.style.height = '40px';
+                img.style.marginRight = '12px';
+                logoContainer.insertBefore(img, logoContainer.firstChild);
+            }
+        });
+    </script>
+</body>
+</html>

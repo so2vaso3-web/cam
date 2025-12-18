@@ -1,0 +1,3 @@
+# Python dependencies
+# Note: This project uses Python standard library only
+# No external packages required, but keeping this file for Railway compatibility
