@@ -1589,6 +1589,12 @@
             // Load IP list khi vào admin
             const ipManagementSection = document.getElementById('ipManagementSection');
             if (ipManagementSection) {
+                // Load current user IP if exists
+                const currentIP = localStorage.getItem('userIP');
+                if (currentIP) {
+                    saveAccessedIP(currentIP);
+                }
+                
                 // Load khi DOM ready
                 setTimeout(() => {
                     loadIPList();
