@@ -1158,8 +1158,32 @@
                     
                     // Kiểm tra whitelist
                     const whitelistedIPsCheck = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
-                    const currentIPCheck = getSavedIP() || 'unknown';
+                    let currentIPCheck = getSavedIP() || 'unknown';
+                    
+                    // Nếu chưa có IP, thử lấy từ API
+                    if (currentIPCheck === 'unknown') {
+                        try {
+                            const ipResponse = await fetch('https://api.ipify.org?format=json');
+                            if (ipResponse.ok) {
+                                const ipData = await ipResponse.json();
+                                if (ipData.ip) {
+                                    currentIPCheck = ipData.ip;
+                                    localStorage.setItem('userIP', currentIPCheck);
+                                }
+                            }
+                        } catch (err) {
+                            console.log('Không thể lấy IP:', err);
+                        }
+                    }
+                    
                     const isIPWhitelistedCheck = whitelistedIPsCheck.includes(currentIPCheck);
+                    
+                    console.log('Kiểm tra khi click button:', { 
+                        totalAccountCount, 
+                        currentIPCheck, 
+                        whitelistedIPsCheck, 
+                        isIPWhitelistedCheck 
+                    });
                     
                     if (totalAccountCount >= 1 && !isIPWhitelistedCheck) {
                         console.log('❌ ĐÃ CÓ TÀI KHOẢN! Chặn và hiển thị license card...');
