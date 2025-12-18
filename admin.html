@@ -216,7 +216,7 @@
             const ipListContainer = document.getElementById('ipList');
             if (!ipListContainer) return;
             
-            const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+            const accounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
             const whitelistedIPs = getWhitelistedIPs();
             
             // Group accounts by IP
