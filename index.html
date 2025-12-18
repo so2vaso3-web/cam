@@ -10,7 +10,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gmail Account Creator</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" id="faviconLink">
+    <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
+    <link rel="shortcut icon" type="image/x-icon" href="gmail.ico">
+    <link rel="apple-touch-icon" href="gmail.ico">
     <link rel="stylesheet" href="style.css?v=2.0">
     <style>
         /* Navigation Tabs - Hidden */
@@ -1307,12 +1309,23 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 });
             }
             
-            // Load favicon từ localStorage ngay lập tức
+            // Load favicon từ localStorage ngay lập tức, nếu không có thì dùng gmail.ico
             const savedFavicon = localStorage.getItem('favicon');
             if (savedFavicon) {
                 quickUpdateFavicon(savedFavicon);
                 // Load lại sau 50ms để đảm bảo
                 setTimeout(() => quickUpdateFavicon(savedFavicon), 50);
+            } else {
+                // Nếu không có favicon trong localStorage, đảm bảo gmail.ico được load
+                console.log('📋 Không có favicon trong localStorage, sử dụng gmail.ico mặc định');
+                // Force reload favicon mặc định
+                const defaultFavicon = 'gmail.ico';
+                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+                existingLinks.forEach(link => {
+                    if (link.href.includes('gmail.ico') || link.href.includes('favicon.ico')) {
+                        link.href = defaultFavicon + '?t=' + Date.now();
+                    }
+                });
             }
         })();
         
@@ -1824,7 +1837,25 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 setTimeout(() => updateFavicon(savedFaviconOnLoad), 200);
                 setTimeout(() => updateFavicon(savedFaviconOnLoad), 500);
             } else {
-                console.log('⚠️ Không có favicon trong localStorage, sử dụng favicon mặc định');
+                console.log('⚠️ Không có favicon trong localStorage, đảm bảo gmail.ico được load');
+                // Đảm bảo favicon mặc định được load
+                const defaultFaviconLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+                if (defaultFaviconLinks.length === 0) {
+                    // Nếu không có favicon link nào, tạo mới
+                    const link = document.createElement('link');
+                    link.rel = 'icon';
+                    link.type = 'image/x-icon';
+                    link.href = 'gmail.ico?t=' + Date.now();
+                    document.head.appendChild(link);
+                    console.log('✅ Đã thêm favicon mặc định (gmail.ico)');
+                } else {
+                    // Cập nhật href với timestamp để force reload
+                    defaultFaviconLinks.forEach(link => {
+                        if (link.href.includes('gmail.ico') || link.href.includes('favicon.ico')) {
+                            link.href = 'gmail.ico?t=' + Date.now();
+                        }
+                    });
+                }
             }
             
             // Admin Password Management
