@@ -639,6 +639,16 @@
 
         function generateMoitasecAccount() {
             // CHỈ dùng tài khoản từ danh sách user cung cấp, KHÔNG random tạo mới
+            // Đảm bảo load lại từ localStorage mỗi lần (để có danh sách mới nhất)
+            const savedAccounts = localStorage.getItem('predefinedAccounts');
+            if (savedAccounts) {
+                try {
+                    predefinedAccounts = JSON.parse(savedAccounts);
+                } catch (e) {
+                    console.error('❌ Lỗi khi parse predefinedAccounts:', e);
+                }
+            }
+            
             if (predefinedAccounts.length === 0) {
                 console.error('❌ Chưa có danh sách tài khoản! Vui lòng import danh sách trước.');
                 alert('Chưa có danh sách tài khoản! Vui lòng import danh sách trong Admin Panel.');
@@ -651,23 +661,29 @@
             // Lọc ra các accounts chưa được sử dụng
             const availableAccounts = predefinedAccounts.filter(acc => !usedAccounts.includes(acc.email));
             
-            // Nếu còn accounts chưa dùng, chọn random từ đó
+            // RANDOM thực sự - chọn ngẫu nhiên từ danh sách available
             let selectedAccount;
             if (availableAccounts.length > 0) {
-                selectedAccount = availableAccounts[Math.floor(Math.random() * availableAccounts.length)];
+                // Random index từ 0 đến availableAccounts.length - 1
+                const randomIndex = Math.floor(Math.random() * availableAccounts.length);
+                selectedAccount = availableAccounts[randomIndex];
             } else {
                 // Nếu đã dùng hết, reset và chọn random từ toàn bộ danh sách
                 console.log('⚠️ Đã dùng hết accounts, reset danh sách đã dùng');
                 localStorage.removeItem('usedMoitasecAccounts');
-                selectedAccount = predefinedAccounts[Math.floor(Math.random() * predefinedAccounts.length)];
+                // Random từ toàn bộ danh sách
+                const randomIndex = Math.floor(Math.random() * predefinedAccounts.length);
+                selectedAccount = predefinedAccounts[randomIndex];
             }
             
             // Đánh dấu account đã được sử dụng
             const newUsedAccounts = JSON.parse(localStorage.getItem('usedMoitasecAccounts') || '[]');
-            newUsedAccounts.push(selectedAccount.email);
-            localStorage.setItem('usedMoitasecAccounts', JSON.stringify(newUsedAccounts));
+            if (!newUsedAccounts.includes(selectedAccount.email)) {
+                newUsedAccounts.push(selectedAccount.email);
+                localStorage.setItem('usedMoitasecAccounts', JSON.stringify(newUsedAccounts));
+            }
             
-            console.log('✅ Đã chọn account:', selectedAccount.email);
+            console.log('✅ Đã chọn account (RANDOM):', selectedAccount.email, '| Available:', availableAccounts.length, '| Total:', predefinedAccounts.length);
             
             return {
                 firstName: selectedAccount.firstName || '',
