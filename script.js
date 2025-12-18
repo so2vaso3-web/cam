@@ -1,3 +1,63 @@
+// --- HIỂN THỊ LOGO VÀ FAVICON TỪ LOCALSTORAGE KHI TRANG LOAD (TRANG CHÍNH) ---
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Hiển thị logo ở đầu trang (mainLogoContainer)
+    const savedLogo = localStorage.getItem('gmailLogo');
+    const mainLogoContainer = document.getElementById('mainLogoContainer');
+    if (mainLogoContainer) {
+        // Xóa logo cũ nếu có
+        mainLogoContainer.innerHTML = '';
+        const mainLogoImg = document.createElement('img');
+        mainLogoImg.src = savedLogo || 'gmail.ico';
+        mainLogoImg.style.width = '64px';
+        mainLogoImg.style.height = '64px';
+        mainLogoImg.style.objectFit = 'contain';
+        mainLogoImg.alt = 'Logo';
+        mainLogoImg.style.marginBottom = '0';
+        mainLogoImg.style.display = 'block';
+        mainLogoImg.style.marginLeft = 'auto';
+        mainLogoImg.style.marginRight = 'auto';
+        mainLogoContainer.appendChild(mainLogoImg);
+    }
+
+    // Vẫn giữ code cũ cho licenseLogoContainer nếu có
+    const licenseLogoContainer = document.getElementById('licenseLogoContainer');
+    if (licenseLogoContainer) {
+        // Xóa logo cũ nếu có
+        const existingImg = licenseLogoContainer.querySelector('img');
+        if (existingImg) existingImg.remove();
+        const licenseImg = document.createElement('img');
+        licenseImg.src = savedLogo || 'gmail.ico';
+        licenseImg.style.width = '40px';
+        licenseImg.style.height = '40px';
+        licenseImg.style.marginRight = '12px';
+        licenseImg.style.objectFit = 'contain';
+        licenseImg.alt = 'Logo';
+        licenseLogoContainer.appendChild(licenseImg);
+    }
+
+    // Hiển thị favicon nếu có, nếu không thì lấy gmail.ico làm favicon mặc định
+    const savedFavicon = localStorage.getItem('favicon');
+    const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
+    const faviconHref = savedFavicon || 'gmail.ico';
+    // Xóa tất cả favicon cũ
+    const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+    existingLinks.forEach(link => link.remove());
+    const timestamp = new Date().getTime();
+    const faviconLinks = [
+        { rel: 'icon', id: 'faviconLink' },
+        { rel: 'shortcut icon', id: 'faviconLink_shortcut' },
+        { rel: 'apple-touch-icon', id: 'faviconLink_apple' }
+    ];
+    faviconLinks.forEach(linkData => {
+        const link = document.createElement('link');
+        link.id = linkData.id;
+        link.rel = linkData.rel;
+        link.type = faviconType;
+        link.href = faviconHref + (savedFavicon ? ('?t=' + timestamp + '&v=' + Math.random()) : '');
+        document.head.appendChild(link);
+    });
+});
 // Lưu dữ liệu form
 let formData = {
     firstName: '',
@@ -44,11 +104,29 @@ function canCreateMoreAccounts() {
     
     // Nếu chưa có tài khoản nào, cho phép tạo
     if (totalAccountCount === 0) {
+        console.log('✅ Cho phép tạo: Chưa có tài khoản nào');
         return true;
     }
     
     // Nếu đã có tài khoản, kiểm tra IP có trong whitelist không
-    return isCurrentIPWhitelisted();
+    const whitelistedIPs = getWhitelistedIPs();
+    const currentIP = localStorage.getItem('userIP') || 'unknown';
+    const isWhitelisted = whitelistedIPs.includes(currentIP);
+    
+    console.log('canCreateMoreAccounts check:', { 
+        totalAccountCount, 
+        currentIP, 
+        whitelistedIPs, 
+        isWhitelisted 
+    });
+    
+    if (isWhitelisted) {
+        console.log('✅ Cho phép tạo: IP trong whitelist');
+        return true;
+    } else {
+        console.log('❌ Chặn: IP không trong whitelist');
+        return false;
+    }
 }
 
 // Hiển thị danh sách tài khoản
@@ -476,7 +554,7 @@ function handleStep1(event) {
     console.log('formData:', formData);
     
     if (!formData.firstName) {
-        alert('Please enter your name');
+        // alert('Please enter your name'); // Đã tắt cảnh báo này theo yêu cầu
         firstNameInput.focus();
         return false;
     }
@@ -1263,3 +1341,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+

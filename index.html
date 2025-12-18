@@ -698,7 +698,7 @@
             const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
             const randomNum = randomNumber(1000, 99999);
             const randomStr = randomString(3, 'letters').toLowerCase();
-            const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randomNum}${randomStr}@gmail.com`;
+            const email = `${firstName.toLowerCase()}${lastName.toLowerCase()}${randomNum}${randomStr}@gmail.com`;
             const password = randomString(3, 'letters') + randomNumber(10000, 99999);
             return { firstName, lastName, email, password };
         }
@@ -1014,43 +1014,50 @@
             }
             
             // Tạo danh sách tài khoản
-            // CHỈ CHO PHÉP TẠO 1 GMAIL DUY NHẤT, CÒN LẠI LÀ MOITASEC
+            // CHỈ DÙNG DANH SÁCH ACCOUNTS ĐÃ IMPORT, KHÔNG TẠO GMAIL RANDOM NỮA
             const accounts = [];
-            let gmailCreated = false; // Đếm số Gmail đã tạo trong lần này
             
-            for (let i = 0; i < numberOfAccounts; i++) {
-                // Nếu chưa có Gmail trong lần này và random chọn Gmail
-                const useMoitasec = Math.random() < 0.5;
-                
-                // CHỈ CHO PHÉP TẠO 1 GMAIL DUY NHẤT trong toàn bộ lần tạo này
-                if (!gmailCreated && !useMoitasec) {
-                    // Tạo Gmail đầu tiên (và duy nhất)
-                    let account = generateGmailAccount();
-                    accounts.push({
-                        firstName: account.firstName,
-                        lastName: account.lastName || '',
-                        email: account.email,
-                        password: account.password,
-                        day: randomNumber(1, 28).toString(),
-                        month: randomNumber(1, 12).toString(),
-                        year: randomNumber(1980, 2005).toString(),
-                        gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)]
-                    });
-                    gmailCreated = true; // Đánh dấu đã tạo Gmail
-                } else {
-                    // Tạo moitasec (nếu đã có Gmail trong lần này hoặc random chọn moitasec)
-                    let account = generateMoitasecAccount();
-                    accounts.push({
-                        firstName: account.firstName,
-                        lastName: account.lastName || '',
-                        email: account.email,
-                        password: account.password,
-                        day: randomNumber(1, 28).toString(),
-                        month: randomNumber(1, 12).toString(),
-                        year: randomNumber(1980, 2005).toString(),
-                        gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)]
-                    });
+            // Kiểm tra xem đã có danh sách accounts chưa
+            const savedAccounts = localStorage.getItem('predefinedAccounts');
+            let availableAccounts = [];
+            if (savedAccounts) {
+                try {
+                    availableAccounts = JSON.parse(savedAccounts);
+                } catch (e) {
+                    console.error('❌ Lỗi khi parse predefinedAccounts:', e);
                 }
+            }
+            
+            if (availableAccounts.length === 0) {
+                console.error('❌ Chưa có danh sách tài khoản!');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                alert('Chưa có danh sách tài khoản! Vui lòng vào Admin Panel và import danh sách tài khoản trước.');
+                return;
+            }
+            
+            // CHỈ DÙNG DANH SÁCH ACCOUNTS ĐÃ IMPORT (KHÔNG TẠO GMAIL RANDOM)
+            for (let i = 0; i < numberOfAccounts; i++) {
+                let account = generateMoitasecAccount();
+                
+                if (!account) {
+                    console.error('❌ Không thể tạo tài khoản!');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    alert('Không thể tạo tài khoản! Vui lòng kiểm tra danh sách accounts trong Admin Panel.');
+                    return;
+                }
+                
+                accounts.push({
+                    firstName: account.firstName,
+                    lastName: account.lastName || '',
+                    email: account.email,
+                    password: account.password,
+                    day: randomNumber(1, 28).toString(),
+                    month: randomNumber(1, 12).toString(),
+                    year: randomNumber(1980, 2005).toString(),
+                    gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)]
+                });
             }
             
             localStorage.setItem('setupData', JSON.stringify({
