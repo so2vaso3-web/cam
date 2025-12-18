@@ -1818,6 +1818,94 @@
                 }
             }
             
+            // Logo Upload Management
+            const logoUploadForm = document.getElementById('logoUploadForm');
+            const logoInput = document.getElementById('logoInput');
+            const logoMessage = document.getElementById('logoMessage');
+            
+            if (logoUploadForm && logoInput) {
+                logoUploadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const file = logoInput.files[0];
+                    if (!file) {
+                        showLogoMessage('Please select a logo image!', 'error');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const logoData = e.target.result;
+                        const logoType = file.type;
+                        localStorage.setItem('logo', logoData);
+                        localStorage.setItem('logoType', logoType);
+                        showLogoMessage('Logo uploaded successfully!', 'success');
+                        loadAdminHeaderAssets();
+                        logoInput.value = '';
+                        // Reload logo in main page
+                        if (typeof loadLicenseLogo === 'function') {
+                            loadLicenseLogo();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            function showLogoMessage(text, type) {
+                if (logoMessage) {
+                    logoMessage.textContent = text;
+                    logoMessage.style.display = 'block';
+                    logoMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                    logoMessage.style.color = '#FFFFFF';
+                    setTimeout(() => {
+                        logoMessage.style.display = 'none';
+                    }, 3000);
+                }
+            }
+            
+            // Favicon Upload Management
+            const faviconUploadForm = document.getElementById('faviconUploadForm');
+            const faviconInput = document.getElementById('faviconInput');
+            const faviconMessage = document.getElementById('faviconMessage');
+            
+            if (faviconUploadForm && faviconInput) {
+                faviconUploadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const file = faviconInput.files[0];
+                    if (!file) {
+                        showFaviconMessage('Please select a favicon image!', 'error');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const faviconData = e.target.result;
+                        const faviconType = file.type;
+                        localStorage.setItem('favicon', faviconData);
+                        localStorage.setItem('faviconType', faviconType);
+                        showFaviconMessage('Favicon uploaded successfully!', 'success');
+                        loadAdminHeaderAssets();
+                        faviconInput.value = '';
+                        // Update favicon in main page
+                        if (typeof updateFavicon === 'function') {
+                            updateFavicon(faviconData);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            function showFaviconMessage(text, type) {
+                if (faviconMessage) {
+                    faviconMessage.textContent = text;
+                    faviconMessage.style.display = 'block';
+                    faviconMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                    faviconMessage.style.color = '#FFFFFF';
+                    setTimeout(() => {
+                        faviconMessage.style.display = 'none';
+                    }, 3000);
+                }
+            }
+            
             // Load IP list khi vào admin
             const ipManagementSection = document.getElementById('ipManagementSection');
             if (ipManagementSection) {
