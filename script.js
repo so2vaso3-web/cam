@@ -876,9 +876,6 @@ async function handleStep4(event) {
     // Lấy IP hiện tại
     let currentIP = localStorage.getItem('userIP') || 'unknown';
     
-    // Lấy IP hiện tại
-    let currentIP = localStorage.getItem('userIP') || 'unknown';
-    
     // Lưu tài khoản
     const isGmail = formData.email && formData.email.includes('@gmail.com');
     accounts.push({
