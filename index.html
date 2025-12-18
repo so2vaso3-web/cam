@@ -1906,36 +1906,6 @@
                 showMessage('Permission granted to IP!', 'success');
             }
             
-            // Load logo and favicon in admin header
-            function loadAdminHeaderAssets() {
-                // Load logo
-                const savedLogo = localStorage.getItem('logo');
-                const adminLogoContainer = document.getElementById('adminLogoContainer');
-                if (savedLogo && adminLogoContainer) {
-                    const img = document.createElement('img');
-                    img.src = savedLogo;
-                    img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain;';
-                    img.onerror = function() {
-                        adminLogoContainer.innerHTML = '';
-                    };
-                    adminLogoContainer.innerHTML = '';
-                    adminLogoContainer.appendChild(img);
-                }
-                
-                // Load favicon in header
-                const savedFavicon = localStorage.getItem('favicon');
-                const adminFaviconContainer = document.getElementById('adminFaviconContainer');
-                if (savedFavicon && adminFaviconContainer) {
-                    const faviconImg = document.createElement('img');
-                    faviconImg.src = savedFavicon;
-                    faviconImg.style.cssText = 'width: 32px; height: 32px; object-fit: contain;';
-                    faviconImg.onerror = function() {
-                        adminFaviconContainer.innerHTML = '';
-                    };
-                    adminFaviconContainer.innerHTML = '';
-                    adminFaviconContainer.appendChild(faviconImg);
-                }
-            }
             
             // Logo Upload Management (LƯU VÀO CẢ ADMIN VÀ TRANG CHÍNH)
             const logoUploadForm = document.getElementById('logoUploadForm');
@@ -1960,9 +1930,7 @@
                         localStorage.setItem('logoType', logoType);
                         localStorage.setItem('gmailLogo', logoData);
                         localStorage.setItem('gmailLogoType', logoType);
-                        showLogoMessage('Logo uploaded successfully! Logo will appear in both Admin Panel and main page.', 'success');
-                        // Load lại logo trong admin header
-                        loadAdminHeaderAssets();
+                        showLogoMessage('Logo uploaded successfully! Logo will appear in main page.', 'success');
                         logoInput.value = '';
                         // Load logo vào trang chính (Setup Task và License card)
                         loadLogoToMainPage(logoData);
