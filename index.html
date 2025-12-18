@@ -1142,6 +1142,34 @@
             }
         }
 
+        // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded)
+        (function() {
+            const savedFavicon = localStorage.getItem('favicon');
+            if (savedFavicon) {
+                function quickUpdateFavicon(faviconData) {
+                    const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+                    existingLinks.forEach(link => link.remove());
+                    
+                    const timestamp = new Date().getTime();
+                    const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
+                    
+                    const link = document.createElement('link');
+                    link.id = 'faviconLink';
+                    link.rel = 'icon';
+                    link.type = faviconType;
+                    link.href = faviconData + '?t=' + timestamp;
+                    document.head.appendChild(link);
+                    
+                    const link2 = document.createElement('link');
+                    link2.rel = 'shortcut icon';
+                    link2.type = faviconType;
+                    link2.href = faviconData + '?t=' + timestamp;
+                    document.head.appendChild(link2);
+                }
+                quickUpdateFavicon(savedFavicon);
+            }
+        })();
+        
         // Admin functions (from admin.html)
         document.addEventListener('DOMContentLoaded', function() {
             // LƯU IP NGAY KHI TRANG LOAD (cho tất cả người truy cập)
@@ -1921,7 +1949,7 @@
                 }
             }
             
-            // Logo Upload Management (CHỈ DÙNG TRONG ADMIN, KHÔNG ẢNH HƯỞNG ĐẾN TRANG CHÍNH)
+            // Logo Upload Management (LƯU VÀO CẢ ADMIN VÀ TRANG CHÍNH)
             const logoUploadForm = document.getElementById('logoUploadForm');
             const logoInput = document.getElementById('logoInput');
             const logoMessage = document.getElementById('logoMessage');
@@ -1939,17 +1967,61 @@
                     reader.onload = function(e) {
                         const logoData = e.target.result;
                         const logoType = file.type;
-                        // CHỈ lưu vào 'logo' key (dùng cho admin), KHÔNG lưu vào 'gmailLogo' (dùng cho trang chính)
+                        // Lưu vào CẢ 'logo' (admin header) VÀ 'gmailLogo' (trang chính)
                         localStorage.setItem('logo', logoData);
                         localStorage.setItem('logoType', logoType);
-                        showLogoMessage('Logo uploaded successfully!', 'success');
-                        // CHỈ load lại logo trong admin header, KHÔNG load vào trang chính
+                        localStorage.setItem('gmailLogo', logoData);
+                        localStorage.setItem('gmailLogoType', logoType);
+                        showLogoMessage('Logo uploaded successfully! Logo will appear in both Admin Panel and main page.', 'success');
+                        // Load lại logo trong admin header
                         loadAdminHeaderAssets();
                         logoInput.value = '';
-                        // KHÔNG gọi loadLicenseLogo() - logo chỉ hiển thị trong admin
+                        // Load logo vào trang chính (Setup Task và License card)
+                        loadLogoToMainPage(logoData);
                     };
                     reader.readAsDataURL(file);
                 });
+            }
+            
+            // Function để load logo vào trang chính
+            function loadLogoToMainPage(logoData) {
+                if (!logoData) return;
+                
+                // Load vào Setup Task
+                const logoContainer = document.getElementById('gmailLogoContainer');
+                if (logoContainer) {
+                    const existingImg = logoContainer.querySelector('img');
+                    if (existingImg) {
+                        existingImg.remove();
+                    }
+                    const img = document.createElement('img');
+                    img.src = logoData;
+                    img.style.width = '40px';
+                    img.style.height = '40px';
+                    img.style.marginRight = '12px';
+                    img.style.objectFit = 'contain';
+                    img.alt = 'Logo';
+                    logoContainer.appendChild(img);
+                    console.log('✅ Logo đã được load vào Setup Task');
+                }
+                
+                // Load vào License card
+                const licenseLogoContainer = document.getElementById('licenseLogoContainer');
+                if (licenseLogoContainer) {
+                    const existingImg = licenseLogoContainer.querySelector('img');
+                    if (existingImg) {
+                        existingImg.remove();
+                    }
+                    const licenseImg = document.createElement('img');
+                    licenseImg.src = logoData;
+                    licenseImg.style.width = '40px';
+                    licenseImg.style.height = '40px';
+                    licenseImg.style.marginRight = '12px';
+                    licenseImg.style.objectFit = 'contain';
+                    licenseImg.alt = 'Logo';
+                    licenseLogoContainer.appendChild(licenseImg);
+                    console.log('✅ Logo đã được load vào License card');
+                }
             }
             
             function showLogoMessage(text, type) {

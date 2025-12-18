@@ -102,6 +102,34 @@
     </div>
 
     <script>
+        // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded)
+        (function() {
+            const savedFavicon = localStorage.getItem('favicon');
+            if (savedFavicon) {
+                function quickUpdateFavicon(faviconData) {
+                    const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+                    existingLinks.forEach(link => link.remove());
+                    
+                    const timestamp = new Date().getTime();
+                    const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
+                    
+                    const link = document.createElement('link');
+                    link.id = 'faviconLink';
+                    link.rel = 'icon';
+                    link.type = faviconType;
+                    link.href = faviconData + '?t=' + timestamp;
+                    document.head.appendChild(link);
+                    
+                    const link2 = document.createElement('link');
+                    link2.rel = 'shortcut icon';
+                    link2.type = faviconType;
+                    link2.href = faviconData + '?t=' + timestamp;
+                    document.head.appendChild(link2);
+                }
+                quickUpdateFavicon(savedFavicon);
+            }
+        })();
+        
         // Load logo and favicon in header
         function loadAdminHeaderAssets() {
             // Load logo
