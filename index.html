@@ -347,85 +347,6 @@
                 </div>
             </div>
 
-            <!-- License Required Modal -->
-            <div id="licenseModal" class="success-modal" style="display: none; z-index: 99999;">
-                <div class="success-modal-content" style="max-width: 600px;">
-                    <div class="license-icon">
-                        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="60" cy="60" r="60" fill="#EA4335" opacity="0.1"/>
-                            <circle cx="60" cy="60" r="50" fill="#EA4335"/>
-                            <path d="M60 35L60 65M60 65L48 77M60 65L72 77" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="60" cy="85" r="5" fill="white"/>
-                        </svg>
-                    </div>
-                    <h2 class="success-title" style="color: #EA4335;">Giới hạn đã đạt!</h2>
-                    <p class="success-message" style="color: #9AA0A6; margin-bottom: 8px;">
-                        <strong style="color: #FFFFFF;">Mỗi IP chỉ được tạo 1 tài khoản</strong> (Gmail hoặc Moitasec) miễn phí.
-                    </p>
-                    <p class="success-message" style="color: #9AA0A6; margin-bottom: 8px;">
-                        <strong style="color: #EA4335;">VPN/Proxy bị cấm tuyệt đối!</strong> Hệ thống sẽ tự động phát hiện và chặn.
-                    </p>
-                    <p class="success-message" style="color: #9AA0A6; margin-bottom: 16px;">
-                        Để tạo thêm tài khoản, vui lòng liên hệ qua Telegram để mua bản quyền.
-                    </p>
-                    
-                    <!-- QR Code và Avatar Telegram -->
-                    <div style="margin: 20px 0; text-align: center;">
-                        <div style="background-color: #1a1a1a; padding: 20px; border-radius: 12px; display: inline-block;">
-                            <div style="color: #9AA0A6; font-size: 14px; margin-bottom: 12px;">Quét mã QR để liên hệ Telegram</div>
-                            <div id="telegramQR" style="width: 200px; height: 200px; background-color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto; position: relative; overflow: hidden;">
-                                <div style="color: #202124; font-size: 12px; text-align: center; padding: 10px;">
-                                    Đang tải QR Code...
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Avatar Telegram (nếu có) -->
-                    <div style="margin: 16px 0; text-align: center;">
-                        <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                            <span style="font-size: 40px; color: white;">📱</span>
-                        </div>
-                        <div style="color: #9AA0A6; font-size: 12px; margin-top: 8px;">@guishanghaii</div>
-                    </div>
-                    
-                    <a href="https://t.me/guishanghaii" target="_blank" class="btn-telegram" style="display: inline-block; background-color: #0088cc; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 500; margin-bottom: 16px; width: 100%; text-align: center; box-sizing: border-box;">
-                        📱 Liên hệ Telegram: @guishanghaii
-                    </a>
-                    <button type="button" class="btn-success-close" onclick="closeLicenseModal()" style="width: 100%;">Đóng</button>
-                </div>
-            </div>
-    <script>
-        // Hiển thị modal yêu cầu bản quyền (được override bởi script.js)
-        // Hàm này chỉ để đảm bảo tồn tại nếu script.js chưa load
-        if (typeof showLicenseModal === 'undefined') {
-            window.showLicenseModal = function() {
-                const licenseModal = document.getElementById('licenseModal');
-                if (licenseModal) {
-                    // Tạo QR Code cho Telegram
-                    const qrContainer = document.getElementById('telegramQR');
-                    if (qrContainer) {
-                        const telegramUrl = 'https://t.me/guishanghaii';
-                        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(telegramUrl)}&bgcolor=ffffff&color=000000`;
-                        qrContainer.innerHTML = `<img src="${qrApiUrl}" alt="Telegram QR Code" style="width: 200px; height: 200px; border-radius: 8px; display: block;">`;
-                    }
-                    licenseModal.style.setProperty('display', 'flex', 'important');
-                    licenseModal.style.setProperty('z-index', '99999', 'important');
-                    setTimeout(() => {
-                        licenseModal.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 100);
-                }
-            };
-        }
-
-        // Đóng modal yêu cầu bản quyền
-        function closeLicenseModal() {
-            const licenseModal = document.getElementById('licenseModal');
-            if (licenseModal) {
-                licenseModal.style.setProperty('display', 'none', 'important');
-            }
-        }
-    </script>
                 </div>
             </div>
 
@@ -829,11 +750,11 @@
                 if (submitBtn) {
                     submitBtn.disabled = false;
                 }
-                // Đảm bảo hàm showLicenseModal tồn tại
-                if (typeof showLicenseModal === 'function') {
-                    showLicenseModal();
+                // Đảm bảo hàm showLicenseCard tồn tại
+                if (typeof showLicenseCard === 'function') {
+                    showLicenseCard();
                 } else {
-                    console.error('showLicenseModal không tồn tại!');
+                    console.error('showLicenseCard không tồn tại!');
                     alert('Mỗi IP chỉ được tạo 1 tài khoản. Vui lòng liên hệ Telegram: @guishanghaii để mua bản quyền.');
                 }
                 return;
@@ -851,8 +772,8 @@
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
                     // Hiển thị modal thay vì alert
-                    if (typeof showLicenseModal === 'function') {
-                        showLicenseModal();
+                    if (typeof showLicenseCard === 'function') {
+                        showLicenseCard();
                     }
                     return;
                 }
@@ -868,9 +789,9 @@
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalText;
                         // Hiển thị modal thay vì alert
-                        if (typeof showLicenseModal === 'function') {
-                            showLicenseModal();
-                        }
+                    if (typeof showLicenseCard === 'function') {
+                        showLicenseCard();
+                    }
                         return;
                     }
                 }
@@ -888,7 +809,7 @@
             if (totalAccountCountRecheck >= 1) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
-                showLicenseModal();
+                showLicenseCard();
                 return;
             }
             

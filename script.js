@@ -88,55 +88,42 @@ function closeSuccessModal() {
 }
 
 // Hiển thị modal yêu cầu bản quyền
-function showLicenseModal() {
-    console.log('=== showLicenseModal được gọi ===');
-    const licenseModal = document.getElementById('licenseModal');
-    console.log('licenseModal element:', licenseModal);
+// Function để hiển thị license card thay vì modal cũ
+function showLicenseCard() {
+    console.log('=== showLicenseCard được gọi ===');
     
-    if (licenseModal) {
-        // Tạo QR Code cho Telegram
-        const qrContainer = document.getElementById('telegramQR');
-        if (qrContainer) {
-            const telegramUrl = 'https://t.me/guishanghaii';
-            // Sử dụng API QR Code
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(telegramUrl)}&bgcolor=ffffff&color=000000`;
-            qrContainer.innerHTML = `<img src="${qrApiUrl}" alt="Telegram QR Code" style="width: 200px; height: 200px; border-radius: 8px; display: block;">`;
-        }
+    // Ẩn card setup
+    const tabSetup = document.getElementById('tab-setup');
+    if (tabSetup) {
+        tabSetup.style.setProperty('display', 'none', 'important');
+    }
+    
+    // Ẩn card create
+    const tabCreate = document.getElementById('tab-create');
+    if (tabCreate) {
+        tabCreate.style.setProperty('display', 'none', 'important');
+    }
+    
+    // Hiển thị card license
+    const tabLicense = document.getElementById('tab-license');
+    if (tabLicense) {
+        tabLicense.style.setProperty('display', 'block', 'important');
         
-        // Hiển thị modal với nhiều cách để đảm bảo nó hiển thị
-        licenseModal.style.display = 'flex';
-        licenseModal.style.setProperty('display', 'flex', 'important');
-        licenseModal.style.setProperty('z-index', '99999', 'important');
-        licenseModal.style.setProperty('position', 'fixed', 'important');
-        licenseModal.style.setProperty('top', '0', 'important');
-        licenseModal.style.setProperty('left', '0', 'important');
-        licenseModal.style.setProperty('width', '100%', 'important');
-        licenseModal.style.setProperty('height', '100%', 'important');
-        licenseModal.style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
-        
-        // Xóa thuộc tính display: none nếu có
-        licenseModal.removeAttribute('style');
-        licenseModal.style.cssText = 'display: flex !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background-color: rgba(0, 0, 0, 0.8) !important; z-index: 99999 !important; justify-content: center !important; align-items: center !important;';
-        
-        // Scroll đến modal
+        // Load logo ngay lập tức
         setTimeout(() => {
-            licenseModal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (typeof loadLicenseLogo === 'function') {
+                loadLicenseLogo();
+            }
         }, 100);
         
-        console.log('✅ Modal đã được hiển thị với style:', licenseModal.style.cssText);
-        console.log('Computed style display:', window.getComputedStyle(licenseModal).display);
+        // Scroll đến card license
+        setTimeout(() => {
+            tabLicense.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
+        
+        console.log('✅ License card đã được hiển thị');
     } else {
-        console.error('❌ Không tìm thấy licenseModal element!');
-        // Fallback: dùng alert
-        alert('Mỗi IP chỉ được tạo 1 tài khoản. Vui lòng liên hệ Telegram: @guishanghaii để mua bản quyền.');
-    }
-}
-
-// Đóng modal yêu cầu bản quyền
-function closeLicenseModal() {
-    const licenseModal = document.getElementById('licenseModal');
-    if (licenseModal) {
-        licenseModal.style.setProperty('display', 'none', 'important');
+        console.error('❌ Không tìm thấy tab-license element!');
     }
 }
 
@@ -680,8 +667,8 @@ async function handleStep4(event) {
     
     if (totalAccountCountPreCheck >= 1) {
         console.log('❌ ĐÃ CÓ TÀI KHOẢN! Mỗi IP chỉ tạo được 1 tài khoản. Chặn tạo thêm.');
-        if (typeof showLicenseModal === 'function') {
-            showLicenseModal();
+        if (typeof showLicenseCard === 'function') {
+            showLicenseCard();
         }
         // Ẩn form và quay về setup
         document.querySelectorAll('.step').forEach(step => {
@@ -718,8 +705,8 @@ async function handleStep4(event) {
         
         if (totalAccountCountReCheck >= 1) {
             console.log('❌ ĐÃ CÓ TÀI KHOẢN! Mỗi IP chỉ tạo được 1 tài khoản. Chặn tạo thêm.');
-            if (typeof showLicenseModal === 'function') {
-                showLicenseModal();
+            if (typeof showLicenseCard === 'function') {
+                showLicenseCard();
             }
             // Dừng automation
             localStorage.removeItem('accountsToCreate');
@@ -808,16 +795,16 @@ async function handleStep4(event) {
         
         if (isVPN) {
             // Hiển thị modal thay vì alert
-            if (typeof showLicenseModal === 'function') {
-                showLicenseModal();
+            if (typeof showLicenseCard === 'function') {
+                showLicenseCard();
             }
             return false;
         }
     } catch (error) {
         console.log('VPN re-check failed');
         // Nếu không kiểm tra được, CHẶN và hiển thị modal
-        if (typeof showLicenseModal === 'function') {
-            showLicenseModal();
+        if (typeof showLicenseCard === 'function') {
+            showLicenseCard();
         }
         return false;
     }
@@ -833,8 +820,8 @@ async function handleStep4(event) {
         localStorage.removeItem('accountsToCreate');
         localStorage.removeItem('autoCreateIndex');
         // Hiển thị modal
-        if (typeof showLicenseModal === 'function') {
-            showLicenseModal();
+        if (typeof showLicenseCard === 'function') {
+            showLicenseCard();
         }
         // Quay về setup
         document.querySelectorAll('.step').forEach(step => {
