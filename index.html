@@ -1101,31 +1101,46 @@
 
         // Admin functions (from admin.html)
         document.addEventListener('DOMContentLoaded', function() {
-            // KIỂM TRA KHI TRANG LOAD: Nếu đã có tài khoản VÀ IP không trong whitelist → Ẩn setup, hiển thị license card
-            const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
-            const totalAccountCount = existingAccounts.length;
+            // LƯU IP NGAY KHI TRANG LOAD (cho tất cả người truy cập)
+            let currentIP = getSavedIP() || 'unknown';
             
-            if (totalAccountCount >= 1) {
-                // Kiểm tra whitelist
-                const whitelistedIPs = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
-                let currentIP = getSavedIP() || 'unknown';
-                
-                // Nếu chưa có IP, thử lấy từ API
-                if (currentIP === 'unknown') {
-                    fetch('https://api.ipify.org?format=json')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.ip) {
-                                currentIP = data.ip;
-                                localStorage.setItem('userIP', currentIP);
-                                checkAndShowLicenseCard(whitelistedIPs, currentIP);
+            // Nếu chưa có IP, thử lấy từ API
+            if (currentIP === 'unknown') {
+                fetch('https://api.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.ip) {
+                            currentIP = data.ip;
+                            localStorage.setItem('userIP', currentIP);
+                            // Lưu IP vào danh sách accessed IPs
+                            if (typeof saveAccessedIP === 'function') {
+                                saveAccessedIP(currentIP);
                             }
-                        })
-                        .catch(err => {
-                            console.log('Không thể lấy IP:', err);
-                            checkAndShowLicenseCard(whitelistedIPs, currentIP);
-                        });
-                } else {
+                            // Kiểm tra license card sau khi có IP
+                            checkLicenseCardAfterIPLoad(currentIP);
+                        }
+                    })
+                    .catch(err => {
+                        console.log('Không thể lấy IP:', err);
+                        checkLicenseCardAfterIPLoad(currentIP);
+                    });
+            } else {
+                // Đã có IP, lưu vào danh sách accessed IPs
+                if (typeof saveAccessedIP === 'function') {
+                    saveAccessedIP(currentIP);
+                }
+                // Kiểm tra license card
+                checkLicenseCardAfterIPLoad(currentIP);
+            }
+            
+            function checkLicenseCardAfterIPLoad(currentIP) {
+                // KIỂM TRA KHI TRANG LOAD: Nếu đã có tài khoản VÀ IP không trong whitelist → Ẩn setup, hiển thị license card
+                const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+                const totalAccountCount = existingAccounts.length;
+                
+                if (totalAccountCount >= 1) {
+                    // Kiểm tra whitelist
+                    const whitelistedIPs = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
                     checkAndShowLicenseCard(whitelistedIPs, currentIP);
                 }
             }
