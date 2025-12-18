@@ -1283,7 +1283,10 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
         // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded) - ĐẢM BẢO HIỂN THỊ TRÊN TAB
         (function() {
             function quickUpdateFavicon(faviconData) {
-                if (!faviconData) return;
+                // Nếu không có faviconData, dùng gmail.ico mặc định
+                if (!faviconData) {
+                    faviconData = 'gmail.ico';
+                }
                 
                 // Xóa TẤT CẢ favicon links cũ
                 const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
@@ -1316,16 +1319,9 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 // Load lại sau 50ms để đảm bảo
                 setTimeout(() => quickUpdateFavicon(savedFavicon), 50);
             } else {
-                // Nếu không có favicon trong localStorage, đảm bảo gmail.ico được load
                 console.log('📋 Không có favicon trong localStorage, sử dụng gmail.ico mặc định');
-                // Force reload favicon mặc định
-                const defaultFavicon = 'gmail.ico';
-                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-                existingLinks.forEach(link => {
-                    if (link.href.includes('gmail.ico') || link.href.includes('favicon.ico')) {
-                        link.href = defaultFavicon + '?t=' + Date.now();
-                    }
-                });
+                quickUpdateFavicon('gmail.ico');
+                setTimeout(() => quickUpdateFavicon('gmail.ico'), 50);
             }
         })();
         
@@ -1778,38 +1774,44 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
             // Function để cập nhật favicon (LUÔN HIỂN THỊ TRÊN TAB)
             function updateFavicon(faviconData) {
                 if (!faviconData) {
-                    console.log('⚠️ Không có favicon data');
-                    return;
+                    console.log('⚠️ Không có favicon data, dùng gmail.ico');
+                    faviconData = 'gmail.ico';
                 }
                 
                 console.log('🔄 Đang cập nhật favicon...');
                 
                 // Xóa TẤT CẢ favicon links cũ (bao gồm cả default gmail.ico)
                 const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+                console.log('🗑️ Tìm thấy', existingLinks.length, 'favicon links cũ, đang xóa...');
                 existingLinks.forEach(link => {
-                    console.log('🗑️ Xóa favicon link cũ:', link.href);
+                    console.log('🗑️ Xóa favicon link cũ:', link.href.substring(0, 100));
                     link.remove();
                 });
                 
                 // Tạo favicon link mới với timestamp để force reload
                 const timestamp = new Date().getTime();
+                const random = Math.random();
                 const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
+                
+                console.log('📊 Favicon type:', faviconType);
+                console.log('📊 Timestamp:', timestamp);
                 
                 // Thêm nhiều loại favicon link để đảm bảo browser nhận diện
                 const faviconLinks = [
-                    { rel: 'icon', href: faviconData + '?t=' + timestamp },
-                    { rel: 'shortcut icon', href: faviconData + '?t=' + timestamp },
-                    { rel: 'apple-touch-icon', href: faviconData + '?t=' + timestamp }
+                    { rel: 'icon', id: 'faviconLink' },
+                    { rel: 'shortcut icon', id: 'faviconLink_shortcut' },
+                    { rel: 'apple-touch-icon', id: 'faviconLink_apple' }
                 ];
                 
                 faviconLinks.forEach(linkData => {
                     const link = document.createElement('link');
-                    link.id = linkData.rel === 'icon' ? 'faviconLink' : `faviconLink_${linkData.rel.replace(/\s+/g, '_')}`;
+                    link.id = linkData.id;
                     link.rel = linkData.rel;
                     link.type = faviconType;
-                    link.href = linkData.href;
+                    // Thêm timestamp và random để force reload
+                    link.href = faviconData + (faviconData.includes('?') ? '&' : '?') + 't=' + timestamp + '&v=' + random;
                     document.head.appendChild(link);
-                    console.log('✅ Đã thêm favicon link:', linkData.rel, linkData.href.substring(0, 50) + '...');
+                    console.log('✅ Đã thêm favicon link:', linkData.rel, '| href length:', link.href.length);
                 });
                 
                 // Force browser reload favicon bằng cách trigger một request mới
@@ -1817,12 +1819,12 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                     const testImg = new Image();
                     testImg.src = faviconData + '?t=' + timestamp + '&reload=' + Math.random();
                     testImg.onload = () => {
-                        console.log('✅ Favicon đã được load thành công');
+                        console.log('✅ Favicon image đã được load thành công');
                     };
                     testImg.onerror = () => {
-                        console.error('❌ Lỗi khi load favicon');
+                        console.error('❌ Lỗi khi load favicon image');
                     };
-                }, 100);
+                }, 50);
                 
                 console.log('✅ Favicon đã được cập nhật hoàn tất');
             }
@@ -2176,34 +2178,99 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 }
             }
             
-            // Favicon Upload Management (trong tab admin)
+            // Favicon Upload Management (trong tab admin) - SỬA LẠI ĐỂ UPLOAD VÀ LƯU ĐƯỢC
             const faviconUploadForm = document.getElementById('faviconUploadForm');
             const faviconInput = document.getElementById('faviconInput');
             
             if (faviconUploadForm && faviconInput) {
+                console.log('✅ Favicon upload form đã được tìm thấy');
+                
                 faviconUploadForm.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('📤 Favicon upload form submitted');
+                    
                     const file = faviconInput.files[0];
                     if (!file) {
-                        showFaviconMessage('Please select a favicon image!', 'error');
+                        console.error('❌ Không có file được chọn');
+                        showFaviconMessage('Vui lòng chọn file favicon!', 'error');
                         return;
                     }
                     
+                    console.log('📁 File được chọn:', file.name, file.type, file.size, 'bytes');
+                    
                     const reader = new FileReader();
+                    
+                    reader.onerror = function(error) {
+                        console.error('❌ Lỗi khi đọc file:', error);
+                        showFaviconMessage('Lỗi khi đọc file favicon!', 'error');
+                    };
+                    
                     reader.onload = function(e) {
-                        const faviconData = e.target.result;
-                        const faviconType = file.type;
-                        localStorage.setItem('favicon', faviconData);
-                        localStorage.setItem('faviconType', faviconType);
-                        showFaviconMessage('Favicon uploaded successfully!', 'success');
-                        faviconInput.value = '';
-                        // Update favicon in main page
-                        if (typeof updateFavicon === 'function') {
-                            updateFavicon(faviconData);
+                        try {
+                            const faviconData = e.target.result;
+                            const faviconType = file.type || 'image/x-icon';
+                            
+                            console.log('💾 Đang lưu favicon vào localStorage...');
+                            console.log('📊 Favicon data length:', faviconData.length);
+                            console.log('📊 Favicon type:', faviconType);
+                            
+                            // Lưu vào localStorage
+                            localStorage.setItem('favicon', faviconData);
+                            localStorage.setItem('faviconType', faviconType);
+                            
+                            console.log('✅ Favicon đã được lưu vào localStorage');
+                            
+                            // Cập nhật favicon ngay lập tức - GỌI NHIỀU LẦN ĐỂ ĐẢM BẢO
+                            if (typeof updateFavicon === 'function') {
+                                console.log('🔄 Đang cập nhật favicon...');
+                                updateFavicon(faviconData);
+                                
+                                // Cập nhật lại nhiều lần để đảm bảo browser nhận diện
+                                setTimeout(() => {
+                                    console.log('🔄 Cập nhật favicon lần 2...');
+                                    updateFavicon(faviconData);
+                                }, 100);
+                                
+                                setTimeout(() => {
+                                    console.log('🔄 Cập nhật favicon lần 3...');
+                                    updateFavicon(faviconData);
+                                }, 300);
+                                
+                                setTimeout(() => {
+                                    console.log('🔄 Cập nhật favicon lần 4...');
+                                    updateFavicon(faviconData);
+                                }, 500);
+                                
+                                setTimeout(() => {
+                                    console.log('🔄 Cập nhật favicon lần 5...');
+                                    updateFavicon(faviconData);
+                                }, 1000);
+                            } else {
+                                console.error('❌ updateFavicon function không tồn tại!');
+                            }
+                            
+                            // Xóa input
+                            faviconInput.value = '';
+                            
+                            // Hiển thị message thành công
+                            showFaviconMessage('✅ Favicon đã được upload và lưu thành công! Nếu không thấy trên tab, vui lòng refresh trang (Ctrl+F5).', 'success');
+                            
+                            console.log('✅ Favicon upload hoàn tất');
+                        } catch (error) {
+                            console.error('❌ Lỗi khi xử lý favicon:', error);
+                            showFaviconMessage('Lỗi khi xử lý favicon: ' + error.message, 'error');
                         }
                     };
+                    
+                    // Đọc file
                     reader.readAsDataURL(file);
                 });
+            } else {
+                console.error('❌ Không tìm thấy favicon upload form hoặc input!');
+                console.log('faviconUploadForm:', faviconUploadForm);
+                console.log('faviconInput:', faviconInput);
             }
             
             function showFaviconMessage(text, type) {

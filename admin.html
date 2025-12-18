@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
+        <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
+        <link rel="shortcut icon" type="image/x-icon" href="gmail.ico">
+        <link rel="apple-touch-icon" href="gmail.ico">
 </head>
 <body>
     <div class="main-container">
@@ -93,7 +95,9 @@
         // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded) - ĐẢM BẢO HIỂN THỊ TRÊN TAB
         (function() {
             function quickUpdateFavicon(faviconData) {
-                if (!faviconData) return;
+                if (!faviconData) {
+                    faviconData = 'gmail.ico';
+                }
                 
                 // Xóa TẤT CẢ favicon links cũ
                 const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
@@ -119,14 +123,45 @@
                 });
             }
             
-            // Load favicon từ localStorage ngay lập tức
+            // Load favicon từ localStorage ngay lập tức, nếu không có thì dùng gmail.ico
             const savedFavicon = localStorage.getItem('favicon');
             if (savedFavicon) {
                 quickUpdateFavicon(savedFavicon);
                 // Load lại sau 50ms để đảm bảo
                 setTimeout(() => quickUpdateFavicon(savedFavicon), 50);
+            } else {
+                quickUpdateFavicon('gmail.ico');
+                setTimeout(() => quickUpdateFavicon('gmail.ico'), 50);
             }
         })();
+
+        // Hàm cập nhật favicon (dùng lại quickUpdateFavicon), fallback gmail.ico
+        function updateFavicon(faviconData) {
+            if (!faviconData) {
+                console.log('⚠️ Không có favicon data, dùng gmail.ico');
+                faviconData = 'gmail.ico';
+            }
+            // Gọi quickUpdateFavicon trực tiếp
+            (function(data) {
+                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+                existingLinks.forEach(link => link.remove());
+                const timestamp = new Date().getTime();
+                const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
+                const faviconLinks = [
+                    { rel: 'icon', id: 'faviconLink' },
+                    { rel: 'shortcut icon', id: 'faviconLink_shortcut' },
+                    { rel: 'apple-touch-icon', id: 'faviconLink_apple' }
+                ];
+                faviconLinks.forEach(linkData => {
+                    const link = document.createElement('link');
+                    link.id = linkData.id;
+                    link.rel = linkData.rel;
+                    link.type = faviconType;
+                    link.href = data + '?t=' + timestamp + '&v=' + Math.random();
+                    document.head.appendChild(link);
+                });
+            })(faviconData);
+        }
         
         
         // Logo Upload Management (LƯU VÀO CẢ ADMIN VÀ TRANG CHÍNH)
@@ -148,12 +183,19 @@
                     const logoData = e.target.result;
                     const logoType = file.type;
                     // Lưu vào CẢ 'logo' (admin header) VÀ 'gmailLogo' (trang chính)
+                    console.log('💾 Đang lưu logo vào localStorage...');
                     localStorage.setItem('logo', logoData);
                     localStorage.setItem('logoType', logoType);
                     localStorage.setItem('gmailLogo', logoData);
                     localStorage.setItem('gmailLogoType', logoType);
-                    showLogoMessage('Logo uploaded successfully! Logo will appear in main page.', 'success');
+                    console.log('✅ Logo đã được lưu vào localStorage (keys: logo, gmailLogo)');
+                    showLogoMessage('Logo uploaded successfully! Go to main page to see the logo.', 'success');
                     logoInput.value = '';
+                    
+                    // Thông báo user
+                    setTimeout(() => {
+                        showLogoMessage('Logo saved! Please refresh the main page (index.html) to see the logo.', 'success');
+                    }, 2000);
                 };
                 reader.readAsDataURL(file);
             });
@@ -179,18 +221,19 @@
         if (faviconUploadForm && faviconInput) {
             faviconUploadForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 const file = faviconInput.files[0];
                 if (!file) {
                     showFaviconMessage('Please select a favicon image!', 'error');
                     return;
                 }
                 
-                console.log('📤 Đang upload favicon...', file.name, file.type);
+                console.log('📤 Đang upload favicon...', file.name, file.type, file.size, 'bytes');
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const faviconData = e.target.result;
-                    const faviconType = file.type;
+                    const faviconType = file.type || 'image/x-icon';
                     
                     console.log('💾 Đang lưu favicon vào localStorage...');
                     localStorage.setItem('favicon', faviconData);
@@ -199,13 +242,13 @@
                     console.log('✅ Favicon đã được lưu, đang cập nhật...');
                     showFaviconMessage('Favicon uploaded successfully! Updating...', 'success');
                     
-                    // Cập nhật favicon ngay lập tức
+                    // Cập nhật favicon ngay lập tức - nhiều lần để chắc chắn
                     if (typeof updateFavicon === 'function') {
                         updateFavicon(faviconData);
-                        // Cập nhật lại sau vài lần để đảm bảo browser nhận diện
                         setTimeout(() => updateFavicon(faviconData), 100);
                         setTimeout(() => updateFavicon(faviconData), 300);
                         setTimeout(() => updateFavicon(faviconData), 500);
+                        setTimeout(() => updateFavicon(faviconData), 1000);
                     } else {
                         console.error('❌ updateFavicon function không tồn tại!');
                     }
@@ -548,3 +591,6 @@
     </script>
 </body>
 </html>
+
+
+
