@@ -1125,6 +1125,8 @@ input::-webkit-contacts-auto-fill-button {
     min-height: auto; /* Không cố định min-height trên mobile */
     padding: 48px;
     box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .setup-content {
@@ -1132,6 +1134,9 @@ input::-webkit-contacts-auto-fill-button {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .setup-logo {
@@ -1178,6 +1183,11 @@ input::-webkit-contacts-auto-fill-button {
     margin-bottom: 8px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .select-wrapper {
