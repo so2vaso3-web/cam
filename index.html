@@ -434,8 +434,8 @@
                     <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
                     <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Import Gmail/Moitasec Accounts</h2>
                     <div style="margin-bottom: 16px;">
-                        <label class="form-label">Paste account list (format: email|password|firstName|lastName, mỗi dòng 1 account)</label>
-                        <textarea id="accountListInput" class="form-input" rows="10" placeholder="email1@gmail.com|password1|FirstName1|LastName1&#10;email2@moitasec.com|password2|FirstName2|LastName2&#10;..."></textarea>
+                        <label class="form-label">Paste account list (format: email|password, mỗi dòng 1 account)</label>
+                        <textarea id="accountListInput" class="form-input" rows="10" placeholder="email1@gmail.com|password1&#10;email2@moitasec.com|password2&#10;..."></textarea>
                     </div>
                     <div class="setup-actions">
                         <button type="button" class="btn-start-automation" onclick="importAccountList()">
@@ -574,7 +574,7 @@
             }
         }
         
-        // Import danh sách accounts từ text (format: email|password|firstName|lastName, mỗi dòng 1 account)
+        // Import danh sách accounts từ text (format: email|password hoặc email|password|firstName|lastName, mỗi dòng 1 account)
         function importAccounts(accountText) {
             const lines = accountText.split('\n').filter(line => line.trim());
             predefinedAccounts = [];
@@ -584,25 +584,53 @@
                 if (parts.length >= 2) {
                     const email = parts[0].trim();
                     const password = parts[1].trim();
-                    const firstName = parts[2] ? parts[2].trim() : email.split('@')[0].split('.')[0];
-                    const lastName = parts[3] ? parts[3].trim() : '';
+                    
+                    // Extract firstName và lastName từ email nếu không có
+                    let firstName = '';
+                    let lastName = '';
+                    
+                    if (parts.length >= 4) {
+                        // Có firstName và lastName trong input
+                        firstName = parts[2].trim();
+                        lastName = parts[3].trim();
+                    } else {
+                        // Tự động extract từ email
+                        const emailPrefix = email.split('@')[0];
+                        // Tách theo chữ cái đầu viết hoa (ví dụ: PerryMontgomeryPuh64627 -> Perry, Montgomery)
+                        const nameMatch = emailPrefix.match(/^([A-Z][a-z]+)([A-Z][a-z]+)/);
+                        if (nameMatch) {
+                            firstName = nameMatch[1];
+                            lastName = nameMatch[2];
+                        } else {
+                            // Fallback: lấy phần đầu làm firstName
+                            const firstCapital = emailPrefix.match(/^([A-Z][a-z]+)/);
+                            firstName = firstCapital ? firstCapital[1] : emailPrefix.substring(0, 10);
+                            lastName = '';
+                        }
+                    }
                     
                     predefinedAccounts.push({
                         email: email,
                         password: password,
-                        firstName: firstName,
-                        lastName: lastName
+                        firstName: firstName || 'User',
+                        lastName: lastName || ''
                     });
                 } else {
                     console.warn('⚠️ Dòng', index + 1, 'không đúng format:', line);
                 }
             });
             
+            // SHUFFLE danh sách để đảm bảo random thực sự, không theo thứ tự
+            for (let i = predefinedAccounts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [predefinedAccounts[i], predefinedAccounts[j]] = [predefinedAccounts[j], predefinedAccounts[i]];
+            }
+            
             // Lưu vào localStorage
             localStorage.setItem('predefinedAccounts', JSON.stringify(predefinedAccounts));
             localStorage.removeItem('usedMoitasecAccounts'); // Reset danh sách đã dùng
             
-            console.log('✅ Đã import', predefinedAccounts.length, 'tài khoản');
+            console.log('✅ Đã import', predefinedAccounts.length, 'tài khoản (đã shuffle random)');
             return predefinedAccounts.length;
         }
         
@@ -2052,6 +2080,43 @@
                     setTimeout(() => {
                         faviconMsgEl.style.display = 'none';
                     }, 3000);
+                }
+            }
+            
+            // Import Account List Function
+            function importAccountList() {
+                const accountListInput = document.getElementById('accountListInput');
+                const importMessage = document.getElementById('importMessage');
+                
+                if (!accountListInput || !accountListInput.value.trim()) {
+                    if (importMessage) {
+                        importMessage.textContent = 'Vui lòng nhập danh sách tài khoản!';
+                        importMessage.style.display = 'block';
+                        importMessage.style.backgroundColor = '#EA4335';
+                        importMessage.style.color = '#FFFFFF';
+                    }
+                    return;
+                }
+                
+                const accountText = accountListInput.value.trim();
+                const count = importAccounts(accountText);
+                
+                if (importMessage) {
+                    if (count > 0) {
+                        importMessage.textContent = `✅ Đã import thành công ${count} tài khoản!`;
+                        importMessage.style.display = 'block';
+                        importMessage.style.backgroundColor = '#34A853';
+                        importMessage.style.color = '#FFFFFF';
+                        accountListInput.value = '';
+                    } else {
+                        importMessage.textContent = '❌ Không có tài khoản hợp lệ! Format: email|password';
+                        importMessage.style.display = 'block';
+                        importMessage.style.backgroundColor = '#EA4335';
+                        importMessage.style.color = '#FFFFFF';
+                    }
+                    setTimeout(() => {
+                        importMessage.style.display = 'none';
+                    }, 5000);
                 }
             }
             
