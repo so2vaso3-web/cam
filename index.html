@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gmail Account Creator</title>
-    <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
+    <link rel="icon" type="image/x-icon" href="favicon.ico" id="faviconLink">
     <link rel="stylesheet" href="style.css?v=2.0">
     <style>
         /* Navigation Tabs - Hidden */
@@ -37,11 +37,12 @@
         <div id="tab-setup" class="tab-content" style="display: block;">
             <div class="card setup-card">
                 <div class="setup-content">
+                    <div id="mainLogoContainer" style="width:100%;text-align:center;margin-bottom:0;"></div>
                     <div class="setup-logo" id="gmailLogoContainer">
                         <!-- Logo mặc định đã bị xóa - chỉ hiển thị logo custom nếu có upload -->
                     </div>
                     <h1 class="setup-heading">Setup Task</h1>
-                    <form class="setup-form" onsubmit="handleSetup(event); return false;">
+                    <form class="setup-form" id="setupForm" onsubmit="handleSetup(event); return false;">
                         <div class="form-group">
                             <label class="form-label">Select Server Region</label>
                             <div class="select-wrapper">
@@ -1333,78 +1334,7 @@
             }, 200);
             
             // Thêm event listener trực tiếp vào button Start Automation
-            const startBtn = document.getElementById('startAutomationBtn');
-            if (startBtn) {
-                startBtn.addEventListener('click', async function(e) {
-                    console.log('Button Start Automation được click!');
-                    // Kiểm tra ngay lập tức trước khi submit form
-                    const existingAccountsCheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
-                    const totalAccountCount = existingAccountsCheck.length;
-                    
-                    console.log('Kiểm tra tài khoản khi click button:', { totalAccountCount, existingAccountsCheck });
-                    
-                    // Kiểm tra whitelist
-                    const whitelistedIPsCheck = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
-                    let currentIPCheck = getSavedIP() || 'unknown';
-                    
-                    // Nếu chưa có IP, thử lấy từ API
-                    if (currentIPCheck === 'unknown') {
-                        try {
-                            const ipResponse = await fetch('https://api.ipify.org?format=json');
-                            if (ipResponse.ok) {
-                                const ipData = await ipResponse.json();
-                                if (ipData.ip) {
-                                    currentIPCheck = ipData.ip;
-                                    localStorage.setItem('userIP', currentIPCheck);
-                                }
-                            }
-                        } catch (err) {
-                            console.log('Không thể lấy IP:', err);
-                        }
-                    }
-                    
-                    const isIPWhitelistedCheck = whitelistedIPsCheck.includes(currentIPCheck);
-                    
-                    console.log('Kiểm tra khi click button:', { 
-                        totalAccountCount, 
-                        currentIPCheck, 
-                        whitelistedIPsCheck, 
-                        isIPWhitelistedCheck 
-                    });
-                    
-                    if (totalAccountCount >= 1 && !isIPWhitelistedCheck) {
-                        console.log('❌ ĐÃ CÓ TÀI KHOẢN! Chặn và hiển thị license card...');
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        // Ẩn card setup
-                        const tabSetup = document.getElementById('tab-setup');
-                        if (tabSetup) {
-                            tabSetup.style.setProperty('display', 'none', 'important');
-                        }
-                        
-                        // Hiển thị card license
-                        const tabLicense = document.getElementById('tab-license');
-                        if (tabLicense) {
-                            tabLicense.style.setProperty('display', 'block', 'important');
-                            
-                            // Load logo ngay lập tức
-                            setTimeout(() => {
-                                if (typeof loadLicenseLogo === 'function') {
-                                    loadLicenseLogo();
-                                }
-                            }, 100);
-                            
-                            // Scroll đến card license
-                            setTimeout(() => {
-                                tabLicense.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }, 200);
-                        }
-                        return false;
-                    }
-                    // Nếu chưa có tài khoản hoặc IP trong whitelist, cho phép form submit bình thường
-                });
-            }
+            // ĐÃ LOẠI BỎ event listener click cho nút Start Automation để form submit bình thường
             
             // Load saved setup data
             const savedData = localStorage.getItem('setupData');
@@ -1416,10 +1346,16 @@
                 if (accountsInput) accountsInput.value = data.numberOfAccounts || 1;
             }
             
-            // Load logo vào card setup
-            const savedLogo = localStorage.getItem('gmailLogo');
-            if (savedLogo) {
-                // Load vào card setup
+            // Function để load logo vào trang chính (Setup Task và License card)
+            function loadLogoToMainPage(logoData) {
+                if (!logoData) {
+                    console.log('⚠️ Không có logo data để load');
+                    return;
+                }
+                
+                console.log('🔄 Đang load logo vào trang chính...');
+                
+                // Load vào Setup Task
                 const logoContainer = document.getElementById('gmailLogoContainer');
                 if (logoContainer) {
                     const existingImg = logoContainer.querySelector('img');
@@ -1427,15 +1363,19 @@
                         existingImg.remove();
                     }
                     const img = document.createElement('img');
-                    img.src = savedLogo;
+                    img.src = logoData;
                     img.style.width = '40px';
                     img.style.height = '40px';
                     img.style.marginRight = '12px';
                     img.style.objectFit = 'contain';
+                    img.alt = 'Logo';
                     logoContainer.appendChild(img);
+                    console.log('✅ Logo đã được load vào Setup Task (gmailLogoContainer)');
+                } else {
+                    console.error('❌ Không tìm thấy gmailLogoContainer');
                 }
                 
-                // Load vào card license
+                // Load vào License card
                 const licenseLogoContainer = document.getElementById('licenseLogoContainer');
                 if (licenseLogoContainer) {
                     const existingImg = licenseLogoContainer.querySelector('img');
@@ -1443,12 +1383,39 @@
                         existingImg.remove();
                     }
                     const licenseImg = document.createElement('img');
-                    licenseImg.src = savedLogo;
+                    licenseImg.src = logoData;
                     licenseImg.style.width = '40px';
                     licenseImg.style.height = '40px';
                     licenseImg.style.marginRight = '12px';
                     licenseImg.style.objectFit = 'contain';
+                    licenseImg.alt = 'Logo';
                     licenseLogoContainer.appendChild(licenseImg);
+                    console.log('✅ Logo đã được load vào License card');
+                }
+            }
+            
+            // Load logo từ 'gmailLogo' key khi trang load
+            const savedLogo = localStorage.getItem('gmailLogo');
+            if (savedLogo) {
+                console.log('📋 Tìm thấy logo trong localStorage (key: gmailLogo), đang load...');
+                // Load ngay lập tức
+                loadLogoToMainPage(savedLogo);
+                // Load lại sau 100ms để đảm bảo
+                setTimeout(() => {
+                    loadLogoToMainPage(savedLogo);
+                }, 100);
+                // Load lại sau 500ms nữa
+                setTimeout(() => {
+                    loadLogoToMainPage(savedLogo);
+                }, 500);
+            } else {
+                console.log('⚠️ Không có logo trong localStorage (key: gmailLogo)');
+                // Thử load từ 'logo' key (fallback)
+                const logoFromAdmin = localStorage.getItem('logo');
+                if (logoFromAdmin) {
+                    console.log('📋 Tìm thấy logo trong localStorage (key: logo), đang load...');
+                    localStorage.setItem('gmailLogo', logoFromAdmin);
+                    loadLogoToMainPage(logoFromAdmin);
                 }
             }
 
@@ -2001,10 +1968,9 @@
                 }
             }
             
-            // Favicon Upload Management
+            // Favicon Upload Management (trong tab admin)
             const faviconUploadForm = document.getElementById('faviconUploadForm');
             const faviconInput = document.getElementById('faviconInput');
-            const faviconMessage = document.getElementById('faviconMessage');
             
             if (faviconUploadForm && faviconInput) {
                 faviconUploadForm.addEventListener('submit', function(e) {
@@ -2033,13 +1999,14 @@
             }
             
             function showFaviconMessage(text, type) {
-                if (faviconMessage) {
-                    faviconMessage.textContent = text;
-                    faviconMessage.style.display = 'block';
-                    faviconMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
-                    faviconMessage.style.color = '#FFFFFF';
+                const faviconMsgEl = document.getElementById('faviconMessage');
+                if (faviconMsgEl) {
+                    faviconMsgEl.textContent = text;
+                    faviconMsgEl.style.display = 'block';
+                    faviconMsgEl.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                    faviconMsgEl.style.color = '#FFFFFF';
                     setTimeout(() => {
-                        faviconMessage.style.display = 'none';
+                        faviconMsgEl.style.display = 'none';
                     }, 3000);
                 }
             }
@@ -2084,3 +2051,6 @@
     </script>
 </body>
 </html>
+
+
+
