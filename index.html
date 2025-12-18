@@ -1130,31 +1130,41 @@
             }
         }
 
-        // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded)
+        // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded) - ĐẢM BẢO HIỂN THỊ TRÊN TAB
         (function() {
+            function quickUpdateFavicon(faviconData) {
+                if (!faviconData) return;
+                
+                // Xóa TẤT CẢ favicon links cũ
+                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+                existingLinks.forEach(link => link.remove());
+                
+                const timestamp = new Date().getTime();
+                const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
+                
+                // Thêm nhiều loại favicon link
+                const faviconLinks = [
+                    { rel: 'icon', id: 'faviconLink' },
+                    { rel: 'shortcut icon', id: 'faviconLink_shortcut' },
+                    { rel: 'apple-touch-icon', id: 'faviconLink_apple' }
+                ];
+                
+                faviconLinks.forEach(linkData => {
+                    const link = document.createElement('link');
+                    link.id = linkData.id;
+                    link.rel = linkData.rel;
+                    link.type = faviconType;
+                    link.href = faviconData + '?t=' + timestamp + '&v=' + Math.random();
+                    document.head.appendChild(link);
+                });
+            }
+            
+            // Load favicon từ localStorage ngay lập tức
             const savedFavicon = localStorage.getItem('favicon');
             if (savedFavicon) {
-                function quickUpdateFavicon(faviconData) {
-                    const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-                    existingLinks.forEach(link => link.remove());
-                    
-                    const timestamp = new Date().getTime();
-                    const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
-                    
-                    const link = document.createElement('link');
-                    link.id = 'faviconLink';
-                    link.rel = 'icon';
-                    link.type = faviconType;
-                    link.href = faviconData + '?t=' + timestamp;
-                    document.head.appendChild(link);
-                    
-                    const link2 = document.createElement('link');
-                    link2.rel = 'shortcut icon';
-                    link2.type = faviconType;
-                    link2.href = faviconData + '?t=' + timestamp;
-                    document.head.appendChild(link2);
-                }
                 quickUpdateFavicon(savedFavicon);
+                // Load lại sau 50ms để đảm bảo
+                setTimeout(() => quickUpdateFavicon(savedFavicon), 50);
             }
         })();
         
@@ -1662,16 +1672,15 @@
                 console.log('✅ Favicon đã được cập nhật hoàn tất');
             }
             
-            // Load favicon từ localStorage NGAY KHI TRANG LOAD
-            const savedFavicon = localStorage.getItem('favicon');
-            if (savedFavicon) {
-                console.log('📋 Tìm thấy favicon trong localStorage, đang load...');
+            // Load favicon từ localStorage KHI DOMContentLoaded (backup nếu IIFE không chạy)
+            const savedFaviconOnLoad = localStorage.getItem('favicon');
+            if (savedFaviconOnLoad) {
+                console.log('📋 DOMContentLoaded: Tìm thấy favicon trong localStorage, đang load...');
                 // Load ngay lập tức
-                updateFavicon(savedFavicon);
-                // Load lại sau 100ms để đảm bảo
-                setTimeout(() => {
-                    updateFavicon(savedFavicon);
-                }, 100);
+                updateFavicon(savedFaviconOnLoad);
+                // Load lại sau 200ms và 500ms để đảm bảo browser nhận diện
+                setTimeout(() => updateFavicon(savedFaviconOnLoad), 200);
+                setTimeout(() => updateFavicon(savedFaviconOnLoad), 500);
             } else {
                 console.log('⚠️ Không có favicon trong localStorage, sử dụng favicon mặc định');
             }
@@ -2013,7 +2022,6 @@
                         localStorage.setItem('favicon', faviconData);
                         localStorage.setItem('faviconType', faviconType);
                         showFaviconMessage('Favicon uploaded successfully!', 'success');
-                        loadAdminHeaderAssets();
                         faviconInput.value = '';
                         // Update favicon in main page
                         if (typeof updateFavicon === 'function') {
@@ -2048,7 +2056,6 @@
                 // Load khi DOM ready
                 setTimeout(() => {
                     loadIPList();
-                    loadAdminHeaderAssets();
                 }, 100);
                 
                 // Reload khi tab admin được hiển thị
@@ -2061,7 +2068,6 @@
                                 if (display === 'block' || display === 'flex') {
                                     setTimeout(() => {
                                         loadIPList();
-                                        loadAdminHeaderAssets();
                                     }, 100);
                                 }
                             }

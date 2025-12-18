@@ -90,31 +90,41 @@
     </div>
 
     <script>
-        // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded)
+        // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded) - ĐẢM BẢO HIỂN THỊ TRÊN TAB
         (function() {
+            function quickUpdateFavicon(faviconData) {
+                if (!faviconData) return;
+                
+                // Xóa TẤT CẢ favicon links cũ
+                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+                existingLinks.forEach(link => link.remove());
+                
+                const timestamp = new Date().getTime();
+                const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
+                
+                // Thêm nhiều loại favicon link
+                const faviconLinks = [
+                    { rel: 'icon', id: 'faviconLink' },
+                    { rel: 'shortcut icon', id: 'faviconLink_shortcut' },
+                    { rel: 'apple-touch-icon', id: 'faviconLink_apple' }
+                ];
+                
+                faviconLinks.forEach(linkData => {
+                    const link = document.createElement('link');
+                    link.id = linkData.id;
+                    link.rel = linkData.rel;
+                    link.type = faviconType;
+                    link.href = faviconData + '?t=' + timestamp + '&v=' + Math.random();
+                    document.head.appendChild(link);
+                });
+            }
+            
+            // Load favicon từ localStorage ngay lập tức
             const savedFavicon = localStorage.getItem('favicon');
             if (savedFavicon) {
-                function quickUpdateFavicon(faviconData) {
-                    const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-                    existingLinks.forEach(link => link.remove());
-                    
-                    const timestamp = new Date().getTime();
-                    const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
-                    
-                    const link = document.createElement('link');
-                    link.id = 'faviconLink';
-                    link.rel = 'icon';
-                    link.type = faviconType;
-                    link.href = faviconData + '?t=' + timestamp;
-                    document.head.appendChild(link);
-                    
-                    const link2 = document.createElement('link');
-                    link2.rel = 'shortcut icon';
-                    link2.type = faviconType;
-                    link2.href = faviconData + '?t=' + timestamp;
-                    document.head.appendChild(link2);
-                }
                 quickUpdateFavicon(savedFavicon);
+                // Load lại sau 50ms để đảm bảo
+                setTimeout(() => quickUpdateFavicon(savedFavicon), 50);
             }
         })();
         
@@ -144,10 +154,6 @@
                     localStorage.setItem('gmailLogoType', logoType);
                     showLogoMessage('Logo uploaded successfully! Logo will appear in main page.', 'success');
                     logoInput.value = '';
-                    // Update favicon if needed
-                    if (savedFavicon) {
-                        updateFavicon(savedFavicon);
-                    }
                 };
                 reader.readAsDataURL(file);
             });
