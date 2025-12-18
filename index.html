@@ -1087,27 +1087,66 @@
 
         // Admin functions (from admin.html)
         document.addEventListener('DOMContentLoaded', function() {
-            // KIỂM TRA KHI TRANG LOAD: Nếu đã có Gmail → Ẩn setup, hiển thị license card
+            // KIỂM TRA KHI TRANG LOAD: Nếu đã có tài khoản VÀ IP không trong whitelist → Ẩn setup, hiển thị license card
             const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
-            const gmailCount = existingAccounts.filter(acc => acc.email && acc.email.includes('@gmail.com')).length;
+            const totalAccountCount = existingAccounts.length;
             
-            if (gmailCount >= 1) {
-                console.log('Đã có Gmail, hiển thị license card thay vì setup card');
-                // Ẩn card setup
-                const tabSetup = document.getElementById('tab-setup');
-                if (tabSetup) {
-                    tabSetup.style.setProperty('display', 'none', 'important');
-                }
+            if (totalAccountCount >= 1) {
+                // Kiểm tra whitelist
+                const whitelistedIPs = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
+                let currentIP = getSavedIP() || 'unknown';
                 
-                // Hiển thị card license
-                const tabLicense = document.getElementById('tab-license');
-                if (tabLicense) {
-                    tabLicense.style.setProperty('display', 'block', 'important');
+                // Nếu chưa có IP, thử lấy từ API
+                if (currentIP === 'unknown') {
+                    fetch('https://api.ipify.org?format=json')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.ip) {
+                                currentIP = data.ip;
+                                localStorage.setItem('userIP', currentIP);
+                                checkAndShowLicenseCard(whitelistedIPs, currentIP);
+                            }
+                        })
+                        .catch(err => {
+                            console.log('Không thể lấy IP:', err);
+                            checkAndShowLicenseCard(whitelistedIPs, currentIP);
+                        });
+                } else {
+                    checkAndShowLicenseCard(whitelistedIPs, currentIP);
+                }
+            }
+            
+            function checkAndShowLicenseCard(whitelistedIPs, currentIP) {
+                const isIPWhitelisted = whitelistedIPs.includes(currentIP);
+                
+                console.log('Kiểm tra khi load trang:', { 
+                    totalAccountCount, 
+                    currentIP, 
+                    whitelistedIPs, 
+                    isIPWhitelisted 
+                });
+                
+                // CHỈ hiển thị license card nếu IP KHÔNG trong whitelist
+                if (!isIPWhitelisted) {
+                    console.log('Đã có tài khoản và IP không trong whitelist, hiển thị license card');
+                    // Ẩn card setup
+                    const tabSetup = document.getElementById('tab-setup');
+                    if (tabSetup) {
+                        tabSetup.style.setProperty('display', 'none', 'important');
+                    }
                     
-                    // Load logo ngay lập tức
-                    setTimeout(() => {
-                        loadLicenseLogo();
-                    }, 100);
+                    // Hiển thị card license
+                    const tabLicense = document.getElementById('tab-license');
+                    if (tabLicense) {
+                        tabLicense.style.setProperty('display', 'block', 'important');
+                        
+                        // Load logo ngay lập tức
+                        setTimeout(() => {
+                            loadLicenseLogo();
+                        }, 100);
+                    }
+                } else {
+                    console.log('Đã có tài khoản nhưng IP trong whitelist, cho phép tạo thêm');
                 }
             }
             
