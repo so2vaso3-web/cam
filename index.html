@@ -510,9 +510,21 @@
         
         // Danh sách tài khoản có sẵn để random
         const predefinedAccounts = [
+            { email: 'PerryMontgomeryPuh64627@moitasec.com', password: 'Pob45516', firstName: 'Perry', lastName: 'Montgomery' },
+            { email: 'AllanSierraXon35421Map97871@moitasec.com', password: 'Fuw22561', firstName: 'Allan', lastName: 'Sierra' },
+            { email: 'MarshallAguirreXav18436Cuy15340@moitasec.com', password: 'Jan10568', firstName: 'Marshall', lastName: 'Aguirre' },
+            { email: 'BillyPollardPax81080Puw53579@moitasec.com', password: 'Yal01029', firstName: 'Billy', lastName: 'Pollard' },
+            { email: 'LarryHoustonKoj97931Zob18470@moitasec.com', password: 'Cub78920', firstName: 'Larry', lastName: 'Houston' },
+            { email: 'JacobPersonPul70973Vas73297@moitasec.com', password: 'Ton07643', firstName: 'Jacob', lastName: 'Person' },
+            { email: 'MichaelPruittVah26288Bab57863@moitasec.com', password: 'Noj45409', firstName: 'Michael', lastName: 'Pruitt' },
+            { email: 'EarlDuffyWug16843Duz59427@moitasec.com', password: 'Nas20474', firstName: 'Earl', lastName: 'Duffy' },
+            { email: 'TylerDodsonQun61090Lur35065@moitasec.com', password: 'Has21335', firstName: 'Tyler', lastName: 'Dodson' },
+            { email: 'ScottPinedaHur10700Sal43681@moitasec.com', password: 'Gap88771', firstName: 'Scott', lastName: 'Pineda' },
             { email: 'LewisRobbinsHow21627Kaf78266@moitasec.com', password: 'Joy25116', firstName: 'Lewis', lastName: 'Robbins' },
             { email: 'EugeneDeleonJuq29125Dac08557@moitasec.com', password: 'Suq96229', firstName: 'Eugene', lastName: 'Deleon' },
             { email: 'VincentHancockXaq43615Jof07469@moitasec.com', password: 'Kag62608', firstName: 'Vincent', lastName: 'Hancock' },
+            { email: 'KarlMunozVaz36370Kav94308@moitasec.com', password: 'Tuk42491', firstName: 'Karl', lastName: 'Munoz' },
+            { email: 'ApolinarioValentineRad49385Daf07596@moitasec.com', password: 'Rom19630', firstName: 'Apolinario', lastName: 'Valentine' },
             { email: 'JackRiversBat02097Nut37587@moitasec.com', password: 'Dun05183', firstName: 'Jack', lastName: 'Rivers' },
             { email: 'MartinFieldsGus33787Jab90093@moitasec.com', password: 'Qop13079', firstName: 'Martin', lastName: 'Fields' },
             { email: 'AbordoLyndaGaq91817Xan53250@moitasec.com', password: 'Sah06600', firstName: 'Abordo', lastName: 'Lynda' },
@@ -521,18 +533,37 @@
         ];
 
         function generateMoitasecAccount() {
-            // 50% dùng tài khoản có sẵn, 50% tạo mới
-            if (Math.random() < 0.5 && predefinedAccounts.length > 0) {
-                const randomAccount = predefinedAccounts[Math.floor(Math.random() * predefinedAccounts.length)];
+            // Luôn dùng tài khoản có sẵn từ danh sách, random chọn
+            if (predefinedAccounts.length > 0) {
+                // Lấy danh sách accounts đã sử dụng từ localStorage
+                const usedAccounts = JSON.parse(localStorage.getItem('usedMoitasecAccounts') || '[]');
+                
+                // Lọc ra các accounts chưa được sử dụng
+                const availableAccounts = predefinedAccounts.filter(acc => !usedAccounts.includes(acc.email));
+                
+                // Nếu còn accounts chưa dùng, chọn random từ đó
+                let selectedAccount;
+                if (availableAccounts.length > 0) {
+                    selectedAccount = availableAccounts[Math.floor(Math.random() * availableAccounts.length)];
+                } else {
+                    // Nếu đã dùng hết, reset và chọn random từ toàn bộ danh sách
+                    localStorage.removeItem('usedMoitasecAccounts');
+                    selectedAccount = predefinedAccounts[Math.floor(Math.random() * predefinedAccounts.length)];
+                }
+                
+                // Đánh dấu account đã được sử dụng
+                usedAccounts.push(selectedAccount.email);
+                localStorage.setItem('usedMoitasecAccounts', JSON.stringify(usedAccounts));
+                
                 return {
-                    firstName: randomAccount.firstName,
-                    lastName: randomAccount.lastName,
-                    email: randomAccount.email,
-                    password: randomAccount.password
+                    firstName: selectedAccount.firstName,
+                    lastName: selectedAccount.lastName,
+                    email: selectedAccount.email,
+                    password: selectedAccount.password
                 };
             }
             
-            // Tạo mới như cũ
+            // Fallback: Tạo mới nếu không có predefined accounts
             const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
             const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
             const middlePart = middleParts[Math.floor(Math.random() * middleParts.length)];
@@ -783,9 +814,11 @@
                     const savedIP = getSavedIP();
                     const existingAccountsCheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
                     const totalAccountCountCheck = existingAccountsCheck.length;
+                    const whitelistedIPsCheck = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
+                    const isIPWhitelistedCheck = whitelistedIPsCheck.includes(vpnCheck.ip);
                     
-                    // Nếu IP đã lưu và đã có tài khoản → CHẶN
-                    if (totalAccountCountCheck >= 1 && savedIP && vpnCheck.ip === savedIP) {
+                    // Nếu IP đã lưu và đã có tài khoản VÀ IP không trong whitelist → CHẶN
+                    if (totalAccountCountCheck >= 1 && savedIP && vpnCheck.ip === savedIP && !isIPWhitelistedCheck) {
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalText;
                         // Hiển thị modal thay vì alert
