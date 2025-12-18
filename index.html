@@ -826,9 +826,13 @@
             submitBtn.innerHTML = '<span>Checking VPN...</span>';
             
             // Kiểm tra VPN CỰC MẠNH trước (nhưng không chặn nếu API fail)
+            let vpnCheck = null;
             try {
-                const vpnCheck = await checkVPN();
+                vpnCheck = await checkVPN();
+                console.log('VPN check result:', vpnCheck);
+                
                 if (vpnCheck.isVPN && !vpnCheck.error) {
+                    console.log('❌ VPN/Proxy detected, blocking...');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
                     // Hiển thị modal thay vì alert
@@ -838,24 +842,11 @@
                     return;
                 }
                 
-                // Kiểm tra IP đã tạo tài khoản chưa (chỉ nếu có IP)
-                if (vpnCheck.ip) {
-                    const savedIP = getSavedIP();
-                    const existingAccountsCheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
-                    const totalAccountCountCheck = existingAccountsCheck.length;
-                    const whitelistedIPsCheck = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
-                    const isIPWhitelistedCheck = whitelistedIPsCheck.includes(vpnCheck.ip);
-                    
-                    // Nếu IP đã lưu và đã có tài khoản VÀ IP không trong whitelist → CHẶN
-                    if (totalAccountCountCheck >= 1 && savedIP && vpnCheck.ip === savedIP && !isIPWhitelistedCheck) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalText;
-                        // Hiển thị modal thay vì alert
-                    if (typeof showLicenseCard === 'function') {
-                        showLicenseCard();
-                    }
-                        return;
-                    }
+                // Cập nhật IP từ VPN check nếu có
+                if (vpnCheck && vpnCheck.ip) {
+                    localStorage.setItem('userIP', vpnCheck.ip);
+                    currentIP = vpnCheck.ip;
+                    console.log('IP từ VPN check:', vpnCheck.ip);
                 }
             } catch (vpnError) {
                 console.error('VPN check failed:', vpnError);
@@ -867,16 +858,39 @@
             // KIỂM TRA LẠI TỔNG SỐ TÀI KHOẢN (đảm bảo chắc chắn)
             const existingAccountsRecheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
             const totalAccountCountRecheck = existingAccountsRecheck.length;
-            const currentIPRecheck = getSavedIP() || 'unknown';
+            
+            // Lấy IP từ VPN check nếu có, nếu không thì lấy từ localStorage
+            let currentIPRecheck = 'unknown';
+            if (vpnCheck && vpnCheck.ip) {
+                currentIPRecheck = vpnCheck.ip;
+                // Cập nhật localStorage với IP từ VPN check
+                localStorage.setItem('userIP', currentIPRecheck);
+            } else {
+                currentIPRecheck = getSavedIP() || 'unknown';
+            }
+            
             const whitelistedIPsRecheck = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
             const isIPWhitelistedRecheck = whitelistedIPsRecheck.includes(currentIPRecheck);
             
+            console.log('Kiểm tra lại trước khi tạo:', { 
+                totalAccountCountRecheck, 
+                currentIPRecheck, 
+                whitelistedIPsRecheck, 
+                isIPWhitelistedRecheck 
+            });
+            
             // Nếu đã có tài khoản VÀ IP không trong whitelist → CHẶN
             if (totalAccountCountRecheck >= 1 && !isIPWhitelistedRecheck) {
+                console.log('❌ Chặn: Đã có tài khoản và IP không trong whitelist');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 showLicenseCard();
                 return;
+            }
+            
+            // Nếu IP trong whitelist, cho phép tiếp tục
+            if (isIPWhitelistedRecheck) {
+                console.log('✅ Cho phép: IP trong whitelist, tiếp tục tạo tài khoản');
             }
             
             // Tạo danh sách tài khoản
@@ -1187,7 +1201,7 @@
             // Thêm event listener trực tiếp vào button Start Automation
             const startBtn = document.getElementById('startAutomationBtn');
             if (startBtn) {
-                startBtn.addEventListener('click', function(e) {
+                startBtn.addEventListener('click', async function(e) {
                     console.log('Button Start Automation được click!');
                     // Kiểm tra ngay lập tức trước khi submit form
                     const existingAccountsCheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
@@ -1254,7 +1268,7 @@
                         }
                         return false;
                     }
-                    // Nếu chưa có tài khoản, cho phép form submit bình thường
+                    // Nếu chưa có tài khoản hoặc IP trong whitelist, cho phép form submit bình thường
                 });
             }
             
