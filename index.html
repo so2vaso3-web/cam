@@ -943,15 +943,16 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 isIPWhitelisted 
             });
             
-            // NẾU ĐÃ CÓ TÀI KHOẢN (>= 1) → LUÔN ẨN SETUP TASK VÀ HIỂN THỊ LICENSE CARD (KHÔNG PHỤ THUỘC WHITELIST)
-            if (totalAccountCount >= 1) {
-                console.log('❌ ĐÃ CÓ TÀI KHOẢN! Ẩn Setup Task và hiển thị License card vĩnh viễn...');
+            // NẾU ĐÃ CÓ TÀI KHOẢN VÀ IP KHÔNG TRONG WHITELIST → ẨN SETUP TASK, HIỂN THỊ LICENSE CARD
+            // NẾU IP TRONG WHITELIST → MỞ KHÓA, CHO PHÉP TẠO THÊM
+            if (totalAccountCount >= 1 && !isIPWhitelisted) {
+                console.log('❌ ĐÃ CÓ TÀI KHOẢN VÀ IP KHÔNG TRONG WHITELIST! Ẩn Setup Task và hiển thị License card...');
                 const submitBtn = event.target.querySelector('.btn-start-automation');
                 if (submitBtn) {
                     submitBtn.disabled = false;
                 }
                 
-                // Ẩn card setup VĨNH VIỄN
+                // Ẩn card setup
                 const tabSetup = document.getElementById('tab-setup');
                 if (tabSetup) {
                     tabSetup.style.setProperty('display', 'none', 'important');
@@ -968,6 +969,9 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                     }
                 }
                 return;
+            } else if (totalAccountCount >= 1 && isIPWhitelisted) {
+                console.log('🔓 IP ĐÃ ĐƯỢC CẤP QUYỀN (WHITELIST), MỞ KHÓA - CHO PHÉP TẠO THÊM');
+                // Tiếp tục cho phép tạo tài khoản
             }
             
             // Nếu IP trong whitelist, cho phép tiếp tục
@@ -1035,13 +1039,14 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
             });
             
             // Nếu đã có tài khoản VÀ IP không trong whitelist → CHẶN
-            // NẾU ĐÃ CÓ TÀI KHOẢN (>= 1) → LUÔN ẨN SETUP TASK VÀ HIỂN THỊ LICENSE CARD
-            if (totalAccountCountRecheck >= 1) {
-                console.log('❌ Chặn: Đã có tài khoản, ẩn Setup Task và hiển thị License card vĩnh viễn');
+            // NẾU ĐÃ CÓ TÀI KHOẢN VÀ IP KHÔNG TRONG WHITELIST → ẨN SETUP TASK, HIỂN THỊ LICENSE CARD
+            // NẾU IP TRONG WHITELIST → MỞ KHÓA, CHO PHÉP TẠO THÊM
+            if (totalAccountCountRecheck >= 1 && !isIPWhitelistedRecheck) {
+                console.log('❌ Chặn: Đã có tài khoản và IP không trong whitelist, ẩn Setup Task và hiển thị License card');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 
-                // Ẩn card setup VĨNH VIỄN
+                // Ẩn card setup
                 const tabSetup = document.getElementById('tab-setup');
                 if (tabSetup) {
                     tabSetup.style.setProperty('display', 'none', 'important');
@@ -1050,6 +1055,9 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 // Hiển thị card license
                 showLicenseCard();
                 return;
+            } else if (totalAccountCountRecheck >= 1 && isIPWhitelistedRecheck) {
+                console.log('🔓 IP ĐÃ ĐƯỢC CẤP QUYỀN (WHITELIST), MỞ KHÓA - CHO PHÉP TẠO THÊM');
+                // Tiếp tục cho phép tạo tài khoản
             }
             
             // Nếu IP trong whitelist, cho phép tiếp tục
@@ -1407,18 +1415,21 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
             function checkAndShowLicenseCard(whitelistedIPs, currentIP) {
                 const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
                 const totalAccountCount = existingAccounts.length;
+                const isIPWhitelisted = whitelistedIPs.includes(currentIP);
                 
                 console.log('Kiểm tra khi load trang:', { 
                     totalAccountCount, 
                     currentIP, 
-                    whitelistedIPs
+                    whitelistedIPs,
+                    isIPWhitelisted
                 });
                 
-                // NẾU ĐÃ CÓ TÀI KHOẢN (>= 1) → LUÔN ẨN SETUP TASK VÀ HIỂN THỊ LICENSE CARD
-                if (totalAccountCount >= 1) {
-                    console.log('✅ Đã có tài khoản, ẩn Setup Task và hiển thị License card vĩnh viễn');
+                // NẾU ĐÃ CÓ TÀI KHOẢN VÀ IP KHÔNG TRONG WHITELIST → ẨN SETUP TASK, HIỂN THỊ LICENSE CARD
+                // NẾU IP TRONG WHITELIST → MỞ KHÓA, CHO PHÉP TẠO THÊM (HIỂN THỊ SETUP TASK)
+                if (totalAccountCount >= 1 && !isIPWhitelisted) {
+                    console.log('✅ Đã có tài khoản nhưng IP không trong whitelist, ẩn Setup Task và hiển thị License card');
                     
-                    // Ẩn card setup VĨNH VIỄN
+                    // Ẩn card setup
                     const tabSetup = document.getElementById('tab-setup');
                     if (tabSetup) {
                         tabSetup.style.setProperty('display', 'none', 'important');
@@ -1435,6 +1446,20 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                                 loadLicenseLogo();
                             }
                         }, 100);
+                    }
+                } else if (totalAccountCount >= 1 && isIPWhitelisted) {
+                    console.log('🔓 IP đã được cấp quyền (whitelist), mở khóa - cho phép tạo thêm tài khoản');
+                    
+                    // Hiển thị Setup Task (mở khóa)
+                    const tabSetup = document.getElementById('tab-setup');
+                    if (tabSetup) {
+                        tabSetup.style.setProperty('display', 'block', 'important');
+                    }
+                    
+                    // Ẩn License card
+                    const tabLicense = document.getElementById('tab-license');
+                    if (tabLicense) {
+                        tabLicense.style.setProperty('display', 'none', 'important');
                     }
                 } else {
                     console.log('Chưa có tài khoản, hiển thị Setup Task');
@@ -1610,6 +1635,12 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                                 if (existingImg) existingImg.remove();
                                 const img = document.createElement('img');
                                 img.src = base64;
+                                img.style.width = '64px';
+                                img.style.height = '64px';
+                                img.style.objectFit = 'contain';
+                                img.style.display = 'block';
+                                img.style.marginLeft = 'auto';
+                                img.style.marginRight = 'auto';
                                 img.style.width = '40px';
                                 img.style.height = '40px';
                                 img.style.marginRight = '12px';
