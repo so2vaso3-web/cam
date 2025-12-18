@@ -40,9 +40,6 @@ function displayAccounts() {
                 <div class="account-name">${account.firstName} ${account.lastName || ''}</div>
                 <div class="account-email">${account.email}${account.password ? '|' + account.password : ''}</div>
             </div>
-            <div class="account-actions">
-                <button type="button" class="btn-delete" onclick="deleteAccount(${index})">Xóa</button>
-            </div>
         </div>
     `).join('');
 }
