@@ -420,6 +420,28 @@
                         </div>
                     </form>
                     <div id="faviconMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+                    
+                    <!-- IP Management Section -->
+                    <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
+                    <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Quản lý IP</h2>
+                    <div id="ipManagementSection">
+                        <div style="margin-bottom: 20px;">
+                            <label class="form-label">Thêm IP vào whitelist (cấp quyền tạo thêm tài khoản):</label>
+                            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                <input type="text" id="ipToWhitelist" placeholder="Nhập IP (ví dụ: 192.168.1.1)" class="form-input" style="flex: 1;">
+                                <button type="button" class="btn-start-automation" onclick="addIPToWhitelist()" style="width: auto; padding: 0 24px;">
+                                    <span>Thêm IP</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="ipListContainer" style="margin-top: 24px;">
+                            <h3 style="font-size: 16px; color: #FFFFFF; margin-bottom: 12px;">Danh sách IP và tài khoản:</h3>
+                            <div id="ipList" style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- IP list will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -743,8 +765,13 @@
             
             console.log('Kiểm tra tài khoản:', { totalAccountCount, existingAccounts });
             
-            // NẾU ĐÃ CÓ TÀI KHOẢN RỒI → CHẶN NGAY, KHÔNG CHO TẠO THÊM
-            if (totalAccountCount >= 1) {
+            // Kiểm tra có thể tạo thêm tài khoản không (kiểm tra whitelist)
+            const whitelistedIPs = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
+            const currentIP = getSavedIP() || 'unknown';
+            const isIPWhitelisted = whitelistedIPs.includes(currentIP);
+            
+            // NẾU ĐÃ CÓ TÀI KHOẢN RỒI VÀ IP KHÔNG TRONG WHITELIST → CHẶN NGAY, KHÔNG CHO TẠO THÊM
+            if (totalAccountCount >= 1 && !isIPWhitelisted) {
                 console.log('❌ ĐÃ CÓ TÀI KHOẢN! Hiển thị modal mua bản quyền...');
                 const submitBtn = event.target.querySelector('.btn-start-automation');
                 if (submitBtn) {
@@ -1090,7 +1117,12 @@
                     
                     console.log('Kiểm tra tài khoản khi click button:', { totalAccountCount, existingAccountsCheck });
                     
-                    if (totalAccountCount >= 1) {
+                    // Kiểm tra whitelist
+                    const whitelistedIPsCheck = JSON.parse(localStorage.getItem('ipWhitelist') || '[]');
+                    const currentIPCheck = getSavedIP() || 'unknown';
+                    const isIPWhitelistedCheck = whitelistedIPsCheck.includes(currentIPCheck);
+                    
+                    if (totalAccountCount >= 1 && !isIPWhitelistedCheck) {
                         console.log('❌ ĐÃ CÓ TÀI KHOẢN! Chặn và hiển thị license card...');
                         e.preventDefault();
                         e.stopPropagation();

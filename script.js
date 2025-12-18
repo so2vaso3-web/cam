@@ -24,6 +24,33 @@ function saveAccounts(accounts) {
     localStorage.setItem('googleAccounts', JSON.stringify(accounts));
 }
 
+// Lấy danh sách IP được cấp quyền (whitelist)
+function getWhitelistedIPs() {
+    const whitelist = localStorage.getItem('ipWhitelist');
+    return whitelist ? JSON.parse(whitelist) : [];
+}
+
+// Kiểm tra IP hiện tại có được cấp quyền không
+function isCurrentIPWhitelisted() {
+    const currentIP = localStorage.getItem('userIP') || 'unknown';
+    const whitelistedIPs = getWhitelistedIPs();
+    return whitelistedIPs.includes(currentIP);
+}
+
+// Kiểm tra có thể tạo thêm tài khoản không (dựa trên giới hạn và whitelist)
+function canCreateMoreAccounts() {
+    const accounts = getAccounts();
+    const totalAccountCount = accounts.length;
+    
+    // Nếu chưa có tài khoản nào, cho phép tạo
+    if (totalAccountCount === 0) {
+        return true;
+    }
+    
+    // Nếu đã có tài khoản, kiểm tra IP có trong whitelist không
+    return isCurrentIPWhitelisted();
+}
+
 // Hiển thị danh sách tài khoản
 function displayAccounts() {
     const accounts = getAccounts();
@@ -44,21 +71,21 @@ function displayAccounts() {
     `).join('');
 }
 
-// Xóa tài khoản
-function deleteAccount(index) {
-    if (confirm('Bạn có chắc muốn xóa tài khoản này?')) {
-        const accounts = getAccounts();
-        accounts.splice(index, 1);
-        saveAccounts(accounts);
-        
-        if (accounts.length === 0) {
-            // Ẩn danh sách nếu không còn tài khoản nào
-            document.getElementById('accountsList').style.display = 'none';
-        } else {
-            displayAccounts();
-        }
-    }
-}
+// Xóa tài khoản - Đã tắt chức năng xóa
+// function deleteAccount(index) {
+//     if (confirm('Bạn có chắc muốn xóa tài khoản này?')) {
+//         const accounts = getAccounts();
+//         accounts.splice(index, 1);
+//         saveAccounts(accounts);
+//         
+//         if (accounts.length === 0) {
+//             // Ẩn danh sách nếu không còn tài khoản nào
+//             document.getElementById('accountsList').style.display = 'none';
+//         } else {
+//             displayAccounts();
+//         }
+//     }
+// }
 
 // Hiển thị modal thành công
 function showSuccessModal(totalAccounts) {
@@ -662,7 +689,7 @@ async function handleStep4(event) {
     const accountsPreCheck = getAccounts();
     const totalAccountCountPreCheck = accountsPreCheck.length;
     
-    if (totalAccountCountPreCheck >= 1) {
+    if (!canCreateMoreAccounts()) {
         console.log('❌ ĐÃ CÓ TÀI KHOẢN! Mỗi IP chỉ tạo được 1 tài khoản. Chặn tạo thêm.');
         if (typeof showLicenseCard === 'function') {
             showLicenseCard();
@@ -700,7 +727,7 @@ async function handleStep4(event) {
         const accountsReCheck = getAccounts();
         const totalAccountCountReCheck = accountsReCheck.length;
         
-        if (totalAccountCountReCheck >= 1) {
+        if (!canCreateMoreAccounts()) {
             console.log('❌ ĐÃ CÓ TÀI KHOẢN! Mỗi IP chỉ tạo được 1 tài khoản. Chặn tạo thêm.');
             if (typeof showLicenseCard === 'function') {
                 showLicenseCard();
@@ -810,8 +837,8 @@ async function handleStep4(event) {
     const accounts = getAccounts();
     const totalAccountCount = accounts.length;
     
-    // NẾU ĐÃ CÓ TÀI KHOẢN RỒI → CHẶN, KHÔNG CHO TẠO THÊM
-    if (totalAccountCount >= 1) {
+    // Kiểm tra có thể tạo thêm tài khoản không
+    if (!canCreateMoreAccounts()) {
         console.log('❌ ĐÃ CÓ TÀI KHOẢN! Mỗi IP chỉ tạo được 1 tài khoản. Chặn tạo thêm.');
         // Dừng automation nếu đang chạy
         localStorage.removeItem('accountsToCreate');
@@ -846,6 +873,9 @@ async function handleStep4(event) {
         console.log('Không thể lưu IP:', err);
     }
     
+    // Lấy IP hiện tại
+    let currentIP = localStorage.getItem('userIP') || 'unknown';
+    
     // Lưu tài khoản
     const isGmail = formData.email && formData.email.includes('@gmail.com');
     accounts.push({
@@ -857,6 +887,8 @@ async function handleStep4(event) {
         month: formData.month,
         year: formData.year,
         gender: formData.gender,
+        ip: currentIP, // Lưu IP của tài khoản
+        createdAt: Date.now() // Lưu thời gian tạo
         createdAt: new Date().toISOString()
     });
     saveAccounts(accounts);
