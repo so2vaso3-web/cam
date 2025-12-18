@@ -2063,7 +2063,7 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
             function loadLogoToMainPage(logoData) {
                 if (!logoData) return;
                 
-                // Load vào Setup Task
+                // Load vào Setup Task - logo lớn (64px)
                 const logoContainer = document.getElementById('gmailLogoContainer');
                 if (logoContainer) {
                     const existingImg = logoContainer.querySelector('img');
@@ -2072,13 +2072,15 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                     }
                     const img = document.createElement('img');
                     img.src = logoData;
-                    img.style.width = '40px';
-                    img.style.height = '40px';
-                    img.style.marginRight = '12px';
+                    img.style.width = '64px';
+                    img.style.height = '64px';
                     img.style.objectFit = 'contain';
                     img.alt = 'Logo';
+                    img.style.display = 'block';
+                    img.style.marginLeft = 'auto';
+                    img.style.marginRight = 'auto';
                     logoContainer.appendChild(img);
-                    console.log('✅ Logo đã được load vào Setup Task');
+                    console.log('✅ Logo đã được load vào Setup Task - 64px');
                 }
                 
                 // Load vào License card
