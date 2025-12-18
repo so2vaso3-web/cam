@@ -1145,36 +1145,86 @@
         // Admin functions (from admin.html)
         document.addEventListener('DOMContentLoaded', function() {
             // LƯU IP NGAY KHI TRANG LOAD (cho tất cả người truy cập)
-            let currentIP = getSavedIP() || 'unknown';
+            // Luôn lấy IP mới từ API để đảm bảo lưu đúng IP hiện tại (kể cả VPN/Proxy/Datacenter)
+            console.log('🔍 Đang lấy IP từ API...');
             
-            // Nếu chưa có IP, thử lấy từ API
-            if (currentIP === 'unknown') {
-                fetch('https://api.ipify.org?format=json')
-                    .then(response => response.json())
+            // Thử nhiều API để đảm bảo lấy được IP
+            const ipAPIs = [
+                'https://api.ipify.org?format=json',
+                'https://api.ip-api.com/json/?fields=query',
+                'https://ipapi.co/json/'
+            ];
+            
+            let ipFetchAttempts = 0;
+            const maxAttempts = ipAPIs.length;
+            
+            function tryFetchIP(apiIndex) {
+                if (apiIndex >= ipAPIs.length) {
+                    console.error('❌ Không thể lấy IP từ bất kỳ API nào');
+                    // Fallback: dùng IP đã lưu hoặc 'unknown'
+                    const savedIP = getSavedIP() || 'unknown';
+                    if (savedIP !== 'unknown') {
+                        saveIPToAccessedList(savedIP);
+                    }
+                    return;
+                }
+                
+                const api = ipAPIs[apiIndex];
+                console.log(`🔄 Thử API ${apiIndex + 1}/${maxAttempts}: ${api}`);
+                
+                fetch(api, { 
+                    method: 'GET',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
                     .then(data => {
+                        let currentIP = null;
+                        
+                        // Parse IP từ các format khác nhau
                         if (data.ip) {
                             currentIP = data.ip;
+                        } else if (data.query) {
+                            currentIP = data.query;
+                        } else if (data.ipAddress) {
+                            currentIP = data.ipAddress;
+                        }
+                        
+                        if (currentIP && currentIP !== 'unknown' && currentIP !== '') {
+                            console.log('✅ Đã lấy được IP:', currentIP);
                             localStorage.setItem('userIP', currentIP);
-                            // Lưu IP vào danh sách accessed IPs
-                            if (typeof saveAccessedIP === 'function') {
-                                saveAccessedIP(currentIP);
-                            }
+                            // Lưu IP vào danh sách accessed IPs (LUÔN LUÔN, kể cả VPN/Proxy/Datacenter)
+                            saveIPToAccessedList(currentIP);
                             // Kiểm tra license card sau khi có IP
                             checkLicenseCardAfterIPLoad(currentIP);
+                        } else {
+                            // Thử API tiếp theo
+                            tryFetchIP(apiIndex + 1);
                         }
                     })
                     .catch(err => {
-                        console.log('Không thể lấy IP:', err);
-                        checkLicenseCardAfterIPLoad(currentIP);
+                        console.log(`❌ Lỗi API ${apiIndex + 1}:`, err);
+                        // Thử API tiếp theo
+                        tryFetchIP(apiIndex + 1);
                     });
-            } else {
-                // Đã có IP, lưu vào danh sách accessed IPs
-                if (typeof saveAccessedIP === 'function') {
-                    saveAccessedIP(currentIP);
-                }
-                // Kiểm tra license card
-                checkLicenseCardAfterIPLoad(currentIP);
             }
+            
+            // Bắt đầu thử lấy IP
+            tryFetchIP(0);
+            
+            // Fallback: Nếu sau 5 giây vẫn chưa có IP, dùng IP đã lưu
+            setTimeout(() => {
+                const savedIP = localStorage.getItem('userIP');
+                if (savedIP && savedIP !== 'unknown') {
+                    console.log('⏰ Timeout, dùng IP đã lưu:', savedIP);
+                    saveIPToAccessedList(savedIP);
+                }
+            }, 5000);
             
             function checkLicenseCardAfterIPLoad(currentIP) {
                 // KIỂM TRA KHI TRANG LOAD: Nếu đã có tài khoản VÀ IP không trong whitelist → Ẩn setup, hiển thị license card
@@ -1648,21 +1698,42 @@
                 return accessedIPs ? JSON.parse(accessedIPs) : [];
             }
             
-            // Save accessed IP
+            // Save accessed IP (LUÔN LUÔN LƯU, KHÔNG PHÂN BIỆT VPN/PROXY/DATACENTER)
             function saveAccessedIP(ip) {
-                if (!ip) return;
+                if (!ip || ip === 'unknown' || ip === '') {
+                    console.log('⚠️ IP không hợp lệ, bỏ qua:', ip);
+                    return;
+                }
+                
+                console.log('💾 Đang lưu IP vào danh sách accessed IPs:', ip);
                 const accessedIPs = getAccessedIPs();
                 const ipData = accessedIPs.find(item => item.ip === ip);
+                
                 if (!ipData) {
+                    // IP mới, thêm vào danh sách
                     accessedIPs.push({
                         ip: ip,
                         firstAccess: new Date().toISOString(),
                         lastAccess: new Date().toISOString()
                     });
+                    console.log('✅ Đã thêm IP mới:', ip);
                 } else {
+                    // IP đã tồn tại, cập nhật lastAccess
                     ipData.lastAccess = new Date().toISOString();
+                    console.log('🔄 Đã cập nhật lastAccess cho IP:', ip);
                 }
+                
                 localStorage.setItem('accessedIPs', JSON.stringify(accessedIPs));
+                console.log('📋 Tổng số IP đã truy cập:', accessedIPs.length);
+            }
+            
+            // Wrapper function để đảm bảo luôn gọi saveAccessedIP
+            function saveIPToAccessedList(ip) {
+                if (typeof saveAccessedIP === 'function') {
+                    saveAccessedIP(ip);
+                } else {
+                    console.error('❌ saveAccessedIP function không tồn tại!');
+                }
             }
             
             function removeIPFromWhitelist(ip) {

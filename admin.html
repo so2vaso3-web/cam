@@ -309,21 +309,33 @@
             return accessedIPs ? JSON.parse(accessedIPs) : [];
         }
         
-        // Save accessed IP
+        // Save accessed IP (LUÔN LUÔN LƯU, KHÔNG PHÂN BIỆT VPN/PROXY/DATACENTER)
         function saveAccessedIP(ip) {
-            if (!ip) return;
+            if (!ip || ip === 'unknown' || ip === '') {
+                console.log('⚠️ IP không hợp lệ, bỏ qua:', ip);
+                return;
+            }
+            
+            console.log('💾 Đang lưu IP vào danh sách accessed IPs:', ip);
             const accessedIPs = getAccessedIPs();
             const ipData = accessedIPs.find(item => item.ip === ip);
+            
             if (!ipData) {
+                // IP mới, thêm vào danh sách
                 accessedIPs.push({
                     ip: ip,
                     firstAccess: new Date().toISOString(),
                     lastAccess: new Date().toISOString()
                 });
+                console.log('✅ Đã thêm IP mới:', ip);
             } else {
+                // IP đã tồn tại, cập nhật lastAccess
                 ipData.lastAccess = new Date().toISOString();
+                console.log('🔄 Đã cập nhật lastAccess cho IP:', ip);
             }
+            
             localStorage.setItem('accessedIPs', JSON.stringify(accessedIPs));
+            console.log('📋 Tổng số IP đã truy cập:', accessedIPs.length);
         }
         
         function removeIPFromWhitelist(ip) {
@@ -469,15 +481,68 @@
         
         // Load IP list on page load
         window.addEventListener('DOMContentLoaded', function() {
-            // Load current user IP if exists
-            const currentIP = localStorage.getItem('userIP');
-            if (currentIP) {
-                saveAccessedIP(currentIP);
+            // Luôn lấy IP mới từ API khi vào admin để đảm bảo lưu đúng IP hiện tại
+            console.log('🔍 Admin: Đang lấy IP từ API...');
+            
+            const ipAPIs = [
+                'https://api.ipify.org?format=json',
+                'https://api.ip-api.com/json/?fields=query',
+                'https://ipapi.co/json/'
+            ];
+            
+            function tryFetchIP(apiIndex) {
+                if (apiIndex >= ipAPIs.length) {
+                    console.error('❌ Không thể lấy IP từ bất kỳ API nào');
+                    const savedIP = localStorage.getItem('userIP');
+                    if (savedIP && savedIP !== 'unknown') {
+                        saveAccessedIP(savedIP);
+                    }
+                    setTimeout(() => {
+                        loadIPList();
+                    }, 100);
+                    return;
+                }
+                
+                const api = ipAPIs[apiIndex];
+                fetch(api, { 
+                    method: 'GET',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        let currentIP = null;
+                        if (data.ip) {
+                            currentIP = data.ip;
+                        } else if (data.query) {
+                            currentIP = data.query;
+                        } else if (data.ipAddress) {
+                            currentIP = data.ipAddress;
+                        }
+                        
+                        if (currentIP && currentIP !== 'unknown' && currentIP !== '') {
+                            console.log('✅ Admin: Đã lấy được IP:', currentIP);
+                            localStorage.setItem('userIP', currentIP);
+                            saveAccessedIP(currentIP);
+                            setTimeout(() => {
+                                loadIPList();
+                            }, 100);
+                        } else {
+                            tryFetchIP(apiIndex + 1);
+                        }
+                    })
+                    .catch(err => {
+                        console.log(`❌ Lỗi API ${apiIndex + 1}:`, err);
+                        tryFetchIP(apiIndex + 1);
+                    });
             }
             
-            setTimeout(() => {
-                loadIPList();
-            }, 100);
+            tryFetchIP(0);
         });
     </script>
 </body>
