@@ -15,7 +15,7 @@
                 
                 <form class="setup-form" id="uploadForm">
                     <div class="form-group">
-                        <label class="form-label">Chọn file logo (PNG, JPG, ICO, SVG)</label>
+                        <label class="form-label">Select logo file (PNG, JPG, ICO, SVG)</label>
                         <input type="file" id="logoFile" name="logoFile" accept="image/png,image/jpeg,image/x-icon,.ico,.svg" class="form-input" required>
                     </div>
                     
@@ -31,7 +31,7 @@
                             <span>Upload Logo</span>
                         </button>
                         <button type="button" class="btn-logout" onclick="window.location.href='setup.html'">
-                            <span>Quay lại Setup</span>
+                            <span>Back to Setup</span>
                         </button>
                     </div>
                 </form>
@@ -43,7 +43,7 @@
                 <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Upload Favicon</h2>
                 <form class="setup-form" id="uploadFaviconForm" onsubmit="return false;">
                     <div class="form-group">
-                        <label class="form-label">Chọn file favicon (ICO, PNG, SVG)</label>
+                        <label class="form-label">Select favicon file (ICO, PNG, SVG)</label>
                         <input type="file" id="faviconFile" name="faviconFile" accept="image/x-icon,.ico,image/png,image/svg+xml,.svg" class="form-input">
                     </div>
                     <div class="form-group">
@@ -86,23 +86,23 @@
             e.preventDefault();
             const file = logoFileInput.files[0];
             
-            if (!file) {
-                showMessage('Vui lòng chọn file!', 'error');
-                return;
-            }
+                if (!file) {
+                    showMessage('Please select a file!', 'error');
+                    return;
+                }
 
-            // Đọc file và lưu vào localStorage dưới dạng base64
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result;
-                const fileExtension = file.name.split('.').pop().toLowerCase();
-                
-                // Lưu vào localStorage
-                localStorage.setItem('gmailLogo', base64);
-                localStorage.setItem('gmailLogoType', file.type);
-                localStorage.setItem('gmailLogoExtension', fileExtension);
-                
-                showMessage('Upload thành công! Logo đã được lưu.', 'success');
+                // Đọc file và lưu vào localStorage dưới dạng base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+                    
+                    // Lưu vào localStorage
+                    localStorage.setItem('gmailLogo', base64);
+                    localStorage.setItem('gmailLogoType', file.type);
+                    localStorage.setItem('gmailLogoExtension', fileExtension);
+                    
+                    showMessage('Upload successful! Logo has been saved.', 'success');
                 
                 // Cập nhật preview
                 preview.innerHTML = `<img src="${base64}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
@@ -165,13 +165,32 @@
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const base64 = e.target.result;
-                    localStorage.setItem('favicon', base64);
-                    localStorage.setItem('faviconType', file.type);
-                    showFaviconMessage('Upload thành công! Favicon đã được lưu.', 'success');
-                    
-                    // Cập nhật favicon ngay lập tức
-                    updateFavicon(base64);
+                    try {
+                        const base64 = e.target.result;
+                        console.log('Favicon file read, saving to localStorage...');
+                        
+                        // Lưu vào localStorage
+                        localStorage.setItem('favicon', base64);
+                        localStorage.setItem('faviconType', file.type);
+                        console.log('✅ Favicon đã được lưu vào localStorage');
+                        
+                        // Cập nhật favicon ngay lập tức
+                        updateFavicon(base64);
+                        
+                        // Cập nhật preview
+                        if (faviconPreview) {
+                            faviconPreview.innerHTML = `<img src="${base64}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
+                        }
+                        
+                        showFaviconMessage('Upload thành công! Favicon đã được lưu.', 'success');
+                    } catch (error) {
+                        console.error('Error saving favicon:', error);
+                        showFaviconMessage('Lỗi khi lưu favicon: ' + error.message, 'error');
+                    }
+                };
+                reader.onerror = function(error) {
+                    console.error('Error reading favicon file:', error);
+                    showFaviconMessage('Lỗi khi đọc file favicon!', 'error');
                 };
                 reader.readAsDataURL(file);
             });
