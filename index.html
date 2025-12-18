@@ -402,18 +402,8 @@
                     <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
                     <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">IP Management</h2>
                     <div id="ipManagementSection">
-                        <div style="margin-bottom: 20px;">
-                            <label class="form-label">Add IP to whitelist (grant permission to create more accounts):</label>
-                            <div style="display: flex; gap: 8px; margin-top: 8px;">
-                                <input type="text" id="ipToWhitelist" placeholder="Enter IP (e.g., 192.168.1.1)" class="form-input" style="flex: 1;">
-                                <button type="button" class="btn-start-automation" onclick="addIPToWhitelist()" style="width: auto; padding: 0 24px;">
-                                    <span>Add IP</span>
-                                </button>
-                            </div>
-                        </div>
-                        
                         <div id="ipListContainer" style="margin-top: 24px;">
-                            <h3 style="font-size: 16px; color: #FFFFFF; margin-bottom: 12px;">IP and Accounts List:</h3>
+                            <h3 style="font-size: 16px; color: #FFFFFF; margin-bottom: 12px;">Accessed IPs List:</h3>
                             <div id="ipList" style="display: flex; flex-direction: column; gap: 12px;">
                                 <!-- IP list will be loaded here -->
                             </div>
@@ -1451,33 +1441,27 @@
                 localStorage.setItem('ipWhitelist', JSON.stringify(ips));
             }
             
-            function addIPToWhitelist() {
-                const ipInput = document.getElementById('ipToWhitelist');
-                const ip = ipInput.value.trim();
-                
-                if (!ip) {
-                    showMessage('Please enter an IP address!', 'error');
-                    return;
+            // Get all accessed IPs
+            function getAccessedIPs() {
+                const accessedIPs = localStorage.getItem('accessedIPs');
+                return accessedIPs ? JSON.parse(accessedIPs) : [];
+            }
+            
+            // Save accessed IP
+            function saveAccessedIP(ip) {
+                if (!ip) return;
+                const accessedIPs = getAccessedIPs();
+                const ipData = accessedIPs.find(item => item.ip === ip);
+                if (!ipData) {
+                    accessedIPs.push({
+                        ip: ip,
+                        firstAccess: new Date().toISOString(),
+                        lastAccess: new Date().toISOString()
+                    });
+                } else {
+                    ipData.lastAccess = new Date().toISOString();
                 }
-                
-                // Validate IP format (basic)
-                const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-                if (!ipRegex.test(ip)) {
-                    showMessage('Invalid IP! Please enter a valid IP format (e.g., 192.168.1.1)', 'error');
-                    return;
-                }
-                
-                const whitelist = getWhitelistedIPs();
-                if (whitelist.includes(ip)) {
-                    showMessage('This IP is already in the whitelist!', 'error');
-                    return;
-                }
-                
-                whitelist.push(ip);
-                saveWhitelistedIPs(whitelist);
-                ipInput.value = '';
-                loadIPList();
-                showMessage('IP added to whitelist!', 'success');
+                localStorage.setItem('accessedIPs', JSON.stringify(accessedIPs));
             }
             
             function removeIPFromWhitelist(ip) {
@@ -1499,58 +1483,65 @@
                 const ipListContainer = document.getElementById('ipList');
                 if (!ipListContainer) return;
                 
-                // Lấy tất cả tài khoản
+                const accessedIPs = getAccessedIPs();
                 const accounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+                const whitelistedIPs = getWhitelistedIPs();
                 
-                // Nhóm tài khoản theo IP
-                const ipGroups = {};
+                // Group accounts by IP
+                const ipMap = {};
                 accounts.forEach(account => {
-                    const ip = account.ip || 'unknown';
-                    if (!ipGroups[ip]) {
-                        ipGroups[ip] = [];
+                    if (account.ip) {
+                        if (!ipMap[account.ip]) {
+                            ipMap[account.ip] = [];
+                        }
+                        ipMap[account.ip].push(account);
                     }
-                    ipGroups[ip].push(account);
                 });
                 
-                // Lấy whitelist
-                const whitelist = getWhitelistedIPs();
-                
-                // Tạo HTML
                 let html = '';
-                const ips = Object.keys(ipGroups).sort();
                 
-                if (ips.length === 0) {
-                    html = '<p style="color: #9AA0A6; text-align: center; padding: 20px;">No IPs have created accounts yet</p>';
+                if (accessedIPs.length === 0) {
+                    html = '<p style="color: #9AA0A6; text-align: center; padding: 20px;">No IPs have accessed the website yet</p>';
                 } else {
-                    ips.forEach(ip => {
-                        const accountsForIP = ipGroups[ip];
+                    // Sort by last access (newest first)
+                    accessedIPs.sort((a, b) => new Date(b.lastAccess) - new Date(a.lastAccess));
+                    
+                    accessedIPs.forEach(ipData => {
+                        const ip = ipData.ip;
+                        const accountsForIP = ipMap[ip] || [];
                         const accountCount = accountsForIP.length;
-                        const isWhitelisted = whitelist.includes(ip);
+                        const isWhitelisted = whitelistedIPs.includes(ip);
+                        const firstAccess = new Date(ipData.firstAccess).toLocaleString();
+                        const lastAccess = new Date(ipData.lastAccess).toLocaleString();
                         
                         html += `
                             <div style="background-color: #2a2a2a; border: 1px solid #5F6368; border-radius: 8px; padding: 16px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                                     <div style="flex: 1; min-width: 200px;">
-                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
                                             <strong style="color: #FFFFFF; font-size: 16px;">${ip}</strong>
-                                            ${isWhitelisted ? '<span style="background-color: #34A853; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Whitelisted</span>' : ''}
+                                            ${isWhitelisted ? '<span style="background-color: #34A853; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Whitelisted</span>' : '<span style="background-color: #EA4335; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Not Whitelisted</span>'}
                                         </div>
-                                        <div style="color: #9AA0A6; font-size: 14px;">
+                                        <div style="color: #9AA0A6; font-size: 12px; margin-bottom: 4px;">
+                                            First access: ${firstAccess}
+                                        </div>
+                                        <div style="color: #9AA0A6; font-size: 12px; margin-bottom: 4px;">
+                                            Last access: ${lastAccess}
+                                        </div>
+                                        <div style="color: #9AA0A6; font-size: 14px; margin-top: 8px;">
                                             Account count: <strong style="color: #FFFFFF;">${accountCount}</strong>
                                         </div>
+                                        ${accountCount > 0 ? `
                                         <div style="color: #9AA0A6; font-size: 12px; margin-top: 4px; word-break: break-all;">
                                             ${accountsForIP.map(acc => acc.email).join(', ')}
                                         </div>
+                                        ` : ''}
                                     </div>
-                                    <div style="display: flex; gap: 8px;">
-                                        ${!isWhitelisted ? 
-                                            `<button type="button" class="btn-start-automation" onclick="addIPToWhitelistManual('${ip}')" style="width: auto; padding: 0 16px; font-size: 13px;">
-                                                <span>Grant Permission</span>
-                                            </button>` :
-                                            `<button type="button" class="btn-logout" onclick="removeIPFromWhitelist('${ip}')" style="width: auto; padding: 0 16px; font-size: 13px;">
-                                                <span>Revoke Permission</span>
-                                            </button>`
-                                        }
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <select id="permissionSelect_${ip.replace(/\./g, '_')}" class="form-select" style="width: auto; min-width: 150px;" onchange="handlePermissionChange('${ip}', this.value)">
+                                            <option value="not_whitelisted" ${!isWhitelisted ? 'selected' : ''}>Not Whitelisted</option>
+                                            <option value="whitelisted" ${isWhitelisted ? 'selected' : ''}>Grant Permission</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -1559,6 +1550,27 @@
                 }
                 
                 ipListContainer.innerHTML = html;
+            }
+            
+            function handlePermissionChange(ip, value) {
+                const whitelist = getWhitelistedIPs();
+                const index = whitelist.indexOf(ip);
+                
+                if (value === 'whitelisted') {
+                    if (!whitelist.includes(ip)) {
+                        whitelist.push(ip);
+                        saveWhitelistedIPs(whitelist);
+                        showMessage(`Permission granted to IP ${ip}!`, 'success');
+                    }
+                } else {
+                    if (index > -1) {
+                        whitelist.splice(index, 1);
+                        saveWhitelistedIPs(whitelist);
+                        showMessage(`Permission revoked from IP ${ip}!`, 'success');
+                    }
+                }
+                
+                loadIPList();
             }
             
             function addIPToWhitelistManual(ip) {
