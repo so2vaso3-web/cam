@@ -2,12 +2,9 @@
   "name": "gmail-creator-bot",
   "version": "1.0.0",
   "description": "Gmail Creator Bot - Static Web App",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
-    "start": "npx serve -s . -l $PORT"
-  },
-  "dependencies": {
-    "serve": "^14.2.1"
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=18.0.0"
