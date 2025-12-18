@@ -158,7 +158,7 @@
         // Load assets on page load
         loadAdminHeaderAssets();
         
-        // Logo Upload Management
+        // Logo Upload Management (CHỈ DÙNG TRONG ADMIN, KHÔNG ẢNH HƯỞNG ĐẾN TRANG CHÍNH)
         const logoUploadForm = document.getElementById('logoUploadForm');
         const logoInput = document.getElementById('logoInput');
         const logoMessage = document.getElementById('logoMessage');
@@ -176,9 +176,11 @@
                 reader.onload = function(e) {
                     const logoData = e.target.result;
                     const logoType = file.type;
+                    // CHỈ lưu vào 'logo' key (dùng cho admin), KHÔNG lưu vào 'gmailLogo' (dùng cho trang chính)
                     localStorage.setItem('logo', logoData);
                     localStorage.setItem('logoType', logoType);
-                    showLogoMessage('Logo uploaded successfully!', 'success');
+                    showLogoMessage('Logo uploaded successfully! Logo will only appear in Admin Panel header.', 'success');
+                    // CHỈ load lại logo trong admin header, KHÔNG load vào trang chính
                     loadAdminHeaderAssets();
                     logoInput.value = '';
                 };

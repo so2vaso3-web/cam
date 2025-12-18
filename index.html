@@ -1594,38 +1594,70 @@
                 }
             }
             
-            // Function để cập nhật favicon
+            // Function để cập nhật favicon (LUÔN HIỂN THỊ TRÊN TAB)
             function updateFavicon(faviconData) {
-                console.log('Updating favicon with data:', faviconData ? 'Data exists' : 'No data');
+                if (!faviconData) {
+                    console.log('⚠️ Không có favicon data');
+                    return;
+                }
                 
-                // Xóa tất cả favicon links cũ
-                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-                existingLinks.forEach(link => link.remove());
+                console.log('🔄 Đang cập nhật favicon...');
                 
-                // Tạo favicon link mới
-                const faviconLink = document.createElement('link');
-                faviconLink.id = 'faviconLink';
-                faviconLink.rel = 'icon';
-                faviconLink.type = localStorage.getItem('faviconType') || 'image/x-icon';
-                faviconLink.href = faviconData;
+                // Xóa TẤT CẢ favicon links cũ (bao gồm cả default gmail.ico)
+                const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+                existingLinks.forEach(link => {
+                    console.log('🗑️ Xóa favicon link cũ:', link.href);
+                    link.remove();
+                });
                 
-                // Thêm vào head
-                document.head.appendChild(faviconLink);
-                
-                // Force reload favicon bằng cách thêm timestamp
+                // Tạo favicon link mới với timestamp để force reload
                 const timestamp = new Date().getTime();
-                const faviconLink2 = document.createElement('link');
-                faviconLink2.rel = 'icon';
-                faviconLink2.type = localStorage.getItem('faviconType') || 'image/x-icon';
-                faviconLink2.href = faviconData + '?t=' + timestamp;
-                document.head.appendChild(faviconLink2);
+                const faviconType = localStorage.getItem('faviconType') || 'image/x-icon';
                 
-                console.log('✅ Favicon đã được cập nhật');
+                // Thêm nhiều loại favicon link để đảm bảo browser nhận diện
+                const faviconLinks = [
+                    { rel: 'icon', href: faviconData + '?t=' + timestamp },
+                    { rel: 'shortcut icon', href: faviconData + '?t=' + timestamp },
+                    { rel: 'apple-touch-icon', href: faviconData + '?t=' + timestamp }
+                ];
+                
+                faviconLinks.forEach(linkData => {
+                    const link = document.createElement('link');
+                    link.id = linkData.rel === 'icon' ? 'faviconLink' : `faviconLink_${linkData.rel.replace(/\s+/g, '_')}`;
+                    link.rel = linkData.rel;
+                    link.type = faviconType;
+                    link.href = linkData.href;
+                    document.head.appendChild(link);
+                    console.log('✅ Đã thêm favicon link:', linkData.rel, linkData.href.substring(0, 50) + '...');
+                });
+                
+                // Force browser reload favicon bằng cách trigger một request mới
+                setTimeout(() => {
+                    const testImg = new Image();
+                    testImg.src = faviconData + '?t=' + timestamp + '&reload=' + Math.random();
+                    testImg.onload = () => {
+                        console.log('✅ Favicon đã được load thành công');
+                    };
+                    testImg.onerror = () => {
+                        console.error('❌ Lỗi khi load favicon');
+                    };
+                }, 100);
+                
+                console.log('✅ Favicon đã được cập nhật hoàn tất');
             }
             
-            // Load favicon từ localStorage khi trang load (đã load ở trên)
+            // Load favicon từ localStorage NGAY KHI TRANG LOAD
+            const savedFavicon = localStorage.getItem('favicon');
             if (savedFavicon) {
+                console.log('📋 Tìm thấy favicon trong localStorage, đang load...');
+                // Load ngay lập tức
                 updateFavicon(savedFavicon);
+                // Load lại sau 100ms để đảm bảo
+                setTimeout(() => {
+                    updateFavicon(savedFavicon);
+                }, 100);
+            } else {
+                console.log('⚠️ Không có favicon trong localStorage, sử dụng favicon mặc định');
             }
             
             // Admin Password Management
@@ -1889,7 +1921,7 @@
                 }
             }
             
-            // Logo Upload Management
+            // Logo Upload Management (CHỈ DÙNG TRONG ADMIN, KHÔNG ẢNH HƯỞNG ĐẾN TRANG CHÍNH)
             const logoUploadForm = document.getElementById('logoUploadForm');
             const logoInput = document.getElementById('logoInput');
             const logoMessage = document.getElementById('logoMessage');
@@ -1907,15 +1939,14 @@
                     reader.onload = function(e) {
                         const logoData = e.target.result;
                         const logoType = file.type;
+                        // CHỈ lưu vào 'logo' key (dùng cho admin), KHÔNG lưu vào 'gmailLogo' (dùng cho trang chính)
                         localStorage.setItem('logo', logoData);
                         localStorage.setItem('logoType', logoType);
                         showLogoMessage('Logo uploaded successfully!', 'success');
+                        // CHỈ load lại logo trong admin header, KHÔNG load vào trang chính
                         loadAdminHeaderAssets();
                         logoInput.value = '';
-                        // Reload logo in main page
-                        if (typeof loadLicenseLogo === 'function') {
-                            loadLicenseLogo();
-                        }
+                        // KHÔNG gọi loadLicenseLogo() - logo chỉ hiển thị trong admin
                     };
                     reader.readAsDataURL(file);
                 });
