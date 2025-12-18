@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Upload Logo</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
 </head>
 <body>
     <div class="main-container">
@@ -126,6 +127,100 @@
             setTimeout(() => {
                 message.style.display = 'none';
             }, 3000);
+        }
+        
+        // Favicon upload handler
+        const faviconFileInput = document.getElementById('faviconFile');
+        const faviconPreview = document.getElementById('faviconPreview');
+        const uploadFaviconForm = document.getElementById('uploadFaviconForm');
+        const faviconMessage = document.getElementById('faviconMessage');
+        
+        // Load saved favicon preview
+        const savedFavicon = localStorage.getItem('favicon');
+        if (savedFavicon && faviconPreview) {
+            faviconPreview.innerHTML = `<img src="${savedFavicon}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
+        }
+        
+        if (faviconFileInput && faviconPreview) {
+            faviconFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        faviconPreview.innerHTML = `<img src="${e.target.result}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        if (uploadFaviconForm) {
+            uploadFaviconForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const file = faviconFileInput?.files[0];
+                if (!file) {
+                    showFaviconMessage('Vui lòng chọn file!', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    localStorage.setItem('favicon', base64);
+                    localStorage.setItem('faviconType', file.type);
+                    showFaviconMessage('Upload thành công! Favicon đã được lưu.', 'success');
+                    
+                    // Cập nhật favicon ngay lập tức
+                    updateFavicon(base64);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function showFaviconMessage(text, type) {
+            if (faviconMessage) {
+                faviconMessage.textContent = text;
+                faviconMessage.style.display = 'block';
+                faviconMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                faviconMessage.style.color = '#FFFFFF';
+                setTimeout(() => {
+                    faviconMessage.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        // Function để cập nhật favicon
+        function updateFavicon(faviconData) {
+            console.log('Updating favicon with data:', faviconData ? 'Data exists' : 'No data');
+            
+            // Xóa tất cả favicon links cũ
+            const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+            existingLinks.forEach(link => link.remove());
+            
+            // Tạo favicon link mới
+            const faviconLink = document.createElement('link');
+            faviconLink.id = 'faviconLink';
+            faviconLink.rel = 'icon';
+            faviconLink.type = localStorage.getItem('faviconType') || 'image/x-icon';
+            faviconLink.href = faviconData;
+            
+            // Thêm vào head
+            document.head.appendChild(faviconLink);
+            
+            // Force reload favicon bằng cách thêm timestamp
+            const timestamp = new Date().getTime();
+            const faviconLink2 = document.createElement('link');
+            faviconLink2.rel = 'icon';
+            faviconLink2.type = localStorage.getItem('faviconType') || 'image/x-icon';
+            faviconLink2.href = faviconData + '?t=' + timestamp;
+            document.head.appendChild(faviconLink2);
+            
+            console.log('✅ Favicon đã được cập nhật');
+        }
+        
+        // Load favicon từ localStorage khi trang load
+        if (savedFavicon) {
+            updateFavicon(savedFavicon);
         }
     </script>
 </body>
