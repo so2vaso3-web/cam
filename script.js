@@ -620,7 +620,7 @@ function handleStep2(event) {
         formData.email = account.email;
         
         // Tạo email gợi ý (nếu cần)
-        const baseUsername = (formData.firstName.toLowerCase() + (formData.lastName ? '.' + formData.lastName.toLowerCase() : ''))
+        const baseUsername = (formData.firstName.toLowerCase() + (formData.lastName ? formData.lastName.toLowerCase() : ''))
             .replace(/\s+/g, '')
             .substring(0, 20);
         
@@ -638,7 +638,7 @@ function handleStep2(event) {
     }
     
     // Tạo email gợi ý
-    const baseUsername = (formData.firstName.toLowerCase() + (formData.lastName ? '.' + formData.lastName.toLowerCase() : ''))
+    const baseUsername = (formData.firstName.toLowerCase() + (formData.lastName ? formData.lastName.toLowerCase() : ''))
         .replace(/\s+/g, '')
         .substring(0, 20);
     

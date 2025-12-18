@@ -944,19 +944,29 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 isIPWhitelisted 
             });
             
-            // NẾU ĐÃ CÓ TÀI KHOẢN RỒI VÀ IP KHÔNG TRONG WHITELIST → CHẶN NGAY, KHÔNG CHO TẠO THÊM
-            if (totalAccountCount >= 1 && !isIPWhitelisted) {
-                console.log('❌ ĐÃ CÓ TÀI KHOẢN! Hiển thị modal mua bản quyền...');
+            // NẾU ĐÃ CÓ TÀI KHOẢN (>= 1) → LUÔN ẨN SETUP TASK VÀ HIỂN THỊ LICENSE CARD (KHÔNG PHỤ THUỘC WHITELIST)
+            if (totalAccountCount >= 1) {
+                console.log('❌ ĐÃ CÓ TÀI KHOẢN! Ẩn Setup Task và hiển thị License card vĩnh viễn...');
                 const submitBtn = event.target.querySelector('.btn-start-automation');
                 if (submitBtn) {
                     submitBtn.disabled = false;
                 }
-                // Đảm bảo hàm showLicenseCard tồn tại
+                
+                // Ẩn card setup VĨNH VIỄN
+                const tabSetup = document.getElementById('tab-setup');
+                if (tabSetup) {
+                    tabSetup.style.setProperty('display', 'none', 'important');
+                }
+                
+                // Hiển thị card license
                 if (typeof showLicenseCard === 'function') {
                     showLicenseCard();
                 } else {
                     console.error('showLicenseCard không tồn tại!');
-                    alert('Each IP can only create 1 account. Please contact Telegram: @guishanghaii to purchase a license.');
+                    const tabLicense = document.getElementById('tab-license');
+                    if (tabLicense) {
+                        tabLicense.style.setProperty('display', 'block', 'important');
+                    }
                 }
                 return;
             }
@@ -1026,10 +1036,19 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
             });
             
             // Nếu đã có tài khoản VÀ IP không trong whitelist → CHẶN
-            if (totalAccountCountRecheck >= 1 && !isIPWhitelistedRecheck) {
-                console.log('❌ Chặn: Đã có tài khoản và IP không trong whitelist');
+            // NẾU ĐÃ CÓ TÀI KHOẢN (>= 1) → LUÔN ẨN SETUP TASK VÀ HIỂN THỊ LICENSE CARD
+            if (totalAccountCountRecheck >= 1) {
+                console.log('❌ Chặn: Đã có tài khoản, ẩn Setup Task và hiển thị License card vĩnh viễn');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
+                
+                // Ẩn card setup VĨNH VIỄN
+                const tabSetup = document.getElementById('tab-setup');
+                if (tabSetup) {
+                    tabSetup.style.setProperty('display', 'none', 'important');
+                }
+                
+                // Hiển thị card license
                 showLicenseCard();
                 return;
             }
@@ -1387,19 +1406,20 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
             }
             
             function checkAndShowLicenseCard(whitelistedIPs, currentIP) {
-                const isIPWhitelisted = whitelistedIPs.includes(currentIP);
+                const existingAccounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
+                const totalAccountCount = existingAccounts.length;
                 
                 console.log('Kiểm tra khi load trang:', { 
                     totalAccountCount, 
                     currentIP, 
-                    whitelistedIPs, 
-                    isIPWhitelisted 
+                    whitelistedIPs
                 });
                 
-                // CHỈ hiển thị license card nếu IP KHÔNG trong whitelist
-                if (!isIPWhitelisted) {
-                    console.log('Đã có tài khoản và IP không trong whitelist, hiển thị license card');
-                    // Ẩn card setup
+                // NẾU ĐÃ CÓ TÀI KHOẢN (>= 1) → LUÔN ẨN SETUP TASK VÀ HIỂN THỊ LICENSE CARD
+                if (totalAccountCount >= 1) {
+                    console.log('✅ Đã có tài khoản, ẩn Setup Task và hiển thị License card vĩnh viễn');
+                    
+                    // Ẩn card setup VĨNH VIỄN
                     const tabSetup = document.getElementById('tab-setup');
                     if (tabSetup) {
                         tabSetup.style.setProperty('display', 'none', 'important');
@@ -1412,11 +1432,13 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                         
                         // Load logo ngay lập tức
                         setTimeout(() => {
-                            loadLicenseLogo();
+                            if (typeof loadLicenseLogo === 'function') {
+                                loadLicenseLogo();
+                            }
                         }, 100);
                     }
                 } else {
-                    console.log('Đã có tài khoản nhưng IP trong whitelist, cho phép tạo thêm');
+                    console.log('Chưa có tài khoản, hiển thị Setup Task');
                 }
             }
             
