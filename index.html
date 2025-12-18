@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gmail Account Creator</title>
-    <link rel="icon" type="image/x-icon" href="gmail.ico">
+    <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
     <link rel="stylesheet" href="style.css">
     <style>
         /* Navigation Tabs - Hidden */
@@ -477,6 +477,28 @@
                         </div>
                     </form>
                     <div id="message" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
+                    
+                    <!-- Favicon Upload Form -->
+                    <hr style="margin: 32px 0; border: none; border-top: 1px solid #5F6368;">
+                    <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Upload Favicon</h2>
+                    <form class="setup-form" id="uploadFaviconForm" onsubmit="return false;">
+                        <div class="form-group">
+                            <label class="form-label">Chọn file favicon (ICO, PNG, SVG)</label>
+                            <input type="file" id="faviconFile" name="faviconFile" accept="image/x-icon,.ico,image/png,image/svg+xml,.svg" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preview:</label>
+                            <div id="faviconPreview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
+                                <p style="color: #9AA0A6;">Chưa có ảnh preview</p>
+                            </div>
+                        </div>
+                        <div class="setup-actions">
+                            <button type="submit" class="btn-start-automation">
+                                <span>Upload Favicon</span>
+                            </button>
+                        </div>
+                    </form>
+                    <div id="faviconMessage" style="margin-top: 16px; padding: 12px; border-radius: 4px; display: none;"></div>
                 </div>
             </div>
         </div>
@@ -1314,6 +1336,85 @@
                         message.style.display = 'none';
                     }, 3000);
                 }
+            }
+            
+            // Favicon upload handler
+            const faviconFileInput = document.getElementById('faviconFile');
+            const faviconPreview = document.getElementById('faviconPreview');
+            const uploadFaviconForm = document.getElementById('uploadFaviconForm');
+            const faviconMessage = document.getElementById('faviconMessage');
+            
+            // Load saved favicon preview
+            const savedFavicon = localStorage.getItem('favicon');
+            if (savedFavicon && faviconPreview) {
+                faviconPreview.innerHTML = `<img src="${savedFavicon}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
+            }
+            
+            if (faviconFileInput && faviconPreview) {
+                faviconFileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            faviconPreview.innerHTML = `<img src="${e.target.result}" alt="Favicon Preview" style="max-width: 64px; max-height: 64px; border-radius: 4px;">`;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            if (uploadFaviconForm) {
+                uploadFaviconForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const file = faviconFileInput?.files[0];
+                    if (!file) {
+                        showFaviconMessage('Vui lòng chọn file!', 'error');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64 = e.target.result;
+                        localStorage.setItem('favicon', base64);
+                        localStorage.setItem('faviconType', file.type);
+                        showFaviconMessage('Upload thành công! Favicon đã được lưu.', 'success');
+                        
+                        // Cập nhật favicon ngay lập tức
+                        updateFavicon(base64);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            function showFaviconMessage(text, type) {
+                if (faviconMessage) {
+                    faviconMessage.textContent = text;
+                    faviconMessage.style.display = 'block';
+                    faviconMessage.style.backgroundColor = type === 'success' ? '#34A853' : '#EA4335';
+                    faviconMessage.style.color = '#FFFFFF';
+                    setTimeout(() => {
+                        faviconMessage.style.display = 'none';
+                    }, 3000);
+                }
+            }
+            
+            // Function để cập nhật favicon
+            function updateFavicon(faviconData) {
+                let faviconLink = document.getElementById('faviconLink');
+                if (!faviconLink) {
+                    // Tạo thẻ link nếu chưa có
+                    faviconLink = document.createElement('link');
+                    faviconLink.id = 'faviconLink';
+                    faviconLink.rel = 'icon';
+                    document.head.appendChild(faviconLink);
+                }
+                faviconLink.href = faviconData;
+                faviconLink.type = localStorage.getItem('faviconType') || 'image/x-icon';
+            }
+            
+            // Load favicon từ localStorage khi trang load (đã load ở trên)
+            if (savedFavicon) {
+                updateFavicon(savedFavicon);
             }
         });
     </script>
