@@ -911,14 +911,12 @@ async function handleStep4(event) {
                 const savedLogo = localStorage.getItem('gmailLogo');
                 if (savedLogo) {
                     const licenseLogoContainer = document.getElementById('licenseLogoContainer');
-                    const licenseDefaultLogo = document.getElementById('licenseDefaultLogo');
-                    if (licenseLogoContainer && licenseDefaultLogo) {
+                    if (licenseLogoContainer) {
                         // Xóa logo cũ nếu có
                         const existingImg = licenseLogoContainer.querySelector('img');
                         if (existingImg) {
                             existingImg.remove();
                         }
-                        licenseDefaultLogo.style.display = 'none';
                         const licenseImg = document.createElement('img');
                         licenseImg.src = savedLogo;
                         licenseImg.style.width = '40px';
@@ -926,7 +924,7 @@ async function handleStep4(event) {
                         licenseImg.style.marginRight = '12px';
                         licenseImg.style.objectFit = 'contain';
                         licenseImg.alt = 'Logo';
-                        licenseLogoContainer.insertBefore(licenseImg, licenseLogoContainer.firstChild);
+                        licenseLogoContainer.appendChild(licenseImg);
                         console.log('✅ Logo đã được load vào license card sau khi tạo Gmail');
                     }
                 }
