@@ -93,7 +93,7 @@ function showSuccessModal(totalAccounts) {
     const successCountMessage = document.getElementById('successCountMessage');
     
     if (successModal && successCountMessage) {
-        successCountMessage.textContent = `Đã tạo thành công ${totalAccounts} tài khoản!`;
+        successCountMessage.textContent = `Successfully created ${totalAccounts} account${totalAccounts > 1 ? 's' : ''}!`;
         successModal.style.setProperty('display', 'flex', 'important');
         
         // Tự động đóng sau 5 giây (tùy chọn)
@@ -156,7 +156,7 @@ function downloadAccounts(format) {
     const accounts = getAccounts();
     
     if (accounts.length === 0) {
-        alert('Chưa có tài khoản nào để tải về!');
+        alert('No accounts available to download!');
         return;
     }
     
@@ -466,7 +466,7 @@ function handleStep1(event) {
     
     if (!firstNameInput) {
         console.error('Không tìm thấy input firstName');
-        alert('Lỗi: Không tìm thấy trường nhập tên');
+        alert('Error: Name input field not found');
         return false;
     }
     
@@ -476,7 +476,7 @@ function handleStep1(event) {
     console.log('formData:', formData);
     
     if (!formData.firstName) {
-        alert('Vui lòng nhập tên');
+        alert('Please enter your name');
         firstNameInput.focus();
         return false;
     }
@@ -509,7 +509,7 @@ function handleStep2(event) {
     
     if (!dayInput || !monthInput || !yearInput || !genderInput) {
         console.error('Không tìm thấy các input field');
-        alert('Lỗi: Không tìm thấy các trường nhập liệu');
+        alert('Error: Input fields not found');
         return false;
     }
     
@@ -520,12 +520,12 @@ function handleStep2(event) {
     
     // Validate
     if (!formData.day || !formData.month || !formData.year) {
-        alert('Vui lòng nhập đầy đủ ngày, tháng, năm');
+        alert('Please enter day, month, and year');
         return false;
     }
     
     if (!formData.gender) {
-        alert('Vui lòng chọn giới tính');
+        alert('Please select gender');
         return false;
     }
     
@@ -602,7 +602,7 @@ function handleStep3(event) {
     
     const emailOptionRadio = document.querySelector('input[name="emailOption"]:checked');
     if (!emailOptionRadio) {
-        alert('Vui lòng chọn một tùy chọn email');
+        alert('Please select an email option');
         return false;
     }
     
@@ -611,12 +611,12 @@ function handleStep3(event) {
     if (emailOption === 'custom') {
         const customEmail = document.getElementById('customEmail');
         if (!customEmail) {
-            alert('Lỗi: Không tìm thấy trường nhập email tùy chỉnh');
+            alert('Error: Custom email input field not found');
             return false;
         }
         const customEmailValue = customEmail.value.trim();
         if (!customEmailValue) {
-            alert('Vui lòng nhập tên người dùng');
+            alert('Please enter a username');
             customEmail.focus();
             return false;
         }
@@ -660,13 +660,13 @@ function handleStep3b(event) {
     
     const currentEmailInput = document.getElementById('currentEmail');
     if (!currentEmailInput) {
-        alert('Lỗi: Không tìm thấy trường nhập email');
+        alert('Error: Email input field not found');
         return false;
     }
     
     formData.email = currentEmailInput.value.trim();
     if (!formData.email) {
-        alert('Vui lòng nhập email');
+        alert('Please enter an email address');
         currentEmailInput.focus();
         return false;
     }
@@ -709,7 +709,7 @@ async function handleStep4(event) {
     const confirmPasswordInput = document.getElementById('confirmPassword');
     
     if (!passwordInput || !confirmPasswordInput) {
-        alert('Lỗi: Không tìm thấy các trường nhập mật khẩu');
+        alert('Error: Password input fields not found');
         return false;
     }
     

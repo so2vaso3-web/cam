@@ -21,7 +21,7 @@
             display: none;
         }
         
-        /* Ẩn Logout và Footer chỉ ở trang Setup Task */
+        /* Hide Footer only on Setup Task page */
         #tab-setup .btn-logout {
             display: none !important;
         }
@@ -63,9 +63,6 @@
                             <button type="submit" class="btn-start-automation" id="startAutomationBtn">
                                 <span>Start Automation</span>
                             </button>
-                            <button type="button" class="btn-logout" onclick="handleLogout()">
-                                <span>Logout</span>
-                            </button>
                         </div>
                     </form>
                 </div>
@@ -79,17 +76,17 @@
                     <div class="setup-logo" id="licenseLogoContainer">
                         <!-- Logo mặc định đã bị xóa - chỉ hiển thị logo custom nếu có upload -->
                     </div>
-                    <h1 class="setup-heading" style="color: #EA4335;">Giới hạn đã đạt!</h1>
+                    <h1 class="setup-heading" style="color: #EA4335;">Limit Reached!</h1>
                     
                     <div style="text-align: center; margin: 24px 0;">
                         <p style="color: #9AA0A6; font-size: 16px; margin-bottom: 16px; line-height: 1.6;">
-                            <strong style="color: #FFFFFF;">Mỗi IP chỉ được tạo 1 tài khoản</strong> (Gmail hoặc Moitasec) miễn phí.
+                            <strong style="color: #FFFFFF;">Each IP can only create 1 account</strong> (Gmail or Moitasec) for free.
                         </p>
                         <p style="color: #9AA0A6; font-size: 16px; margin-bottom: 16px; line-height: 1.6;">
-                            <strong style="color: #EA4335;">VPN/Proxy bị cấm tuyệt đối!</strong> Hệ thống sẽ tự động phát hiện và chặn.
+                            <strong style="color: #EA4335;">VPN/Proxy is strictly prohibited!</strong> The system will automatically detect and block.
                         </p>
                         <p style="color: #9AA0A6; font-size: 16px; margin-bottom: 24px; line-height: 1.6;">
-                            Để tạo thêm tài khoản, vui lòng liên hệ qua Telegram để mua bản quyền.
+                            To create more accounts, please contact us via Telegram to purchase a license.
                         </p>
                         
                         <!-- QR Code Telegram - Đã ẩn -->
@@ -109,7 +106,7 @@
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 14.95 9.7 15.05 9.39C15.06 9.36 15.07 9.22 14.99 9.14C14.92 9.06 14.8 9.09 14.71 9.11C14.56 9.15 12.18 10.75 8.02 13.01C7.49 13.33 7.01 13.49 6.59 13.48C6.12 13.47 5.23 13.24 4.55 13.04C3.75 12.8 3.12 12.67 3.18 12.25C3.21 12.04 3.52 11.81 4.05 11.56C7.47 9.95 10.13 8.73 12.02 7.9C15.36 6.42 16.05 6.22 16.45 6.22C16.54 6.22 16.78 6.25 16.95 6.39C17.09 6.5 17.14 6.66 17.16 6.75C17.18 6.84 17.2 7.07 17.18 7.25C17.15 7.5 16.64 8.8 16.64 8.8Z" fill="white"/>
                             </svg>
-                            <span>Liên hệ Telegram: @guishanghaii</span>
+                            <span>Contact Telegram: @guishanghaii</span>
                         </a>
                     </div>
                 </div>
@@ -130,19 +127,19 @@
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                             </svg>
                         </div>
-                        <h1>Tạo Tài khoản Google</h1>
-                        <p class="subtitle">Nhập tên của bạn</p>
+                        <h1>Create Google Account</h1>
+                        <p class="subtitle">Enter your name</p>
                     </div>
                     <div class="right-section">
                         <form class="registration-form" onsubmit="return false;">
                             <div class="form-group">
-                                <input type="text" id="lastName" name="lastName" placeholder="Họ (không bắt buộc)">
+                                <input type="text" id="lastName" name="lastName" placeholder="Last name (optional)">
                             </div>
                             <div class="form-group">
-                                <input type="text" id="firstName" name="firstName" placeholder="Tên" required>
+                                <input type="text" id="firstName" name="firstName" placeholder="First name" required>
                             </div>
                             <div class="form-actions">
-                                <button type="button" id="step1NextBtn" class="btn-primary">Tiếp theo</button>
+                                <button type="button" id="step1NextBtn" class="btn-primary">Next</button>
                             </div>
                         </form>
                     </div>
@@ -161,48 +158,48 @@
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                             </svg>
                         </div>
-                        <h1>Thông tin cơ bản</h1>
-                        <p class="subtitle">Nhập ngày sinh và giới tính của bạn</p>
+                        <h1>Basic Information</h1>
+                        <p class="subtitle">Enter your date of birth and gender</p>
                     </div>
                     <div class="right-section">
                         <form class="registration-form" onsubmit="return false;">
                             <div class="date-group">
                                 <div class="form-group">
-                                    <input type="number" id="day" name="day" placeholder="Ngày" min="1" max="31" required>
+                                    <input type="number" id="day" name="day" placeholder="Day" min="1" max="31" required>
                                 </div>
                                 <div class="form-group">
                                     <select id="month" name="month" required>
-                                        <option value="">Tháng</option>
-                                        <option value="1">Tháng 1</option>
-                                        <option value="2">Tháng 2</option>
-                                        <option value="3">Tháng 3</option>
-                                        <option value="4">Tháng 4</option>
-                                        <option value="5">Tháng 5</option>
-                                        <option value="6">Tháng 6</option>
-                                        <option value="7">Tháng 7</option>
-                                        <option value="8">Tháng 8</option>
-                                        <option value="9">Tháng 9</option>
-                                        <option value="10">Tháng 10</option>
-                                        <option value="11">Tháng 11</option>
-                                        <option value="12">Tháng 12</option>
+                                        <option value="">Month</option>
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <input type="number" id="year" name="year" placeholder="Năm" min="1900" max="2024" required>
+                                    <input type="number" id="year" name="year" placeholder="Year" min="1900" max="2024" required>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <select id="gender" name="gender" required>
-                                    <option value="">Giới tính</option>
-                                    <option value="male">Nam</option>
-                                    <option value="female">Nữ</option>
-                                    <option value="other">Khác</option>
+                                    <option value="">Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
-                            <a href="#" class="info-link">Lý do chúng tôi yêu cầu cung cấp ngày sinh và giới tính</a>
+                            <a href="#" class="info-link">Why we ask for your date of birth and gender</a>
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="goToStep(1)">Quay lại</button>
-                                <button type="button" class="btn-primary" onclick="handleStep2(event)">Tiếp theo</button>
+                                <button type="button" class="btn-secondary" onclick="goToStep(1)">Back</button>
+                                <button type="button" class="btn-primary" onclick="handleStep2(event)">Next</button>
                             </div>
                         </form>
                     </div>
@@ -221,8 +218,8 @@
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                             </svg>
                         </div>
-                        <h1>Tạo một địa chỉ email</h1>
-                        <p class="subtitle">Tạo một địa chỉ Gmail để đăng nhập vào Tài khoản Google của bạn</p>
+                        <h1>Create an email address</h1>
+                        <p class="subtitle">Create a Gmail address to sign in to your Google Account</p>
                     </div>
                     <div class="right-section">
                         <form class="registration-form" onsubmit="return false;">
@@ -237,21 +234,21 @@
                                 </label>
                                 <label class="radio-label">
                                     <input type="radio" name="emailOption" value="custom">
-                                    <span>Tạo địa chỉ Gmail của riêng bạn</span>
+                                    <span>Create your own Gmail address</span>
                                 </label>
                             </div>
                             <div id="customEmailGroup" style="display: none;" class="form-group">
                                 <div class="email-input-wrapper">
-                                    <input type="text" id="customEmail" placeholder="Tạo một địa chỉ Gmail" pattern="[a-z0-9._]+">
+                                    <input type="text" id="customEmail" placeholder="Create a Gmail address" pattern="[a-z0-9._]+">
                                     <span class="email-suffix">@gmail.com</span>
                                 </div>
-                                <p class="email-hint">Bạn có thể sử dụng chữ cái, số và dấu chấm</p>
+                                <p class="email-hint">You can use letters, numbers, and periods</p>
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="goToStep(2)">Quay lại</button>
+                                <button type="button" class="btn-secondary" onclick="goToStep(2)">Back</button>
                                 <div style="display: flex; gap: 12px; margin-left: auto;">
-                                    <button type="button" class="btn-secondary" id="useCurrentEmailBtn" onclick="showUseCurrentEmail()">Sử dụng email hiện tại của bạn</button>
-                                    <button type="button" class="btn-primary" onclick="handleStep3(event)">Tiếp theo</button>
+                                    <button type="button" class="btn-secondary" id="useCurrentEmailBtn" onclick="showUseCurrentEmail()">Use your current email</button>
+                                    <button type="button" class="btn-primary" onclick="handleStep3(event)">Next</button>
                                 </div>
                             </div>
                         </form>
@@ -271,20 +268,20 @@
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                             </svg>
                         </div>
-                        <h1>Sử dụng email hiện tại của bạn</h1>
-                        <p class="subtitle">Nhập địa chỉ email bạn muốn dùng cho Tài khoản Google của mình</p>
+                        <h1>Use your current email</h1>
+                        <p class="subtitle">Enter the email address you want to use for your Google Account</p>
                     </div>
                     <div class="right-section">
                         <form class="registration-form" onsubmit="return false;">
                             <div class="form-group floating-label">
                                 <input type="email" id="currentEmail" name="currentEmail" placeholder=" " required>
-                                <label for="currentEmail">Địa chỉ email</label>
+                                <label for="currentEmail">Email address</label>
                             </div>
-                            <p class="info-text">Bạn cần phải xác nhận rằng email này là của bạn</p>
-                            <a href="#" class="info-link" onclick="event.preventDefault(); goToStep(3);">Tạo một địa chỉ Gmail</a>
+                            <p class="info-text">You'll need to verify that this email belongs to you</p>
+                            <a href="#" class="info-link" onclick="event.preventDefault(); goToStep(3);">Create a Gmail address</a>
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="goToStep(3)">Quay lại</button>
-                                <button type="button" class="btn-primary" onclick="handleStep3b(event)">Tiếp theo</button>
+                                <button type="button" class="btn-secondary" onclick="goToStep(3)">Back</button>
+                                <button type="button" class="btn-primary" onclick="handleStep3b(event)">Next</button>
                             </div>
                         </form>
                     </div>
@@ -303,28 +300,28 @@
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                             </svg>
                         </div>
-                        <h1>Tạo một mật khẩu mạnh</h1>
-                        <p class="subtitle">Tạo một mật khẩu mạnh có kết hợp của các chữ cái, số và ký hiệu</p>
+                        <h1>Create a strong password</h1>
+                        <p class="subtitle">Create a strong password with a mix of letters, numbers, and symbols</p>
                     </div>
                     <div class="right-section">
                         <form class="registration-form" onsubmit="return false;">
                             <div class="form-group floating-label">
                                 <input type="password" id="password" name="password" placeholder=" " required minlength="8">
-                                <label for="password">Mật khẩu</label>
+                                <label for="password">Password</label>
                             </div>
                             <div class="form-group floating-label">
                                 <input type="password" id="confirmPassword" name="confirmPassword" placeholder=" " required>
-                                <label for="confirmPassword">Xác nhận</label>
+                                <label for="confirmPassword">Confirm</label>
                             </div>
                             <div class="checkbox-group">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="showPassword">
-                                    <span>Hiện mật khẩu</span>
+                                    <span>Show password</span>
                                 </label>
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="goToPreviousStep()">Quay lại</button>
-                                <button type="button" class="btn-primary" onclick="handleStep4(event)">Tiếp theo</button>
+                                <button type="button" class="btn-secondary" onclick="goToPreviousStep()">Back</button>
+                                <button type="button" class="btn-primary" onclick="handleStep4(event)">Next</button>
                             </div>
                         </form>
                     </div>
@@ -341,9 +338,9 @@
                             <path d="M40 60L55 75L80 45" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <h2 class="success-title">Thành công!</h2>
-                    <p class="success-message" id="successCountMessage">Đã tạo thành công tất cả tài khoản</p>
-                    <button type="button" class="btn-success-close" onclick="closeSuccessModal()">Đóng</button>
+                    <h2 class="success-title">Success!</h2>
+                    <p class="success-message" id="successCountMessage">All accounts created successfully</p>
+                    <button type="button" class="btn-success-close" onclick="closeSuccessModal()">Close</button>
                 </div>
             </div>
 
@@ -353,21 +350,21 @@
             <!-- Accounts List -->
             <div id="accountsList" class="accounts-list" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-                    <h2 style="flex: 1; min-width: 200px;">Danh sách tài khoản đã tạo</h2>
+                    <h2 style="flex: 1; min-width: 200px;">Created Accounts List</h2>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
                         <button type="button" class="btn-download" onclick="downloadAccounts('text')" style="background-color: #34A853; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; min-height: 44px; flex: 1; min-width: 100px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
-                            Tải TXT
+                            Download TXT
                         </button>
                         <button type="button" class="btn-download" onclick="downloadAccounts('json')" style="background-color: #8AB4F8; color: #202124; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; min-height: 44px; flex: 1; min-width: 100px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
-                            Tải JSON
+                            Download JSON
                         </button>
                         <button type="button" onclick="goToSetupTask()" style="background-color: #5F6368; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; min-height: 44px; flex: 1; min-width: 100px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
-                            Quay về Setup Task
+                            Back to Setup Task
                         </button>
                     </div>
                 </div>
                 <div id="accountsContainer" class="accounts-container">
-                    <p class="empty-message">Chưa có tài khoản nào. Hãy tạo tài khoản đầu tiên!</p>
+                    <p class="empty-message">No accounts yet. Create your first account!</p>
                 </div>
             </div>
         </div>
@@ -379,13 +376,13 @@
                     <h1 class="setup-heading">Admin - Upload Logo</h1>
                     <form class="setup-form" id="uploadForm" onsubmit="return false;">
                         <div class="form-group">
-                            <label class="form-label">Chọn file logo (PNG, JPG, ICO, SVG)</label>
+                            <label class="form-label">Select logo file (PNG, JPG, ICO, SVG)</label>
                             <input type="file" id="logoFile" name="logoFile" accept="image/png,image/jpeg,image/x-icon,.ico,.svg" class="form-input" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Preview:</label>
                             <div id="preview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
-                                <p style="color: #9AA0A6;">Chưa có ảnh preview</p>
+                                <p style="color: #9AA0A6;">No preview available</p>
                             </div>
                         </div>
                         <div class="setup-actions">
@@ -393,7 +390,7 @@
                                 <span>Upload Logo</span>
                             </button>
                             <button type="button" class="btn-logout" onclick="document.getElementById('tab-admin').style.display='none'; document.getElementById('tab-setup').style.display='block'; updateFooterVisibility();">
-                                <span>Quay lại Setup</span>
+                                <span>Back to Setup</span>
                             </button>
                         </div>
                     </form>
@@ -404,13 +401,13 @@
                     <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Upload Favicon</h2>
                     <form class="setup-form" id="uploadFaviconForm" onsubmit="return false;">
                         <div class="form-group">
-                            <label class="form-label">Chọn file favicon (ICO, PNG, SVG)</label>
+                            <label class="form-label">Select favicon file (ICO, PNG, SVG)</label>
                             <input type="file" id="faviconFile" name="faviconFile" accept="image/x-icon,.ico,image/png,image/svg+xml,.svg" class="form-input">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Preview:</label>
                             <div id="faviconPreview" style="margin-top: 8px; min-height: 100px; display: flex; align-items: center; justify-content: center; border: 1px solid #5F6368; border-radius: 4px; padding: 16px;">
-                                <p style="color: #9AA0A6;">Chưa có ảnh preview</p>
+                                <p style="color: #9AA0A6;">No preview available</p>
                             </div>
                         </div>
                         <div class="setup-actions">
@@ -426,17 +423,17 @@
                     <h2 class="setup-heading" style="font-size: 20px; margin-bottom: 16px;">Quản lý IP</h2>
                     <div id="ipManagementSection">
                         <div style="margin-bottom: 20px;">
-                            <label class="form-label">Thêm IP vào whitelist (cấp quyền tạo thêm tài khoản):</label>
+                            <label class="form-label">Add IP to whitelist (grant permission to create more accounts):</label>
                             <div style="display: flex; gap: 8px; margin-top: 8px;">
-                                <input type="text" id="ipToWhitelist" placeholder="Nhập IP (ví dụ: 192.168.1.1)" class="form-input" style="flex: 1;">
+                                <input type="text" id="ipToWhitelist" placeholder="Enter IP (e.g., 192.168.1.1)" class="form-input" style="flex: 1;">
                                 <button type="button" class="btn-start-automation" onclick="addIPToWhitelist()" style="width: auto; padding: 0 24px;">
-                                    <span>Thêm IP</span>
+                                    <span>Add IP</span>
                                 </button>
                             </div>
                         </div>
                         
                         <div id="ipListContainer" style="margin-top: 24px;">
-                            <h3 style="font-size: 16px; color: #FFFFFF; margin-bottom: 12px;">Danh sách IP và tài khoản:</h3>
+                            <h3 style="font-size: 16px; color: #FFFFFF; margin-bottom: 12px;">IP and Accounts List:</h3>
                             <div id="ipList" style="display: flex; flex-direction: column; gap: 12px;">
                                 <!-- IP list will be loaded here -->
                             </div>
@@ -455,14 +452,14 @@
     <div class="footer">
         <div class="footer-left">
             <select id="language" class="language-select">
-                <option value="vi">Tiếng Việt</option>
+                <option value="vi">Vietnamese</option>
                 <option value="en">English</option>
             </select>
         </div>
         <div class="footer-right">
-            <a href="#" class="footer-link">Trợ giúp</a>
-            <a href="#" class="footer-link">Quyền riêng tư</a>
-            <a href="#" class="footer-link">Điều khoản</a>
+            <a href="#" class="footer-link">Help</a>
+            <a href="#" class="footer-link">Privacy</a>
+            <a href="#" class="footer-link">Terms</a>
         </div>
     </div>
 
@@ -782,7 +779,7 @@
                     showLicenseCard();
                 } else {
                     console.error('showLicenseCard không tồn tại!');
-                    alert('Mỗi IP chỉ được tạo 1 tài khoản. Vui lòng liên hệ Telegram: @guishanghaii để mua bản quyền.');
+                    alert('Each IP can only create 1 account. Please contact Telegram: @guishanghaii to purchase a license.');
                 }
                 return;
             }
@@ -790,7 +787,7 @@
             const submitBtn = event.target.querySelector('.btn-start-automation');
             const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Đang kiểm tra VPN...</span>';
+            submitBtn.innerHTML = '<span>Checking VPN...</span>';
             
             // Kiểm tra VPN CỰC MẠNH trước (nhưng không chặn nếu API fail)
             try {
@@ -827,7 +824,7 @@
                 // Tiếp tục nếu VPN check fail (sẽ check lại khi lưu)
             }
             
-            submitBtn.innerHTML = '<span>Đang tạo tài khoản...</span>';
+            submitBtn.innerHTML = '<span>Creating accounts...</span>';
             
             // KIỂM TRA LẠI TỔNG SỐ TÀI KHOẢN (đảm bảo chắc chắn)
             const existingAccountsRecheck = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
@@ -1004,9 +1001,9 @@
         }
         
         function handleLogout() {
-            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+            if (confirm('Are you sure you want to log out?')) {
                 localStorage.removeItem('setupData');
-                alert('Đã đăng xuất');
+                alert('Logged out');
             }
         }
 
@@ -1235,7 +1232,7 @@
                         const base64 = e.target.result;
                         localStorage.setItem('gmailLogo', base64);
                         localStorage.setItem('gmailLogoType', file.type);
-                        showMessage('Upload thành công! Logo đã được lưu.', 'success');
+                        showMessage('Upload successful! Logo has been saved.', 'success');
                         if (preview) {
                             preview.innerHTML = `<img src="${base64}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">`;
                         }
@@ -1419,20 +1416,20 @@
                 const ip = ipInput.value.trim();
                 
                 if (!ip) {
-                    showMessage('Vui lòng nhập IP!', 'error');
+                    showMessage('Please enter an IP address!', 'error');
                     return;
                 }
                 
                 // Validate IP format (basic)
                 const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
                 if (!ipRegex.test(ip)) {
-                    showMessage('IP không hợp lệ! Vui lòng nhập đúng định dạng (ví dụ: 192.168.1.1)', 'error');
+                    showMessage('Invalid IP! Please enter a valid IP format (e.g., 192.168.1.1)', 'error');
                     return;
                 }
                 
                 const whitelist = getWhitelistedIPs();
                 if (whitelist.includes(ip)) {
-                    showMessage('IP này đã có trong whitelist!', 'error');
+                    showMessage('This IP is already in the whitelist!', 'error');
                     return;
                 }
                 
@@ -1440,11 +1437,11 @@
                 saveWhitelistedIPs(whitelist);
                 ipInput.value = '';
                 loadIPList();
-                showMessage('Đã thêm IP vào whitelist!', 'success');
+                showMessage('IP added to whitelist!', 'success');
             }
             
             function removeIPFromWhitelist(ip) {
-                if (!confirm(`Bạn có chắc muốn xóa IP ${ip} khỏi whitelist?`)) {
+                if (!confirm(`Are you sure you want to remove IP ${ip} from the whitelist?`)) {
                     return;
                 }
                 
@@ -1454,7 +1451,7 @@
                     whitelist.splice(index, 1);
                     saveWhitelistedIPs(whitelist);
                     loadIPList();
-                    showMessage('Đã xóa IP khỏi whitelist!', 'success');
+                    showMessage('IP removed from whitelist!', 'success');
                 }
             }
             
@@ -1483,7 +1480,7 @@
                 const ips = Object.keys(ipGroups).sort();
                 
                 if (ips.length === 0) {
-                    html = '<p style="color: #9AA0A6; text-align: center; padding: 20px;">Chưa có IP nào tạo tài khoản</p>';
+                    html = '<p style="color: #9AA0A6; text-align: center; padding: 20px;">No IPs have created accounts yet</p>';
                 } else {
                     ips.forEach(ip => {
                         const accountsForIP = ipGroups[ip];
@@ -1496,10 +1493,10 @@
                                     <div style="flex: 1; min-width: 200px;">
                                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                                             <strong style="color: #FFFFFF; font-size: 16px;">${ip}</strong>
-                                            ${isWhitelisted ? '<span style="background-color: #34A853; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Đã cấp quyền</span>' : ''}
+                                            ${isWhitelisted ? '<span style="background-color: #34A853; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Whitelisted</span>' : ''}
                                         </div>
                                         <div style="color: #9AA0A6; font-size: 14px;">
-                                            Số tài khoản: <strong style="color: #FFFFFF;">${accountCount}</strong>
+                                            Account count: <strong style="color: #FFFFFF;">${accountCount}</strong>
                                         </div>
                                         <div style="color: #9AA0A6; font-size: 12px; margin-top: 4px; word-break: break-all;">
                                             ${accountsForIP.map(acc => acc.email).join(', ')}
@@ -1508,10 +1505,10 @@
                                     <div style="display: flex; gap: 8px;">
                                         ${!isWhitelisted ? 
                                             `<button type="button" class="btn-start-automation" onclick="addIPToWhitelistManual('${ip}')" style="width: auto; padding: 0 16px; font-size: 13px;">
-                                                <span>Cấp quyền</span>
+                                                <span>Grant Permission</span>
                                             </button>` :
                                             `<button type="button" class="btn-logout" onclick="removeIPFromWhitelist('${ip}')" style="width: auto; padding: 0 16px; font-size: 13px;">
-                                                <span>Hủy quyền</span>
+                                                <span>Revoke Permission</span>
                                             </button>`
                                         }
                                     </div>
@@ -1527,14 +1524,14 @@
             function addIPToWhitelistManual(ip) {
                 const whitelist = getWhitelistedIPs();
                 if (whitelist.includes(ip)) {
-                    showMessage('IP này đã có trong whitelist!', 'error');
+                    showMessage('This IP is already in the whitelist!', 'error');
                     return;
                 }
                 
                 whitelist.push(ip);
                 saveWhitelistedIPs(whitelist);
                 loadIPList();
-                showMessage('Đã cấp quyền cho IP!', 'success');
+                showMessage('Permission granted to IP!', 'success');
             }
             
             // Load IP list khi vào admin
