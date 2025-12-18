@@ -118,61 +118,6 @@
             }
         })();
         
-        // Load logo and favicon in header
-        function loadAdminHeaderAssets() {
-            // Load logo
-            const savedLogo = localStorage.getItem('logo');
-            const adminLogoContainer = document.getElementById('adminLogoContainer');
-            if (savedLogo && adminLogoContainer) {
-                const img = document.createElement('img');
-                img.src = savedLogo;
-                img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain;';
-                img.onerror = function() {
-                    adminLogoContainer.innerHTML = '';
-                };
-                adminLogoContainer.innerHTML = '';
-                adminLogoContainer.appendChild(img);
-            }
-            
-            // Load favicon
-            const savedFavicon = localStorage.getItem('favicon');
-            const adminFaviconContainer = document.getElementById('adminFaviconContainer');
-            if (savedFavicon) {
-                // Update page favicon
-                function updateFavicon(faviconData) {
-                    const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-                    existingLinks.forEach(link => link.remove());
-                    const faviconLink = document.createElement('link');
-                    faviconLink.id = 'faviconLink';
-                    faviconLink.rel = 'icon';
-                    faviconLink.type = localStorage.getItem('faviconType') || 'image/x-icon';
-                    faviconLink.href = faviconData;
-                    document.head.appendChild(faviconLink);
-                    const timestamp = new Date().getTime();
-                    const faviconLink2 = document.createElement('link');
-                    faviconLink2.rel = 'icon';
-                    faviconLink2.type = localStorage.getItem('faviconType') || 'image/x-icon';
-                    faviconLink2.href = faviconData + '?t=' + timestamp;
-                    document.head.appendChild(faviconLink2);
-                }
-                updateFavicon(savedFavicon);
-                
-                // Display favicon in header
-                if (adminFaviconContainer) {
-                    const faviconImg = document.createElement('img');
-                    faviconImg.src = savedFavicon;
-                    faviconImg.style.cssText = 'width: 32px; height: 32px; object-fit: contain;';
-                    faviconImg.onerror = function() {
-                        adminFaviconContainer.innerHTML = '';
-                    };
-                    adminFaviconContainer.innerHTML = '';
-                    adminFaviconContainer.appendChild(faviconImg);
-                }
-            }
-        }
-        
-        // Load assets on page load
-        loadAdminHeaderAssets();
         
         // Logo Upload Management (LƯU VÀO CẢ ADMIN VÀ TRANG CHÍNH)
         const logoUploadForm = document.getElementById('logoUploadForm');
