@@ -76,8 +76,6 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if client_ip:
                 logs = load_ip_logs()
                 existing = next((item for item in logs if item.get("ip") == client_ip), None)
-                now = json.dumps(__import__("datetime").datetime.utcnow(), default=str)
-                # datetime iso fix
                 from datetime import datetime
                 now = datetime.utcnow().isoformat()
                 if existing:
