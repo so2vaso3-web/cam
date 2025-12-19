@@ -10,10 +10,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gmail Account Creator</title>
-    <link rel="icon" type="image/x-icon" href="gmail.ico" id="faviconLink">
-    <link rel="shortcut icon" type="image/x-icon" href="gmail.ico">
-    <link rel="apple-touch-icon" href="gmail.ico">
-    <link rel="stylesheet" href="style.css?v=2.1">
+    <link rel="icon" type="image/x-icon" href="/gmail.ico?v=3" id="faviconLink">
+    <link rel="shortcut icon" type="image/x-icon" href="/gmail.ico?v=3">
+    <link rel="apple-touch-icon" href="/gmail.ico?v=3">
+    <link rel="stylesheet" href="style.css?v=2.2">
     <style>
         /* Navigation Tabs - Hidden */
         .nav-tabs {
@@ -1411,9 +1411,15 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
         // Load favicon NGAY KHI TRANG LOAD (trước DOMContentLoaded) - ĐẢM BẢO HIỂN THỊ TRÊN TAB
         (function() {
             function quickUpdateFavicon(faviconData) {
-                // Nếu không có faviconData, dùng gmail.ico mặc định
+                // Nếu không có faviconData, dùng gmail.ico mặc định (đường dẫn tuyệt đối)
                 if (!faviconData) {
-                    faviconData = 'gmail.ico';
+                    faviconData = '/gmail.ico?v=3';
+                }
+                // Nếu không phải data URI, đảm bảo dùng đường dẫn tuyệt đối
+                if (!faviconData.startsWith('data:')) {
+                    if (!faviconData.startsWith('http')) {
+                        faviconData = location.origin + (faviconData.startsWith('/') ? faviconData : '/' + faviconData);
+                    }
                 }
                 
                 // Xóa TẤT CẢ favicon links cũ
@@ -1435,7 +1441,8 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                     link.id = linkData.id;
                     link.rel = linkData.rel;
                     link.type = faviconType;
-                    link.href = faviconData + '?t=' + timestamp + '&v=' + Math.random();
+                    const suffix = (faviconData.includes('?') ? '&' : '?') + 't=' + timestamp + '&v=' + Math.random();
+                    link.href = faviconData + suffix;
                     document.head.appendChild(link);
                 });
             }
