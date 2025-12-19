@@ -29,7 +29,7 @@ body {
 
 .main-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     min-width: 0; /* Cho phép shrink */
     display: flex;
     flex-direction: column;
@@ -47,7 +47,7 @@ body {
     border: none;
     border-radius: 24px;
     padding: 40px;
-    width: 1000px;
+    width: 1200px;
     max-width: 100%; /* Responsive */
     min-width: 0; /* Cho phép shrink */
     min-height: 350px;

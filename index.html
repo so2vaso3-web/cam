@@ -13,11 +13,18 @@
     <link rel="icon" type="image/x-icon" href="/gmail.ico?v=3" id="faviconLink">
     <link rel="shortcut icon" type="image/x-icon" href="/gmail.ico?v=3">
     <link rel="apple-touch-icon" href="/gmail.ico?v=3">
-    <link rel="stylesheet" href="style.css?v=2.2">
+    <link rel="stylesheet" href="style.css?v=2.3">
     <style>
         /* Navigation Tabs - Hidden */
         .nav-tabs {
             display: none !important;
+        }
+        /* Overlay chặn tương tác khi đang chạy */
+        body.blocking {
+            pointer-events: none;
+        }
+        body.blocking #interactionBlocker {
+            display: block !important;
         }
         .tab-content {
             display: none;
@@ -162,6 +169,7 @@
     </style>
 </head>
 <body>
+    <div id="interactionBlocker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.2);backdrop-filter:blur(2px);z-index:9999;pointer-events:auto;"></div>
     <div class="main-container">
         <!-- TAB 1: SETUP (Show by default) -->
         <div id="tab-setup" class="tab-content" style="display: block;">
@@ -1035,6 +1043,8 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
 
         async function handleSetup(event) {
             event.preventDefault();
+            // Chặn tương tác khi đang xử lý
+            document.body.classList.add('blocking');
             const serverRegion = document.getElementById('serverRegion').value;
             const numberOfAccounts = parseInt(document.getElementById('numberOfAccounts').value);
             
@@ -1362,6 +1372,9 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 alert('Có lỗi xảy ra!');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
+            } finally {
+                // Mở lại tương tác
+                document.body.classList.remove('blocking');
             }
         }
         
