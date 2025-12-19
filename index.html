@@ -23,6 +23,73 @@
             display: none;
         }
         
+        /* Responsive reset */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #121212;
+        }
+        .main-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 12px;
+            min-width: 0;
+        }
+        .setup-card,
+        .card {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .setup-content {
+            padding: 12px;
+        }
+        .setup-logo {
+            margin: 8px auto 16px auto;
+            text-align: center;
+        }
+        .setup-logo img {
+            display: block;
+            margin: 0 auto;
+        }
+        .setup-form .form-input,
+        .setup-form .form-select,
+        .setup-form select,
+        .setup-form input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .setup-actions button {
+            width: 100%;
+        }
+        .accounts-container,
+        .accounts-container .account-item,
+        #accountsContainer,
+        #accountsList {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .accounts-container .account-email {
+            word-break: break-all;
+            white-space: normal;
+        }
+        @media (max-width: 640px) {
+            .main-container {
+                padding: 8px;
+            }
+            .setup-content {
+                padding: 10px;
+            }
+            .setup-heading {
+                text-align: center;
+            }
+            .setup-actions button {
+                width: 100%;
+            }
+        }
+        
         /* Mobile layout fixes */
         body {
             margin: 0;
@@ -1988,6 +2055,37 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 return accessedIPs ? JSON.parse(accessedIPs) : [];
             }
             
+            // Fetch accessed IPs từ server (centralized)
+            async function fetchAccessedIPsFromServer() {
+                try {
+                    const res = await fetch('/api/ips', { cache: 'no-store' });
+                    if (!res.ok) throw new Error('Fetch IPs failed');
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        localStorage.setItem('accessedIPs', JSON.stringify(data));
+                        console.log('✅ Đã sync accessed IPs từ server, tổng:', data.length);
+                        return data;
+                    }
+                } catch (err) {
+                    console.error('❌ Lỗi fetch accessed IPs từ server:', err);
+                }
+                return getAccessedIPs();
+            }
+            
+            // Log IP lên server
+            async function logIPToServer(ip) {
+                try {
+                    await fetch('/api/log-ip', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ip })
+                    });
+                    console.log('✅ Đã gửi log IP lên server:', ip || '(auto)');
+                } catch (err) {
+                    console.error('❌ Lỗi gửi log IP lên server:', err);
+                }
+            }
+            
             // Save accessed IP (LUÔN LUÔN LƯU, KHÔNG PHÂN BIỆT VPN/PROXY/DATACENTER)
             function saveAccessedIP(ip) {
                 if (!ip || ip === 'unknown' || ip === '') {
@@ -2015,6 +2113,9 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 
                 localStorage.setItem('accessedIPs', JSON.stringify(accessedIPs));
                 console.log('📋 Tổng số IP đã truy cập:', accessedIPs.length);
+                
+                // Gửi lên server và sync lại
+                logIPToServer(ip).then(() => fetchAccessedIPsFromServer());
             }
             
             // Wrapper function để đảm bảo luôn gọi saveAccessedIP
@@ -2041,11 +2142,11 @@ RossPalaciosZof59279Fad73077@moitasec.com|Sup39973`;
                 }
             }
             
-            function loadIPList() {
+            async function loadIPList() {
                 const ipListContainer = document.getElementById('ipList');
                 if (!ipListContainer) return;
                 
-                const accessedIPs = getAccessedIPs();
+                const accessedIPs = await fetchAccessedIPsFromServer();
                 const accounts = JSON.parse(localStorage.getItem('googleAccounts') || '[]');
                 const whitelistedIPs = getWhitelistedIPs();
                 
