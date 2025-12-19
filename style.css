@@ -1118,8 +1118,8 @@ input::-webkit-contacts-auto-fill-button {
 
 /* Setup Task Styles */
 .setup-card {
-    width: 860px;          /* rộng hơn trên desktop */
-    max-width: 100%;       /* vẫn responsive */
+    width: 1000px;         /* rộng hơn trên desktop */
+    max-width: 100%;       /* vẫn responsive thu nhỏ */
     min-width: 0;          /* Cho phép shrink */
     height: auto;
     min-height: auto;      /* Không cố định min-height trên mobile */
