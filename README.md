@@ -116,3 +116,6 @@ railway up
 - Server sử dụng Python's built-in `http.server` module
 - Không cần cài đặt thêm package nào (chỉ dùng standard library)
 - File `requirements.txt` được giữ lại để Railway nhận diện đây là Python project
+
+
+

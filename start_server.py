@@ -35,3 +35,6 @@ with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print("Cache disabled - files will always be fresh")
     print("Press Ctrl+C to stop the server")
     httpd.serve_forever()
+
+
+

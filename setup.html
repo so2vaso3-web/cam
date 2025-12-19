@@ -124,7 +124,7 @@
             const randomNum = randomNumber(1000, 99999);
             const randomStr = randomString(3, 'letters').toLowerCase();
             
-            const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randomNum}${randomStr}@gmail.com`;
+            const email = `${firstName.toLowerCase()}${lastName.toLowerCase()}${randomNum}${randomStr}@gmail.com`;
             const password = randomString(3, 'letters') + randomNumber(10000, 99999);
             
             return {
