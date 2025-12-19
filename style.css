@@ -1118,11 +1118,11 @@ input::-webkit-contacts-auto-fill-button {
 
 /* Setup Task Styles */
 .setup-card {
-    width: 500px;
-    max-width: 100%; /* Responsive */
-    min-width: 0; /* Cho phép shrink */
+    width: 860px;          /* rộng hơn trên desktop */
+    max-width: 100%;       /* vẫn responsive */
+    min-width: 0;          /* Cho phép shrink */
     height: auto;
-    min-height: auto; /* Không cố định min-height trên mobile */
+    min-height: auto;      /* Không cố định min-height trên mobile */
     padding: 48px;
     box-sizing: border-box;
     overflow-wrap: break-word;
