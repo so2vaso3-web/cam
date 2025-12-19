@@ -163,6 +163,9 @@ body {
     min-width: 0;
     height: 56px;
     padding: 0 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
     font-size: 16px; /* 16px tránh zoom tự động trên iOS */
     font-weight: 400;
@@ -1134,6 +1137,7 @@ input::-webkit-contacts-auto-fill-button {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    min-width: 0; /* tránh tràn */
     box-sizing: border-box;
     overflow-wrap: break-word;
     word-wrap: break-word;
