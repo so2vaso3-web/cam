@@ -220,27 +220,29 @@ class GitHubUploadGUI:
         self.remote_url_entry.grid(row=1, column=1, padx=5, pady=5)
         
         # Authentication
-        auth_frame = ttk.LabelFrame(frame_add, text="🔐 Authentication", padding=5)
+        auth_frame = ttk.LabelFrame(frame_add, text="🔐 Authentication (Khuyến nghị: SSH - không cần đăng nhập)", padding=5)
         auth_frame.grid(row=2, column=0, columnspan=2, sticky=tk.W+tk.E, pady=10)
         
-        self.auth_type = tk.StringVar(value="none")
-        ttk.Radiobutton(auth_frame, text="Không dùng", variable=self.auth_type, value="none").pack(side=tk.LEFT, padx=10)
+        self.auth_type = tk.StringVar(value="ssh")
+        ttk.Radiobutton(auth_frame, text="🔑 SSH (Không cần đăng nhập)", variable=self.auth_type, value="ssh").pack(side=tk.LEFT, padx=10)
         ttk.Radiobutton(auth_frame, text="Token", variable=self.auth_type, value="token").pack(side=tk.LEFT, padx=10)
         ttk.Radiobutton(auth_frame, text="Username/Password", variable=self.auth_type, value="userpass").pack(side=tk.LEFT, padx=10)
+        
+        # Button setup SSH
+        ttk.Button(auth_frame, text="🔧 Setup SSH Key", command=self.setup_ssh_key).pack(side=tk.LEFT, padx=10)
         
         # Token/Password entry
         self.auth_frame_input = ttk.Frame(auth_frame)
         self.auth_frame_input.pack(fill=tk.X, pady=5)
         
-        ttk.Label(self.auth_frame_input, text="Token:").pack(side=tk.LEFT, padx=5)
-        self.token_entry = ttk.Entry(self.auth_frame_input, width=40, show="*")
-        self.token_entry.pack(side=tk.LEFT, padx=5)
-        
         self.username_entry = None
         self.password_entry = None
+        self.token_entry = None
         
         # Update auth input khi chọn
         self.auth_type.trace('w', self.update_auth_input)
+        # Gọi lần đầu để hiển thị
+        self.update_auth_input()
         
         ttk.Button(frame_add, text="➕ Thêm Remote", command=self.add_remote).grid(row=3, column=0, columnspan=2, pady=10)
         
@@ -263,6 +265,7 @@ class GitHubUploadGUI:
         scrollbar_remotes.pack(side=tk.RIGHT, fill=tk.Y)
         
         ttk.Button(frame_list, text="🔄 Làm mới", command=self.refresh_remotes).pack(pady=5)
+        ttk.Button(frame_list, text="🔑 Chuyển sang SSH", command=self.convert_to_ssh).pack(pady=5)
         ttk.Button(frame_list, text="🗑️ Xóa Remote", command=self.remove_remote).pack(pady=5)
     
     def update_auth_input(self, *args):
@@ -271,10 +274,15 @@ class GitHubUploadGUI:
             widget.destroy()
         
         auth_type = self.auth_type.get()
-        if auth_type == "token":
+        if auth_type == "ssh":
+            ttk.Label(self.auth_frame_input, text="💡 URL sẽ tự động chuyển sang SSH format (git@github.com:user/repo.git)", 
+                     font=("Arial", 8), foreground="green").pack(side=tk.LEFT, padx=5)
+        elif auth_type == "token":
             ttk.Label(self.auth_frame_input, text="Token:").pack(side=tk.LEFT, padx=5)
             self.token_entry = ttk.Entry(self.auth_frame_input, width=40, show="*")
             self.token_entry.pack(side=tk.LEFT, padx=5)
+            ttk.Label(self.auth_frame_input, text="(Sẽ lưu vào credential helper)", 
+                     font=("Arial", 7), foreground="gray").pack(side=tk.LEFT, padx=5)
         elif auth_type == "userpass":
             ttk.Label(self.auth_frame_input, text="Username:").pack(side=tk.LEFT, padx=5)
             self.username_entry = ttk.Entry(self.auth_frame_input, width=15)
@@ -412,6 +420,219 @@ class GitHubUploadGUI:
                         remotes[parts[0]] = parts[1]
         return remotes
     
+    def convert_to_ssh_url(self, url: str) -> str:
+        """Chuyển HTTPS URL sang SSH URL"""
+        if url.startswith("git@") or url.startswith("ssh://"):
+            return url  # Đã là SSH URL
+        
+        # Chuyển https://github.com/user/repo.git -> git@github.com:user/repo.git
+        if "https://github.com/" in url:
+            url = url.replace("https://github.com/", "git@github.com:")
+        elif "http://github.com/" in url:
+            url = url.replace("http://github.com/", "git@github.com:")
+        elif "https://" in url:
+            # Generic: https://host/user/repo -> git@host:user/repo
+            url = url.replace("https://", "").replace("http://", "")
+            if "/" in url:
+                parts = url.split("/", 1)
+                url = f"git@{parts[0]}:{parts[1]}"
+        
+        # Remove .git nếu có ở cuối (SSH không cần)
+        if url.endswith(".git"):
+            url = url[:-4]
+        
+        return url
+    
+    def setup_ssh_key(self):
+        """Hướng dẫn và setup SSH key"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("🔑 Setup SSH Key")
+        dialog.geometry("700x500")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (700 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (500 // 2)
+        dialog.geometry(f"700x500+{x}+{y}")
+        
+        frame = ttk.Frame(dialog, padding=20)
+        frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(frame, text="🔑 Hướng dẫn tạo SSH Key cho GitHub", 
+                 font=("Arial", 12, "bold")).pack(pady=10)
+        
+        instructions = """Bước 1: Kiểm tra SSH key đã có chưa
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+Bước 2: Copy SSH key
+Windows: type %USERPROFILE%\\.ssh\\id_ed25519.pub
+Hoặc mở file: C:\\Users\\YourName\\.ssh\\id_ed25519.pub
+
+Bước 3: Thêm SSH key vào GitHub
+1. Vào GitHub → Settings → SSH and GPG keys
+2. Click "New SSH key"
+3. Paste key và lưu
+
+Bước 4: Test kết nối
+ssh -T git@github.com"""
+        
+        text_widget = scrolledtext.ScrolledText(frame, height=15, width=70, wrap=tk.WORD)
+        text_widget.pack(fill=tk.BOTH, expand=True, pady=10)
+        text_widget.insert(1.0, instructions)
+        text_widget.config(state=tk.DISABLED)
+        
+        # Buttons
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(fill=tk.X, pady=10)
+        
+        def check_ssh_key():
+            """Kiểm tra SSH key"""
+            ssh_dir = Path.home() / ".ssh"
+            key_files = list(ssh_dir.glob("id_*")) if ssh_dir.exists() else []
+            
+            if key_files:
+                key_list = "\n".join([f"  - {f.name}" for f in key_files])
+                messagebox.showinfo("SSH Keys tìm thấy", 
+                                  f"Đã tìm thấy SSH keys:\n{key_list}\n\n"
+                                  f"Bạn có thể dùng các key này!", parent=dialog)
+            else:
+                messagebox.showinfo("Chưa có SSH key", 
+                                  "Chưa tìm thấy SSH key.\n"
+                                  "Hãy tạo SSH key theo hướng dẫn trên!", parent=dialog)
+        
+        def generate_ssh_key():
+            """Tạo SSH key tự động"""
+            email = email_entry.get().strip()
+            if not email or "@" not in email:
+                messagebox.showerror("Lỗi", "Vui lòng nhập email hợp lệ!", parent=dialog)
+                return
+            
+            # Kiểm tra SSH key đã tồn tại chưa
+            ssh_dir = Path.home() / ".ssh"
+            key_file = ssh_dir / "id_ed25519"
+            
+            if key_file.exists():
+                if not messagebox.askyesno("Xác nhận", 
+                                          f"SSH key đã tồn tại tại:\n{key_file}\n\n"
+                                          "Bạn có muốn tạo lại? (Key cũ sẽ bị ghi đè)", parent=dialog):
+                    return
+            
+            # Tạo thư mục .ssh nếu chưa có
+            ssh_dir.mkdir(exist_ok=True)
+            
+            # Tạo SSH key tự động
+            key_path = str(key_file).replace("\\", "/")
+            pub_key_path = str(key_file.with_suffix(".pub")).replace("\\", "/")
+            
+            # Chạy ssh-keygen
+            self.log(f"🔑 Đang tạo SSH key với email: {email}...")
+            
+            # Hiển thị progress trong dialog
+            progress_frame = ttk.Frame(dialog)
+            progress_frame.pack(fill=tk.X, pady=10)
+            progress_label = ttk.Label(progress_frame, text="⏳ Đang tạo SSH key...", foreground="blue", font=("Arial", 10, "bold"))
+            progress_label.pack()
+            dialog.update()
+            
+            # Windows: sử dụng đường dẫn Windows format
+            if os.name == 'nt':
+                key_path_win = str(key_file).replace("/", "\\")
+                # Chạy ssh-keygen với -N "" để không hỏi passphrase
+                success, output = self.run_command([
+                    "ssh-keygen", "-t", "ed25519", 
+                    "-C", email,
+                    "-f", key_path_win,
+                    "-N", ""
+                ])
+            else:
+                success, output = self.run_command([
+                    "ssh-keygen", "-t", "ed25519",
+                    "-C", email,
+                    "-f", key_path,
+                    "-N", ""
+                ])
+            
+            progress_label.destroy()
+            progress_frame.destroy()
+            dialog.update()
+            
+            if success:
+                # Đọc public key
+                pub_key_file = key_file.with_suffix(".pub")
+                if pub_key_file.exists():
+                    pub_key = pub_key_file.read_text().strip()
+                    
+                    # Hiển thị dialog với public key
+                    result_dialog = tk.Toplevel(dialog)
+                    result_dialog.title("✅ SSH Key đã tạo thành công!")
+                    result_dialog.geometry("700x400")
+                    result_dialog.transient(dialog)
+                    result_dialog.grab_set()
+                    
+                    # Center
+                    result_dialog.update_idletasks()
+                    x = (result_dialog.winfo_screenwidth() // 2) - (700 // 2)
+                    y = (result_dialog.winfo_screenheight() // 2) - (400 // 2)
+                    result_dialog.geometry(f"700x400+{x}+{y}")
+                    
+                    frame = ttk.Frame(result_dialog, padding=20)
+                    frame.pack(fill=tk.BOTH, expand=True)
+                    
+                    ttk.Label(frame, text="✅ SSH Key đã được tạo thành công!", 
+                             font=("Arial", 12, "bold"), foreground="green").pack(pady=10)
+                    
+                    ttk.Label(frame, text="📋 Public Key (Copy key này và thêm vào GitHub):", 
+                             font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=5)
+                    
+                    key_text = scrolledtext.ScrolledText(frame, height=8, width=70, wrap=tk.WORD)
+                    key_text.pack(fill=tk.BOTH, expand=True, pady=5)
+                    key_text.insert(1.0, pub_key)
+                    key_text.config(state=tk.NORMAL)
+                    
+                    # Select all
+                    key_text.tag_add("sel", "1.0", tk.END)
+                    
+                    ttk.Label(frame, text="💡 Hướng dẫn:", font=("Arial", 9, "bold")).pack(anchor=tk.W, pady=5)
+                    ttk.Label(frame, text="1. Copy key ở trên (đã được chọn sẵn)\n"
+                                         "2. Vào GitHub → Settings → SSH and GPG keys\n"
+                                         "3. Click 'New SSH key'\n"
+                                         "4. Paste key và lưu", 
+                             font=("Arial", 9)).pack(anchor=tk.W, pady=5)
+                    
+                    def copy_key():
+                        result_dialog.clipboard_clear()
+                        result_dialog.clipboard_append(pub_key)
+                        messagebox.showinfo("Thành công", "Đã copy SSH key vào clipboard!", parent=result_dialog)
+                    
+                    ttk.Button(frame, text="📋 Copy Key", command=copy_key).pack(pady=10)
+                    ttk.Button(frame, text="✅ Đã xong", command=result_dialog.destroy).pack()
+                    
+                    self.log(f"✅ Đã tạo SSH key thành công tại: {key_file}")
+                else:
+                    messagebox.showerror("Lỗi", "Không tìm thấy public key sau khi tạo!", parent=dialog)
+            else:
+                messagebox.showerror("Lỗi", f"Không thể tạo SSH key:\n{output}", parent=dialog)
+                self.log(f"❌ Lỗi tạo SSH key: {output}")
+        
+        ttk.Label(btn_frame, text="Email GitHub:").pack(side=tk.LEFT, padx=5)
+        email_entry = ttk.Entry(btn_frame, width=30)
+        email_entry.pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(btn_frame, text="🔍 Kiểm tra SSH Key", command=check_ssh_key).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="⚡ Tạo SSH Key", command=generate_ssh_key).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="✅ Đã xong", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+    
+    def setup_credential_helper(self):
+        """Cấu hình credential helper để lưu token/password"""
+        # Kiểm tra đã cấu hình chưa
+        success, output = self.run_command(["git", "config", "--global", "credential.helper"])
+        if not success or not output:
+            # Cấu hình credential helper để lưu credentials
+            self.run_command(["git", "config", "--global", "credential.helper", "store"])
+            self.log("💾 Đã cấu hình credential helper để lưu token/password")
+    
     def add_remote(self):
         """Thêm remote mới"""
         name = self.remote_name_entry.get().strip()
@@ -426,9 +647,15 @@ class GitHubUploadGUI:
         token = None
         username = None
         
-        if auth_type == "token":
+        if auth_type == "ssh":
+            # Chuyển sang SSH URL (không cần đăng nhập)
+            url = self.convert_to_ssh_url(url)
+            self.log(f"🔑 Đã chuyển URL sang SSH format: {url}")
+        elif auth_type == "token":
             token = self.token_entry.get().strip() if hasattr(self, 'token_entry') and self.token_entry else None
             if token:
+                # Lưu token vào credential helper
+                self.setup_credential_helper()
                 if "https://" in url:
                     url = url.replace("https://", f"https://{token}@")
                 elif "http://" in url:
@@ -437,6 +664,8 @@ class GitHubUploadGUI:
             username = self.username_entry.get().strip() if hasattr(self, 'username_entry') and self.username_entry else None
             password = self.password_entry.get().strip() if hasattr(self, 'password_entry') and self.password_entry else None
             if username and password:
+                # Lưu vào credential helper
+                self.setup_credential_helper()
                 if "https://" in url:
                     url = url.replace("https://", f"https://{username}:{password}@")
                 elif "http://" in url:
@@ -462,6 +691,47 @@ class GitHubUploadGUI:
         else:
             messagebox.showerror("Lỗi", f"Không thể thêm remote: {error}")
             self.log(f"❌ Lỗi thêm remote: {error}")
+    
+    def convert_to_ssh(self):
+        """Chuyển remote hiện tại sang SSH"""
+        selection = self.remotes_tree.selection()
+        if not selection:
+            messagebox.showwarning("Cảnh báo", "Vui lòng chọn remote để chuyển sang SSH!")
+            return
+        
+        item = self.remotes_tree.item(selection[0])
+        remote_name = item['values'][0]
+        
+        # Lấy URL thực từ git
+        remotes = self.list_remotes()
+        current_url = remotes.get(remote_name, "")
+        
+        if not current_url:
+            messagebox.showerror("Lỗi", "Không tìm thấy URL của remote!")
+            return
+        
+        # Kiểm tra đã là SSH chưa
+        if current_url.startswith("git@") or current_url.startswith("ssh://"):
+            messagebox.showinfo("Thông báo", f"Remote '{remote_name}' đã dùng SSH rồi!")
+            return
+        
+        # Chuyển sang SSH
+        ssh_url = self.convert_to_ssh_url(current_url)
+        
+        if messagebox.askyesno("Xác nhận", 
+                              f"Chuyển remote '{remote_name}' sang SSH?\n\n"
+                              f"Từ: {current_url}\n"
+                              f"Sang: {ssh_url}\n\n"
+                              "Sau khi chuyển, bạn sẽ không cần đăng nhập nữa!"):
+            success, error = self.run_command(["git", "remote", "set-url", remote_name, ssh_url])
+            if success:
+                messagebox.showinfo("Thành công", 
+                                  f"Đã chuyển remote '{remote_name}' sang SSH!\n"
+                                  "Bây giờ bạn có thể push mà không cần đăng nhập.")
+                self.refresh_remotes()
+                self.log(f"🔑 Đã chuyển remote '{remote_name}' sang SSH: {ssh_url}")
+            else:
+                messagebox.showerror("Lỗi", f"Không thể chuyển remote: {error}")
     
     def remove_remote(self):
         """Xóa remote"""
