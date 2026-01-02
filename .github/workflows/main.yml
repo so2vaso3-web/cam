@@ -1,0 +1,104 @@
+name: 🚀 SEVER AI STV PREMIUM
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: '🕐 Thời gian sử dụng'
+        required: false
+        default: '5h40m'
+        type: choice
+        options:
+          - '1h'
+          - '3h'
+          - '5h40m'
+
+jobs:
+  Premium-RDP-Setup:
+    runs-on: windows-latest
+    timeout-minutes: 340
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: 🎯 KHỞI ĐỘNG HỆ THỐNG
+        run: |
+          Write-Host "🤖 AI STV PREMIUM RDP SERVER" -ForegroundColor Yellow
+          Write-Host "🕒 Thời gian: ${{ github.event.inputs.duration }}" -ForegroundColor Magenta
+
+      - name: 🔧 CẤU HÌNH HỆ THỐNG
+        run: |
+          Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\Terminal Server' fDenyTSConnections 0
+          Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' UserAuthentication 0
+          netsh advfirewall firewall add rule name="RDP" dir=in action=allow protocol=TCP localport=3389
+          Set-Service TermService -StartupType Automatic
+          Start-Service TermService
+
+      - name: 👤 TẠO USER ADMIN
+        run: |
+          $user = "admin"
+          $pass = "P@ssw0rd123!"
+          $sec  = ConvertTo-SecureString $pass -AsPlainText -Force
+
+          Remove-LocalUser -Name $user -ErrorAction SilentlyContinue
+
+          New-LocalUser `
+            -Name $user `
+            -Password $sec `
+            -AccountNeverExpires `
+            -PasswordNeverExpires `
+            -Description "ADMIN RDP USER"
+
+          Add-LocalGroupMember Administrators $user
+          Add-LocalGroupMember "Remote Desktop Users" $user
+          Enable-LocalUser $user
+
+          echo "RDP_USER=admin" >> $env:GITHUB_ENV
+          echo "RDP_PASS=$pass" >> $env:GITHUB_ENV
+          echo "$pass" > $env:TEMP\rdp_password.txt
+
+          Write-Host "✅ User: admin | Pass: P@ssw0rd123!" -ForegroundColor Green
+
+      - name: 🔍 KIỂM TRA RDP
+        run: |
+          Get-LocalUser admin
+          Get-LocalGroupMember Administrators | Where-Object Name -like "*admin*"
+          Get-Service TermService
+
+      - name: 🌐 CÀI TAILSCALE
+        env:
+          TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
+        run: |
+          $msi = "$env:TEMP\tailscale.msi"
+          Invoke-WebRequest https://pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi -OutFile $msi
+          Start-Process msiexec.exe -ArgumentList "/i `"$msi`" /quiet" -Wait
+          & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey=$env:TAILSCALE_AUTH_KEY --reset
+          $ip = & "$env:ProgramFiles\Tailscale\tailscale.exe" ip -4
+          echo "TAILSCALE_IP=$ip" >> $env:GITHUB_ENV
+
+      - name: 🎉 THÔNG TIN KẾT NỐI
+        run: |
+          $pass = Get-Content $env:TEMP\rdp_password.txt
+          Write-Host "==============================="
+          Write-Host "IP        : $env:TAILSCALE_IP"
+          Write-Host "USER      : admin"
+          Write-Host "PASSWORD  : $pass"
+          Write-Host "PORT      : 3389"
+          Write-Host "==============================="
+
+      - name: ⏳ GIỮ PHIÊN
+        run: |
+          switch ("${{ github.event.inputs.duration }}") {
+            "1h"     { $m = 60 }
+            "3h"     { $m = 180 }
+            "5h40m"  { $m = 340 }
+          }
+          Start-Sleep -Seconds ($m * 60)
+
+      - name: 🧹 DỌN DẸP
+        if: always()
+        run: |
+          Disable-LocalUser admin -ErrorAction SilentlyContinue
+          & "$env:ProgramFiles\Tailscale\tailscale.exe" down -ErrorAction SilentlyContinue
+          Remove-Item $env:TEMP\rdp_password.txt -ErrorAction SilentlyContinue
